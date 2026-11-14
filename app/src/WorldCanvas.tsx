@@ -10,7 +10,8 @@ import {
   type WorldMeta,
   type WorldVectors,
 } from './core/world';
-import { loadWorld, loadWorldVectors, type TileSet } from './data/worldSource';
+import { loadWorld, loadWorldVectors, TileSet } from './data/worldSource';
+import { localBasemap, onlineBasemaps, type BasemapSource } from './data/basemap';
 import { bakeStatus, cancelBake, loadZones, startBake } from './data/bakeApi';
 import { makeZoneKey, zoneTitle, type BakeStatus, type ZoneEntry } from './core/zones';
 import { BakeCard, WorldHint, WorldLibraryPanel, WorldPickPanel, WorldTools } from './ui/WorldPanels';
@@ -78,6 +79,8 @@ export function WorldCanvas(): JSX.Element {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [tiles, setTiles] = useState<TileSet | null>(null);
   const [meta, setMeta] = useState<WorldMeta | null>(null);
+  const [source, setSource] = useState<BasemapSource | null>(null);
+  const drawRef = useRef<(() => void) | null>(null);
   const [zoomHint, setZoomHint] = useState(false);
   const hintTimer = useRef<number | null>(null);
   const [pick, setPick] = useState<{ lat: number; lon: number } | null>(null);
@@ -97,8 +100,8 @@ export function WorldCanvas(): JSX.Element {
       .then((r) => {
         if (!alive) return;
         setImg(r.img);
-        setTiles(r.tiles);
         setMeta(r.meta);
+        setSource(r.tiles ? r.tiles.source : null);
       })
       .catch((e: Error) => {
         store.error = e.message;
@@ -108,6 +111,19 @@ export function WorldCanvas(): JSX.Element {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!source) {
+      setTiles(null);
+      return;
+    }
+    const ts = new TileSet(source);
+    ts.onLoad = () => drawRef.current?.();
+    ts.onFail = () => {
+      if (!source.local && meta) setSource(localBasemap(meta));
+    };
+    setTiles(ts);
+  }, [source, meta]);
 
   useEffect(() => {
     let alive = true;
@@ -203,12 +219,12 @@ export function WorldCanvas(): JSX.Element {
       if (img) {
         ctx.drawImage(img, S.ox, S.oy, S.scale, S.scale);
       }
-      if (tiles) {
-        const tz = pickZoom(S.scale, meta.minZoom, meta.maxZoom);
+      if (tiles && source) {
+        const tz = pickZoom(S.scale, source.minZoom, source.maxZoom);
         const tn = 2 ** tz;
         const tilePx = S.scale / tn;
-        if (tz > meta.minZoom) {
-          const base = tiles.get(meta.minZoom, 0, 0);
+        if (tz > source.minZoom) {
+          const base = tiles.get(source.minZoom, 0, 0);
           if (base) ctx.drawImage(base, S.ox, S.oy, S.scale, S.scale);
         }
         const tx0 = Math.max(0, Math.floor((0 - S.ox) / tilePx));
@@ -345,7 +361,7 @@ export function WorldCanvas(): JSX.Element {
 
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
-    if (tiles) tiles.onLoad = draw;
+    drawRef.current = draw;
     resize();
 
     let dragging = false;
@@ -430,7 +446,7 @@ export function WorldCanvas(): JSX.Element {
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
       const f = Math.pow(1.0016, -e.deltaY);
-      const cap = maxScaleOf(meta);
+      const cap = maxScaleOf(source ?? meta);
       const want = S.scale * f;
       if (want > cap * 1.001) {
         setZoomHint(true);
@@ -452,14 +468,14 @@ export function WorldCanvas(): JSX.Element {
 
     return () => {
       ro.disconnect();
-      if (tiles) tiles.onLoad = null;
+      drawRef.current = null;
       canvas.removeEventListener('pointerdown', onDown);
       canvas.removeEventListener('pointermove', onMove);
       canvas.removeEventListener('pointerup', onUp);
       canvas.removeEventListener('pointercancel', onUp);
       canvas.removeEventListener('wheel', onWheel);
     };
-  }, [img, meta, tiles, vectors, pick, box, selecting, zones]);
+  }, [img, meta, tiles, source, vectors, pick, box, selecting, zones]);
 
   const applyPreset = (wKm: number, hKm: number) => {
     if (!meta) return;
@@ -486,6 +502,12 @@ export function WorldCanvas(): JSX.Element {
 
   const enterZone = (url: string) => {
     location.search = `?map=${encodeURIComponent(url)}`;
+  };
+
+  const toggleBasemap = () => {
+    if (!meta) return;
+    if (source?.local) setSource(onlineBasemaps()[0]);
+    else setSource(localBasemap(meta));
   };
 
   const onBake = async () => {
@@ -523,7 +545,9 @@ export function WorldCanvas(): JSX.Element {
       <WorldTools
         selecting={selecting}
         zoneCount={zones.length}
+        online={Boolean(source && !source.local)}
         onToggleSelect={() => setSelecting((v) => !v)}
+        onToggleBasemap={toggleBasemap}
         onPreset={applyPreset}
       />
       {info ? (
@@ -545,6 +569,7 @@ export function WorldCanvas(): JSX.Element {
       ) : null}
       {job?.state === 'running' && <BakeCard job={job} onCancel={onCancel} />}
       <WorldHint zoomHint={zoomHint} maxZoom={meta?.maxZoom ?? 3} selecting={selecting} />
+      <div className="world-attr">{source?.attribution ?? meta?.attribution ?? ''}</div>
     </div>
   );
 }

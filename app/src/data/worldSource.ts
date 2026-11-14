@@ -1,4 +1,5 @@
 import type { WorldMeta, WorldVectors } from '../core/world';
+import { localBasemap, type BasemapSource } from './basemap';
 
 export interface WorldSource {
   meta: WorldMeta;
@@ -7,15 +8,18 @@ export interface WorldSource {
 }
 
 export class TileSet {
-  readonly meta: WorldMeta;
+  readonly source: BasemapSource;
   onLoad: (() => void) | null = null;
+  onFail: (() => void) | null = null;
   private cache = new Map<string, HTMLImageElement>();
   private pending = new Set<string>();
   private failed = new Set<string>();
+  private errors = 0;
+  private loaded = 0;
   private limit = 220;
 
-  constructor(meta: WorldMeta) {
-    this.meta = meta;
+  constructor(source: BasemapSource) {
+    this.source = source;
   }
 
   get size(): number {
@@ -27,7 +31,7 @@ export class TileSet {
   }
 
   url(z: number, x: number, y: number): string {
-    return this.meta.path.replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y));
+    return this.source.url(z, x, y);
   }
 
   get(z: number, x: number, y: number): HTMLImageElement | null {
@@ -47,19 +51,22 @@ export class TileSet {
     if (x < 0 || y < 0 || x >= n || y >= n) return;
     const key = `${z}/${x}/${y}`;
     if (this.cache.has(key) || this.pending.has(key) || this.failed.has(key)) return;
-    if (this.pending.size > 80) return;
+    if (this.pending.size >= this.source.maxConcurrent) return;
     this.pending.add(key);
     const img = new Image();
     img.decoding = 'async';
     img.onload = () => {
       this.pending.delete(key);
       this.cache.set(key, img);
+      this.loaded += 1;
       this.prune();
       this.onLoad?.();
     };
     img.onerror = () => {
       this.pending.delete(key);
       this.failed.add(key);
+      this.errors += 1;
+      if (this.loaded === 0 && this.errors >= 6) this.onFail?.();
     };
     img.src = this.url(z, x, y);
   }
@@ -79,7 +86,7 @@ export async function loadWorld(): Promise<WorldSource> {
     if (res.ok) {
       const meta = (await res.json()) as WorldMeta;
       meta.mode = 'tiles';
-      return { meta, img: null, tiles: new TileSet(meta) };
+      return { meta, img: null, tiles: new TileSet(localBasemap(meta)) };
     }
   } catch {
     return loadFlatWorld();

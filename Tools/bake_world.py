@@ -225,17 +225,28 @@ def main():
         return
 
     if args.from_cache:
-        levels = []
+        top = -1
+        mosaic_top = None
         for z in range(args.max_zoom, args.min_zoom - 1, -1):
             mosaic, missing = layer_mosaic(z)
-            if missing and not args.allow_missing:
-                log(f"z{z}: {missing} tiles missing, skipped（先 --download {z}，或用 --allow-missing）")
-                continue
-            written = render_from_mosaic(mosaic, z, args.quality)
+            if missing == 0 or args.allow_missing:
+                top = z
+                mosaic_top = mosaic
+                break
+            log(f"z{z}: {missing} tiles missing, skipped（先 --download {z}）")
+        if top < 0:
+            raise SystemExit("没有完整可用的 DEM 层，先运行 --download <zoom>")
+
+        levels = []
+        cur = mosaic_top
+        for z in range(top, args.min_zoom - 1, -1):
+            if z < top:
+                size = 2 ** z * 256
+                img = Image.fromarray(cur, "F").resize((size, size), Image.BILINEAR)
+                cur = np.asarray(img, dtype=np.float32)
+            written = render_from_mosaic(cur, z, args.quality)
             levels.append(z)
             log(f"z{z}: {2 ** (2 * z)} tiles, {written / 1024 / 1024:.2f} MB")
-        if not levels:
-            raise SystemExit("没有完整可用的 DEM 层，先运行 --download <zoom>")
         write_meta(levels, args.quality, "dem-cache")
         return
 

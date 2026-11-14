@@ -16,6 +16,44 @@ export function countVisibleTowns(p: PaintCtx, towns: Town[]): number {
   return count;
 }
 
+export function drawTownGlow(p: PaintCtx, towns: Town[]): void {
+  const { ctx } = p;
+  for (const t of towns) {
+    const world = t.r * p.view.scale;
+    if (world > 320) continue;
+    const rr = Math.max(13, Math.min(320, world));
+    const px = p.sx(t.x);
+    const py = p.sy(t.y);
+    if (px < -rr || py < -rr || px > p.w + rr || py > p.h + rr) continue;
+    const g = ctx.createRadialGradient(px, py, rr * 0.08, px, py, rr);
+    g.addColorStop(0, 'rgba(255, 238, 198, 0.4)');
+    g.addColorStop(0.5, 'rgba(246, 218, 168, 0.2)');
+    g.addColorStop(1, 'rgba(246, 218, 168, 0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(px, py, rr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+export function drawTownMarks(p: PaintCtx, towns: Town[]): void {
+  const { ctx } = p;
+  for (const t of towns) {
+    const px = p.sx(t.x);
+    const py = p.sy(t.y);
+    if (px < -20 || py < -20 || px > p.w + 20 || py > p.h + 20) continue;
+    const big = t.pop > 40000;
+    const r = big ? 4.4 : t.pop > 15000 ? 3.5 : 2.7;
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fillStyle = big ? 'rgba(255, 219, 158, 0.98)' : 'rgba(248, 231, 198, 0.95)';
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(44, 30, 18, 0.92)';
+    ctx.stroke();
+  }
+}
+
 export function drawTownOutlines(p: PaintCtx, towns: Town[]): void {
   p.withUrbanClip(p.ctx, (c) => {
     p.drawInWorld(c, () => {
@@ -49,8 +87,8 @@ export function drawTownOutlines(p: PaintCtx, towns: Town[]): void {
             c.lineTo(t.x + Math.cos(edge) * d.r1, t.y + Math.sin(edge) * d.r1);
           }
         }
-        c.lineWidth = 1.3 * pxPerM;
-        c.strokeStyle = 'rgba(18, 22, 30, 0.75)';
+        c.lineWidth = 2.0 * pxPerM;
+        c.strokeStyle = 'rgba(30, 22, 14, 0.72)';
         c.stroke();
       }
     });
@@ -66,14 +104,15 @@ export function drawTownLabels(p: PaintCtx, towns: Town[], zf: number): void {
     if (px < -rr - 80 || py < -rr - 80 || px > p.w + rr + 80 || py > p.h + rr + 80) continue;
     if (rr < 10) continue;
     const fs = Math.round((t.pop > 40000 ? 13 : t.pop > 15000 ? 12 : 11) * Math.min(1.25, Math.max(0.95, zf)));
+    const lift = Math.max(12, Math.min(44, rr * 0.55));
     ctx.font = `700 ${fs}px "Microsoft YaHei", system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = 'rgba(255,253,247,0.92)';
-    ctx.strokeText(t.n, px, py - rr * 0.55);
-    ctx.fillStyle = 'rgba(38, 30, 24, 0.95)';
-    ctx.fillText(t.n, px, py - rr * 0.55);
+    const tw = ctx.measureText(t.n).width;
+    ctx.fillStyle = 'rgba(16, 20, 26, 0.58)';
+    ctx.fillRect(px - tw / 2 - 3.5, py - lift - fs - 1.5, tw + 7, fs + 3);
+    ctx.fillStyle = 'rgba(248, 241, 228, 0.98)';
+    ctx.fillText(t.n, px, py - lift);
   }
 }
 

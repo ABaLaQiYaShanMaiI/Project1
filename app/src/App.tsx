@@ -31,8 +31,9 @@ export function App(): JSX.Element {
   useEffect(() => {
     let alive = true;
     (async () => {
+      const key = mapKey();
       const data = await loadMap();
-      const scene = await loadScenario(data);
+      const scene = await loadScenario(data, key);
       if (!alive) return;
       store.map = data;
       store.scenario = scene.scenario;

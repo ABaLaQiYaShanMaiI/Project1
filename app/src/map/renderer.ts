@@ -8,7 +8,14 @@ import { buildCoverCanvas } from './layers/landcover';
 import { drawContours } from './layers/contours';
 import { drawHydro } from './layers/hydro';
 import { drawRoads } from './layers/roads';
-import { countVisibleTowns, drawCapturePoints, drawTownLabels, drawTownOutlines } from './layers/towns';
+import {
+  countVisibleTowns,
+  drawCapturePoints,
+  drawTownGlow,
+  drawTownLabels,
+  drawTownMarks,
+  drawTownOutlines,
+} from './layers/towns';
 import { drawCities } from './layers/cities';
 import { buildDetailPaths, drawDetailLayer } from './layers/detail';
 import { buildControlCanvases, drawFrontLine } from './control';
@@ -41,6 +48,15 @@ export interface RenderState {
 
 const LEVEL: Record<ZoomLevel, number> = { L0: 0, L1: 1, L2: 2 };
 
+function detectGpu(): boolean {
+  try {
+    const cv = document.createElement('canvas');
+    return Boolean(cv.getContext('webgl2') || cv.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
 export class MapRenderer {
   readonly canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -64,7 +80,7 @@ export class MapRenderer {
   private level: ZoomLevel = 'L0';
   private dirty = true;
 
-  private static readonly OVERSCAN = 220;
+  private static readonly OVERSCAN = 320;
   private statView: View = { cx: 0, cy: 0, scale: 0.01 };
 
   w = 0;
@@ -94,6 +110,8 @@ export class MapRenderer {
       this.dirty = true;
     };
     img.src = '/data/' + data.meta.urbanMask.file;
+
+    this.gpu = detectGpu();
   }
 
   setDetail(layer: DetailLayer | null): void {
@@ -173,13 +191,16 @@ export class MapRenderer {
     this.view.cy += before.y - after.y;
     this.clampView();
     this.dirty = true;
+    this.lastZoomAt = performance.now();
   }
+
+  private lastZoomAt = 0;
+  private gpu = true;
 
   panBy(dxPx: number, dyPx: number): void {
     this.view.cx -= dxPx / this.view.scale;
     this.view.cy += dyPx / this.view.scale;
     this.clampView();
-    this.dirty = true;
   }
 
   private clampView(): void {
@@ -245,7 +266,7 @@ export class MapRenderer {
     ctx.drawImage(this.coverCv, x0, y0, dx, dy);
     if (this.urbanImg) {
       ctx.imageSmoothingEnabled = false;
-      ctx.globalAlpha = 0.75;
+      ctx.globalAlpha = lv === 0 ? 0.92 : lv === 1 ? 0.84 : 0.72;
       ctx.drawImage(this.urbanImg, x0, y0, dx, dy);
       ctx.globalAlpha = 1;
       ctx.imageSmoothingEnabled = true;
@@ -276,6 +297,8 @@ export class MapRenderer {
 
     drawFrontLine(p, this.field, this.showControl);
 
+    drawTownGlow(p, this.data.towns);
+    drawTownMarks(p, this.data.towns);
     drawTownOutlines(p, this.data.towns);
     drawTownLabels(p, this.data.towns, zf);
     drawCapturePoints(p, this.data.towns, this.field, this.showControl);
@@ -345,12 +368,15 @@ export class MapRenderer {
     }
 
     const ov = MapRenderer.OVERSCAN;
+    const now = performance.now();
     const zoomChanged = Math.abs(this.view.scale - this.statView.scale) > 1e-12;
-    if (this.dirty || zoomChanged || this.statCv.width === 0) this.rebuildStatic();
+    const zoomActive = this.gpu && now - this.lastZoomAt < 180;
+    const rebuilt = this.dirty || this.statCv.width === 0 || (zoomChanged && !zoomActive);
+    if (rebuilt) this.rebuildStatic();
 
     let dx = (this.statView.cx - this.view.cx) * this.view.scale;
     let dy = (this.view.cy - this.statView.cy) * this.view.scale;
-    if (Math.abs(dx) > ov * 0.92 || Math.abs(dy) > ov * 0.92) {
+    if (!rebuilt && (Math.abs(dx) > ov * 0.92 || Math.abs(dy) > ov * 0.92)) {
       this.rebuildStatic();
       dx = 0;
       dy = 0;
@@ -361,7 +387,23 @@ export class MapRenderer {
     ctx.fillStyle = '#12161c';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.drawImage(this.statCv, -ov + dx, -ov + dy, this.statCv.width / this.dpr, this.statCv.height / this.dpr);
+    if (zoomChanged && !this.dirty) {
+      const r = this.view.scale / this.statView.scale;
+      const cxOld = (this.statView.cx - this.view.cx) * this.view.scale + this.w / 2;
+      const cyOld = -(this.statView.cy - this.view.cy) * this.view.scale + this.h / 2;
+      const smooth = ctx.imageSmoothingEnabled;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(
+        this.statCv,
+        cxOld - (this.w / 2 + ov) * r,
+        cyOld - (this.h / 2 + ov) * r,
+        (this.w + ov * 2) * r,
+        (this.h + ov * 2) * r,
+      );
+      ctx.imageSmoothingEnabled = smooth;
+    } else {
+      ctx.drawImage(this.statCv, -ov + dx, -ov + dy, this.statCv.width / this.dpr, this.statCv.height / this.dpr);
+    }
 
     if (state.hover && state.hover.district.key !== state.selected?.district?.key) {
       this.highlightDistrict(ctx, state.hover.town, state.hover.district, false);

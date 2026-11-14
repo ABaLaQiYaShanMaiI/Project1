@@ -26,7 +26,9 @@ export function TopBar(): JSX.Element {
         <span className="brand-mark">⬡</span>
         <span className="brand-name">战术地图军棋</span>
         <span className="brand-sep" />
-        <span className="scenario">富尔达缺口 · 1985</span>
+        <span className="scenario">
+          {(store.scenario?.name?.split('·')[0]?.trim() || store.map?.meta.name || '未载入')} · 1985
+        </span>
       </div>
 
       <div className="clock">

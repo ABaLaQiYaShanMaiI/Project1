@@ -64,6 +64,6 @@ export function pickZoom(scale: number, minZoom: number, maxZoom: number): numbe
   return Math.min(maxZoom, Math.max(minZoom, z));
 }
 
-export function maxScaleOf(meta: WorldMeta): number {
-  return meta.tileSize * 2 ** meta.maxZoom * 2;
+export function maxScaleOf(src: { tileSize: number; maxZoom: number }): number {
+  return src.tileSize * 2 ** src.maxZoom * 2;
 }

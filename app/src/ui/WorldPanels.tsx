@@ -23,7 +23,9 @@ export interface FinishedZone {
 export function WorldTools(props: {
   selecting: boolean;
   zoneCount: number;
+  online: boolean;
   onToggleSelect: () => void;
+  onToggleBasemap: () => void;
   onPreset: (w: number, h: number) => void;
 }): JSX.Element {
   return (
@@ -40,6 +42,13 @@ export function WorldTools(props: {
           {label} km
         </button>
       ))}
+      <button
+        className={`btn small ${props.online ? 'on' : ''}`}
+        onClick={props.onToggleBasemap}
+        title="在线地形需要网络；加载失败会自动回退本地底图"
+      >
+        {props.online ? '在线地形' : '本地底图'}
+      </button>
       {props.zoneCount > 0 && <span className="zone-count">已记录 {props.zoneCount}</span>}
     </div>
   );

@@ -363,6 +363,36 @@ def poly_area_centroid(pts):
         return 0.0, pts[0]
     return abs(a), (cx / (6 * a), cy / (6 * a))
 
+def write_scenario():
+    path = os.path.join(os.path.dirname(OUT), f"scenario_{CACHE_KEY}.json")
+    if os.path.exists(path):
+        return path
+    payload = {
+        "name": f"{NAME} · 未命名剧本",
+        "note": "烘焙时自动生成：接触线为地图中线，改写本文件可自定义剧本。",
+        "front": [
+            [round(BBOX["north"], 5), round(CENTER_LON, 5)],
+            [round(CENTER_LAT, 5), round(CENTER_LON, 5)],
+            [round(BBOX["south"], 5), round(CENTER_LON, 5)],
+        ],
+        "contestedWidthM": 3000,
+        "sides": {
+            "nato": {"name": "北约", "short": "NATO", "color": "#3f6fb5"},
+            "wp": {"name": "华约", "short": "WP", "color": "#b54a3a"},
+        },
+        "intel": {
+            "ownConfidence": 1.0,
+            "enemyConfidenceAtFront": 0.85,
+            "enemyConfidenceAtDepth": 0.12,
+            "depthM": 45000,
+        },
+        "ally": "nato",
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=1)
+    return path
+
+
 def main():
     import argparse
 
@@ -662,7 +692,7 @@ def main():
     for _j in range(gh):
         for _i in range(gw):
             if urban[_j, _i]:
-                _px[_i, _j] = (126, 112, 100, 120)
+                _px[_i, _j] = (158, 132, 104, 156)
     _out = os.path.join(os.path.dirname(OUT), f"urban_mask_{CACHE_KEY}.png")
     _mask.save(_out, optimize=True)
     log("urban mask", gw, "x", gh, os.path.getsize(_out) // 1024, "KB")
@@ -914,6 +944,12 @@ def main():
         log("preview", os.path.getsize(_pv) // 1024, "KB")
     except Exception as _e:
         log("preview skipped:", _e)
+
+    try:
+        _sc = write_scenario()
+        log("scenario", os.path.basename(_sc))
+    except Exception as _e:
+        log("scenario skipped:", _e)
 
 if __name__ == "__main__":
     main()

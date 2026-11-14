@@ -5,7 +5,8 @@
 
 **当前进度 v0.7：世界视图 + 无网格战场 + 城镇形态 + 实控范围；编制与行军未接入。**
 
-工程约束见 [CONSTRAINTS.md](CONSTRAINTS.md)，决策与踩坑见 [DEVLOG.md](DEVLOG.md)。
+工程约束见 [CONSTRAINTS.md](CONSTRAINTS.md)，决策与踩坑见 [DEVLOG.md](DEVLOG.md)，
+地图设计与引擎选型见 [MAPDESIGN.md](MAPDESIGN.md)。
 需求台账：[Docx/铁幕1985_需求规格总表_v0.5.xlsx](Docx/铁幕1985_需求规格总表_v0.5.xlsx)（19 表 / 116 条）。
 
 ## 启动
