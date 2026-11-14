@@ -3,6 +3,7 @@ import type { District } from '../core/towns';
 import { districtPath, hitDistrict } from '../core/towns';
 import type { ControlField } from '../core/scenario';
 import { controlAt } from '../core/scenario';
+import type { DetailLayer } from '../core/detail';
 import { buildTerrainCanvas } from './terrain';
 
 export interface View {
@@ -62,6 +63,8 @@ export class MapRenderer {
   private terrainCv: HTMLCanvasElement;
   private coverCv: HTMLCanvasElement;
   private urbanImg: HTMLImageElement | null = null;
+  private detail: DetailLayer | null = null;
+  private detailPaths: { buildings: Path2D; streets: Path2D } | null = null;
   private overlayCv: HTMLCanvasElement = document.createElement('canvas');
   private overlayCtx: CanvasRenderingContext2D = this.overlayCv.getContext('2d')!;
   private controlCv: HTMLCanvasElement | null = null;
@@ -131,6 +134,39 @@ export class MapRenderer {
     }
     ctx.putImageData(img, 0, 0);
     return cv;
+  }
+
+  setDetail(layer: DetailLayer | null): void {
+    this.detail = layer;
+    this.detailPaths = null;
+    this.dirty = true;
+  }
+
+  private buildDetailPaths(d: DetailLayer): { buildings: Path2D; streets: Path2D } {
+    const sp = new Path2D();
+    for (const st of d.streets) {
+      if (st.p.length < 2) continue;
+      sp.moveTo(st.p[0][0], st.p[0][1]);
+      for (let i = 1; i < st.p.length; i++) sp.lineTo(st.p[i][0], st.p[i][1]);
+    }
+    const bp = new Path2D();
+    for (const b of d.buildings) {
+      const [bx, by, bw, bh, ang] = b;
+      const cs = Math.cos(ang);
+      const sn = Math.sin(ang);
+      const hw = bw / 2;
+      const hh = bh / 2;
+      bp.moveTo(bx - hw * cs + hh * sn, by - hw * sn - hh * cs);
+      bp.lineTo(bx + hw * cs + hh * sn, by + hw * sn - hh * cs);
+      bp.lineTo(bx + hw * cs - hh * sn, by + hw * sn + hh * cs);
+      bp.lineTo(bx - hw * cs - hh * sn, by - hw * sn + hh * cs);
+      bp.closePath();
+    }
+    return { buildings: bp, streets: sp };
+  }
+
+  get detailLevel(): number {
+    return this.detail ? this.detail.buildings.length : 0;
   }
 
   setControl(field: ControlField | null): void {
@@ -312,6 +348,8 @@ export class MapRenderer {
     ctx.lineJoin = 'round';
     for (const r of this.data.rivers) this.strokeLine(ctx, r.p, false);
 
+    if (this.detail && this.view.scale > 0.035) this.drawDetail(ctx);
+
     this.segmentCount = 0;
     const visible = this.data.roads.filter((r) => (ROAD_STYLE[r.c]?.minLevel ?? 2) <= lv);
     ctx.lineCap = 'round';
@@ -427,22 +465,37 @@ export class MapRenderer {
           const ang = d.shape === 'wedge' ? (d.a0 + d.a1) / 2 : 0;
           const rad = d.shape === 'wedge' ? (d.r0 + d.r1) / 2 : 0;
           const [aux, auy] = t.axis;
-          const wx = d.shape === 'band' ? t.x + aux * midT : d.shape === 'core' ? t.x : t.x + Math.cos(ang) * rad;
-          const wy = d.shape === 'band' ? t.y + auy * midT : d.shape === 'core' ? t.y : t.y + Math.sin(ang) * rad;
+          const gx = d.shape === 'band' ? t.x + aux * midT : d.shape === 'core' ? t.x : t.x + Math.cos(ang) * rad;
+          const gy = d.shape === 'band' ? t.y + auy * midT : d.shape === 'core' ? t.y : t.y + Math.sin(ang) * rad;
+          const wx = d.cp ? d.cp[0] : gx;
+          const wy = d.cp ? d.cp[1] : gy;
           const c = controlAt(this.field, wx, wy);
           const px = this.sx(wx);
           const py = this.sy(wy);
-          ctx.beginPath();
-          ctx.arc(px, py, 3.2, 0, Math.PI * 2);
-          ctx.fillStyle =
+          const col =
             c.control === 'ally'
-              ? 'rgba(88, 148, 218, 0.95)'
+              ? 'rgba(88, 148, 218, 0.98)'
               : c.control === 'enemy'
-                ? 'rgba(202, 92, 72, 0.95)'
-                : 'rgba(210, 176, 70, 0.95)';
+                ? 'rgba(202, 92, 72, 0.98)'
+                : 'rgba(210, 176, 70, 0.98)';
+          const size = d.shape === 'core' ? 8.5 : 7.2;
+          ctx.beginPath();
+          ctx.moveTo(px, py - size);
+          ctx.lineTo(px + size * 0.82, py - size * 0.1);
+          ctx.lineTo(px, py + size * 0.72);
+          ctx.lineTo(px - size * 0.82, py - size * 0.1);
+          ctx.closePath();
+          ctx.fillStyle = col;
           ctx.fill();
-          ctx.lineWidth = 1.2;
-          ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(px, py - size - 3, 1.9, 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(20,18,16,0.7)';
           ctx.stroke();
         }
       }
@@ -613,6 +666,28 @@ export class MapRenderer {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(this.overlayCv, 0, 0);
     ctx.restore();
+  }
+
+  private drawDetail(ctx: CanvasRenderingContext2D): void {
+    const d = this.detail;
+    if (!d) return;
+    if (!this.detailPaths) this.detailPaths = this.buildDetailPaths(d);
+    const paths = this.detailPaths;
+    this.drawInWorld(ctx, () => {
+      const px = 1 / this.view.scale;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(246, 242, 232, 0.7)';
+      ctx.lineWidth = 3.0 * px;
+      ctx.stroke(paths.streets);
+      ctx.strokeStyle = 'rgba(198, 190, 178, 0.85)';
+      ctx.lineWidth = 1.4 * px;
+      ctx.stroke(paths.streets);
+      ctx.fillStyle = 'rgba(86, 78, 72, 0.58)';
+      ctx.fill(paths.buildings);
+      ctx.lineWidth = 0.45 * px;
+      ctx.strokeStyle = 'rgba(40, 34, 30, 0.45)';
+      ctx.stroke(paths.buildings);
+    });
   }
 
   private highlightDistrict(ctx: CanvasRenderingContext2D, t: Town, d: District, selected: boolean): void {

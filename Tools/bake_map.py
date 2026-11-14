@@ -806,6 +806,35 @@ def main():
                     "defense": 3,
                 })
 
+        sums = [[0.0, 0.0, 0] for _ in districts]
+        for (x, y) in pts:
+            dxs, dys = x - cx, y - cy
+            for k, d in enumerate(districts):
+                ok = False
+                if d["shape"] == "core":
+                    ok = math.hypot(dxs, dys) <= d["r1"]
+                elif d["shape"] == "wedge":
+                    dd = math.hypot(dxs, dys)
+                    ang = (math.degrees(math.atan2(dys, dxs)) + 360.0) % 360.0
+                    a0 = (math.degrees(d["a0"]) + 360.0) % 360.0
+                    a1 = (math.degrees(d["a1"]) + 360.0) % 360.0
+                    inside = (a0 <= ang <= a1) if a0 <= a1 else (ang >= a0 or ang <= a1)
+                    ok = inside and d["r0"] <= dd <= d["r1"]
+                elif d["shape"] == "band":
+                    tt = dxs * ux + dys * uy
+                    ok = d["t0"] <= tt <= d["t1"]
+                else:
+                    ok = True
+                if ok:
+                    sums[k][0] += x
+                    sums[k][1] += y
+                    sums[k][2] += 1
+        for k, d in enumerate(districts):
+            if sums[k][2] > 0:
+                d["cp"] = [round(sums[k][0] / sums[k][2], 1), round(sums[k][1] / sums[k][2], 1)]
+            else:
+                d["cp"] = [round(cx, 1), round(cy, 1)]
+
         towns.append({
             "id": "T%03d" % len(towns),
             "n": c["n"],

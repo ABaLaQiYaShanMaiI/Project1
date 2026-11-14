@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { MapRenderer } from './map/renderer';
 import { store } from './store';
 import { useStore } from './hooks';
+import { detailIndex, loadDetail, nearestDetailKey, type DetailEntry } from './core/detail';
 
 export function MapCanvas(): JSX.Element {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -17,6 +18,12 @@ export function MapCanvas(): JSX.Element {
     const r = new MapRenderer(canvas, data);
     if (store.field) r.setControl(store.field);
     (window as unknown as { __renderer: MapRenderer }).__renderer = r;
+
+    let idx: Record<string, DetailEntry> = {};
+    let detailKey: string | null = null;
+    detailIndex().then((i) => {
+      idx = i;
+    });
 
     const applySize = (fit: boolean) => {
       const rect = wrap.getBoundingClientRect();
@@ -105,6 +112,7 @@ export function MapCanvas(): JSX.Element {
     let frames = 0;
     let acc = 0;
     let lastEmit = 0;
+    let lastDetailCheck = 0;
 
     const loop = (now: number) => {
       const dt = (now - last) / 1000;
@@ -131,6 +139,22 @@ export function MapCanvas(): JSX.Element {
         msg.split('\n').slice(0, 12).forEach((line, i) => ctx.fillText(line.slice(0, 150), 16, 28 + i * 18));
         console.error(err);
         return;
+      }
+
+      if (now - lastDetailCheck > 700) {
+        lastDetailCheck = now;
+        if (r.view.scale > 0.035) {
+          const key = nearestDetailKey(idx, r.view.cx, r.view.cy);
+          if (key && key !== detailKey) {
+            detailKey = key;
+            loadDetail(key).then((layer) => {
+              if (layer) r.setDetail(layer);
+            });
+          }
+        } else if (detailKey) {
+          detailKey = null;
+          r.setDetail(null);
+        }
       }
 
       frames++;
@@ -178,16 +202,21 @@ function HoverCard(): JSX.Element | null {
   const h = store.hover;
   if (!h) return null;
   const d = h.district;
+  const above = h.sy > 72;
   return (
-    <div className="hover-card" style={{ left: h.sx + 16, top: h.sy + 16 }}>
+    <div
+      className="hover-card"
+      style={{
+        left: h.sx,
+        top: above ? h.sy - 14 : h.sy + 20,
+        transform: above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+      }}
+    >
       <div className="hc-title">
         {h.town.n} · {d.label}
       </div>
       <div className="hc-row">
-        {d.frontage} 连当量 · 防御 +{d.defense}
-      </div>
-      <div className="hc-row dim">
-        {d.area.toFixed(1)} km² · 防御 +{d.defense}
+        {d.frontage} 连 · 防御 +{d.defense}
       </div>
     </div>
   );

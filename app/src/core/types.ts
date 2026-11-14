@@ -69,6 +69,7 @@ export interface DistrictData {
   area: number;
   frontage: number;
   defense: number;
+  cp?: [number, number];
 }
 
 export interface Town {
