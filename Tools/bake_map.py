@@ -1,7 +1,6 @@
 import json
 import math
 import os
-import sys
 import time
 
 import numpy as np
@@ -17,6 +16,7 @@ HEX_SIZE = 3200.0
 Z = 10
 WORKERS = 10
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tile-cache")
+CACHE_KEY = "fulda"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                    "..", "app", "public", "data", "map_fulda.json")
 
@@ -47,12 +47,15 @@ def log(*a):
 
 NAME = "富尔达缺口 Fulda Gap"
 
-def configure(lat, lon, span_x, span_y, name):
-    global CENTER_LAT, CENTER_LON, SPAN_X, SPAN_Y, M_PER_DEG_LON, BBOX, OUT, NAME
+def configure(lat, lon, span_x, span_y, name, title=""):
+    global CENTER_LAT, CENTER_LON, SPAN_X, SPAN_Y, M_PER_DEG_LON, BBOX, OUT, NAME, CACHE_KEY
     CENTER_LAT, CENTER_LON = lat, lon
     SPAN_X, SPAN_Y = span_x, span_y
     M_PER_DEG_LON = 111320.0 * math.cos(math.radians(lat))
+    CACHE_KEY = name
     NAME = "富尔达缺口 Fulda Gap" if name == "fulda" else name
+    if title:
+        NAME = title
     BBOX = {
         "south": CENTER_LAT - (SPAN_Y / 2 + PAD) / M_PER_DEG_LAT,
         "north": CENTER_LAT + (SPAN_Y / 2 + PAD) / M_PER_DEG_LAT,
@@ -199,10 +202,15 @@ def point_in_poly(x, y, poly):
     return inside
 
 OVERPASS = "https://overpass-api.de/api/interpreter"
+OVERPASS_MIRRORS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+]
 
 def overpass_cached(tag, query, tries=2):
     os.makedirs(CACHE, exist_ok=True)
-    path = os.path.join(CACHE, f"osm_{tag}.json")
+    path = os.path.join(CACHE, f"osm_{CACHE_KEY}_{tag}.json")
     if os.path.exists(path):
         try:
             log(f"  {tag}: cache hit")
@@ -217,13 +225,14 @@ def overpass_cached(tag, query, tries=2):
 
 def overpass(query, tries=2):
     for i in range(tries):
+        url = OVERPASS_MIRRORS[i % len(OVERPASS_MIRRORS)]
         t0 = time.time()
         try:
-            r = requests.post(OVERPASS, data={"data": query}, headers=UA, timeout=240)
+            r = requests.post(url, data={"data": query}, headers=UA, timeout=240)
             if r.status_code == 200:
                 log(f"    overpass {r.status_code} {len(r.content)/1024:.0f}KB in {time.time()-t0:.1f}s")
                 return r.json()
-            log(f"    overpass HTTP {r.status_code} in {time.time()-t0:.1f}s")
+            log(f"    overpass HTTP {r.status_code} from {url.split('/')[2]} in {time.time()-t0:.1f}s")
         except Exception as e:
             log(f"    overpass err: {e}")
         time.sleep(2 * (i + 1))
@@ -361,10 +370,11 @@ def main():
     ap.add_argument("--center", default="50.62,9.72", help="中心经纬度, 例 50.62,9.72")
     ap.add_argument("--span-km", default="111,72", help="东西,南北 跨度(km), 例 111,72")
     ap.add_argument("--name", default="fulda", help="区域名（输出 map_<name>.json）")
+    ap.add_argument("--title", default="", help="显示名称，默认同 --name")
     args = ap.parse_args()
     lat, lon = [float(x) for x in args.center.split(",")]
     sx, sy = [float(x) * 1000.0 for x in args.span_km.split(",")]
-    configure(lat, lon, sx, sy, args.name)
+    configure(lat, lon, sx, sy, args.name, args.title)
 
     t0 = time.time()
     log("bbox", {k: round(v, 4) for k, v in BBOX.items()})
@@ -428,7 +438,7 @@ def main():
 
     log("query places ...")
     cities = []
-    for el in overpass_cached("places", q_places()).get("elements", []):
+    for el in overpass_cached("places", q_places(), tries=3).get("elements", []):
         tags = el.get("tags", {})
         pop = 0
         try:
@@ -653,7 +663,7 @@ def main():
         for _i in range(gw):
             if urban[_j, _i]:
                 _px[_i, _j] = (126, 112, 100, 120)
-    _out = os.path.join(os.path.dirname(OUT), "urban_mask.png")
+    _out = os.path.join(os.path.dirname(OUT), f"urban_mask_{CACHE_KEY}.png")
     _mask.save(_out, optimize=True)
     log("urban mask", gw, "x", gh, os.path.getsize(_out) // 1024, "KB")
 
@@ -879,7 +889,7 @@ def main():
             "dem": {"cols": gc, "rows": gr, "values": dem_grid},
 
             "landcover": {"cols": gc, "rows": gr, "values": list(cover)},
-            "urbanMask": {"file": "urban_mask.png", "cols": gw, "rows": gh},
+            "urbanMask": {"file": f"urban_mask_{CACHE_KEY}.png", "cols": gw, "rows": gh},
             "attribution": "高程: SRTM/AWS Terrain Tiles · 路网与城镇: © OpenStreetMap contributors (ODbL)",
             "sources": ["https://registry.opendata.aws/terrain-tiles/", "https://www.openstreetmap.org/copyright"],
         },
@@ -897,6 +907,13 @@ def main():
         f.write(txt)
     log(f"wrote {OUT}  ({len(txt)/1024/1024:.2f} MB)  in {time.time()-t0:.1f}s")
     log("roads", len(roads), "rivers", len(rivers), "towns", len(towns))
+
+    try:
+        from make_preview import make as _make_preview, preview_path as _preview_path
+        _pv = _make_preview(OUT, _preview_path(OUT))
+        log("preview", os.path.getsize(_pv) // 1024, "KB")
+    except Exception as _e:
+        log("preview skipped:", _e)
 
 if __name__ == "__main__":
     main()

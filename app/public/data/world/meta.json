@@ -1,0 +1,18 @@
+{
+ "name": "世界",
+ "projection": "web-mercator",
+ "tileSize": 256,
+ "minZoom": 0,
+ "maxZoom": 3,
+ "levels": [
+  0,
+  1,
+  2,
+  3
+ ],
+ "quality": 82,
+ "generated": "2026-11-14 22:59",
+ "attribution": "高程: SRTM/AWS Terrain Tiles",
+ "source": "flat-image",
+ "path": "/data/world/t/{z}/{x}_{y}.jpg"
+}

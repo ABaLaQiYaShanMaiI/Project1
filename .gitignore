@@ -15,6 +15,15 @@ Tools/.tile-cache/
 Saves/*
 !Saves/.gitkeep
 
+# Python 缓存
+__pycache__/
+*.pyc
+
+
+# 烘焙服务运行时生成的地图库索引
+app/public/data/zones.json
+app/dist/data/zones.json
+
 # 日志与临时文件
 *.log
 npm-debug.log*

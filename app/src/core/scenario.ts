@@ -41,15 +41,6 @@ export function frontInMeters(sc: Scenario, meta: MapMeta): Pt[] {
   ]);
 }
 
-interface Seg {
-  ax: number;
-  ay: number;
-  bx: number;
-  by: number;
-  len2: number;
-  cross: number;
-}
-
 export function nearestOnFront(front: Pt[], x: number, y: number): { dist: number; side: number } {
   let bestD = Infinity;
   let bestSide = 1;

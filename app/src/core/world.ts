@@ -1,36 +1,69 @@
 export interface WorldMeta {
   name: string;
   projection: 'web-mercator';
-  zoom: number;
-  width: number;
-  height: number;
+  minZoom: number;
+  maxZoom: number;
+  levels: number[];
+  tileSize: number;
   generated: string;
   attribution: string;
+  path: string;
+  mode: 'tiles' | 'image';
+  width?: number;
+  height?: number;
+  zoom?: number;
 }
 
-const SIZE = 2048;
+export interface WorldCity {
+  n: string;
+  x: number;
+  y: number;
+  k: number;
+  p: number;
+}
+
+export interface WorldRoad {
+  c: number;
+  p: [number, number][];
+  b: [number, number, number, number];
+}
+
+export interface WorldVectors {
+  generated: string;
+  attribution: string;
+  cities: WorldCity[];
+  roads: WorldRoad[];
+}
+
+const MERC_MAX_LAT = 85.05112878;
+
+export function clampLat(lat: number): number {
+  return Math.max(-MERC_MAX_LAT, Math.min(MERC_MAX_LAT, lat));
+}
 
 export function lonToX(lon: number): number {
-  return ((lon + 180) / 360) * SIZE;
+  return (lon + 180) / 360;
 }
+
 export function latToY(lat: number): number {
-  const r = (lat * Math.PI) / 180;
-  return ((1 - Math.log(Math.tan(Math.PI / 4 + r / 2)) / Math.PI) / 2) * SIZE;
+  const r = (clampLat(lat) * Math.PI) / 180;
+  return (1 - Math.log(Math.tan(Math.PI / 4 + r / 2)) / Math.PI) / 2;
 }
+
 export function xToLon(x: number): number {
-  return (x / SIZE) * 360 - 180;
+  return x * 360 - 180;
 }
+
 export function yToLat(y: number): number {
-  const n = Math.PI - (2 * Math.PI * y) / SIZE;
+  const n = Math.PI - 2 * Math.PI * y;
   return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
 }
 
-export async function loadWorld(): Promise<{ img: HTMLImageElement; meta: WorldMeta }> {
-  const metaRes = await fetch('/data/world_meta.json', { cache: 'no-cache' });
-  if (!metaRes.ok) throw new Error('世界底图元数据缺失：先运行 python tools/bake_world.py');
-  const meta = (await metaRes.json()) as WorldMeta;
-  const img = new Image();
-  img.src = `/data/world_terrain.jpg?v=${encodeURIComponent(meta.generated)}`;
-  await img.decode();
-  return { img, meta };
+export function pickZoom(scale: number, minZoom: number, maxZoom: number): number {
+  const z = Math.ceil(Math.log2(Math.max(scale, 1) / 256));
+  return Math.min(maxZoom, Math.max(minZoom, z));
+}
+
+export function maxScaleOf(meta: WorldMeta): number {
+  return meta.tileSize * 2 ** meta.maxZoom * 2;
 }

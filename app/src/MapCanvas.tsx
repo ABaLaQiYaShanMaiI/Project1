@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { MapRenderer } from './map/renderer';
 import { store } from './store';
 import { useStore } from './hooks';
-import { detailIndex, loadDetail, nearestDetailKey, type DetailEntry } from './core/detail';
+import { nearestDetailKeys, type DetailEntry } from './core/detail';
+import { detailIndex, loadDetail } from './data/loadDetail';
 
 export function MapCanvas(): JSX.Element {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -144,13 +145,15 @@ export function MapCanvas(): JSX.Element {
       if (now - lastDetailCheck > 700) {
         lastDetailCheck = now;
         if (r.view.scale > 0.035) {
-          const key = nearestDetailKey(idx, r.view.cx, r.view.cy);
+          const keys = nearestDetailKeys(idx, r.view.cx, r.view.cy, 6000, 2);
+          const key = keys[0] ?? null;
           if (key && key !== detailKey) {
             detailKey = key;
             loadDetail(key).then((layer) => {
               if (layer) r.setDetail(layer);
             });
           }
+          for (let i = 1; i < keys.length; i++) loadDetail(keys[i]);
         } else if (detailKey) {
           detailKey = null;
           r.setDetail(null);

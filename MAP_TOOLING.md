@@ -75,3 +75,23 @@
 - **CC BY 4.0（WorldCover）**：署名即可。
 - **CDLA-Permissive 2.0（Overture 部分层）**：最宽松，但融合层可能含 ODbL 来源，按 ODbL 处理更稳妥。
 - 现有署名文案需按最终使用的数据源更新（目前在页面右下角）。
+
+---
+
+## 六、"实时全球地图"评估（实测，2026-11-14）
+
+结论：**不做运行时在线地图；做"按需烘焙 + 永久落盘"的地图库。**
+
+| 方案 | 可行性 | 结论 |
+| --- | --- | --- |
+| 运行时直连 `tile.openstreetmap.org` | 政策明确禁止 bulk / prefetch / 离线打包，无预警封禁 | 否决 |
+| 运行时直连公共 Overpass | 实测 `overpass-api.de` 502、`overpass.kumi.systems` 30 s 超时 | 否决为运行时依赖 |
+| 浏览器直读 DEM（AWS Terrarium） | 实测响应无 `Access-Control-Allow-Origin`，canvas 会被污染 | 不可行 |
+| 第三方托管（MapTiler / Mapbox / Protomaps Hosted） | 需 key 与配额，条款限制离线缓存，且引入联网依赖 | 仅作备选 |
+| **本机服务按需烘焙（现在的做法）** | Overpass + DEM 一次拉取，写盘后永久离线 | **采用** |
+
+实现：`Tools/bake_service.mjs` 提供 `/api/bake`、`/api/zones`，前端在世界视图框选后一键生成。
+烘焙耗时由 DEM 缓存命中率决定，界面给出真实阶段与进度；失败（如 Overpass 502）可见日志与重试入口。
+
+后续若要做"全球不糊"，正确方向是**本地瓦片金字塔 + Natural Earth 矢量叠加**（见第二节表格），
+而不是接在线瓦片。

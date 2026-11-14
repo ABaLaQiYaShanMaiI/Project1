@@ -3,9 +3,11 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { exec } from 'node:child_process';
+import { handleApi } from './bake_service.mjs';
 
 const ROOT = fileURLToPath(new URL('../app/dist', import.meta.url));
 const START_PORT = Number(process.argv[2] ?? 5183);
+const OPEN_BROWSER = !process.argv.includes('--no-open');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -20,17 +22,21 @@ const MIME = {
   '.map': 'application/json; charset=utf-8',
 };
 
-async function exists(p) {
+async function fileStat(p) {
   try {
-    await stat(p);
-    return true;
+    return await stat(p);
   } catch {
-    return false;
+    return null;
   }
+}
+
+async function exists(p) {
+  return Boolean(await fileStat(p));
 }
 
 const server = createServer(async (req, res) => {
   try {
+    if (await handleApi(req, res)) return;
     const url = new URL(req.url, 'http://localhost');
     let path = decodeURIComponent(url.pathname);
     if (path === '/' || path === '') path = '/index.html';
@@ -39,14 +45,23 @@ const server = createServer(async (req, res) => {
       res.writeHead(403).end('forbidden');
       return;
     }
-    if (!(await exists(file))) {
+    const info = await fileStat(file);
+    if (!info) {
       res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }).end('not found: ' + path);
+      return;
+    }
+    const etag = `W/"${info.size.toString(16)}-${Math.floor(info.mtimeMs).toString(16)}"`;
+    const cache = path.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache';
+    if (req.headers['if-none-match'] === etag) {
+      res.writeHead(304, { etag, 'cache-control': cache });
+      res.end();
       return;
     }
     const buf = await readFile(file);
     res.writeHead(200, {
       'content-type': MIME[extname(file)] ?? 'application/octet-stream',
-      'cache-control': 'no-cache',
+      'cache-control': cache,
+      etag,
       'content-length': buf.length,
     });
     res.end(buf);
@@ -71,7 +86,7 @@ function listen(port, tries = 12) {
     console.log('  已启动：' + url);
     console.log('  （关闭本窗口即停止服务）');
     console.log('');
-    exec(`start "" "${url}"`);
+    if (OPEN_BROWSER) exec(`start "" "${url}"`);
   });
 }
 

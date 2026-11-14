@@ -31,10 +31,13 @@
 
 ## 4. 数据与平台
 
-- 必须离线可运行：运行时不请求任何第三方服务（地图、字体、CDN 一律本地）。
-- 禁止使用在线瓦片（OSM 政策禁止离线与批量下载）；地形数据一律烘焙成本地 JSON/JPG。
+- 运行时不联网：游戏进程不得请求任何第三方服务（地图、字体、CDN 一律本地）。
+- 烘焙期可联网：`Tools/bake_map.py` / `bake_town_detail.py` 按需拉取 DEM 与 OSM；产物必须落盘到
+  `app/public/data/`，带来源与生成时间，之后必须能离线复现同一张战场。
+- 禁止使用在线瓦片（`tile.openstreetmap.org` 政策明确禁止批量下载、预取与离线打包）；
+  地形一律烘焙成本地 JSON/JPG，OSM 数据只走 Overpass 的区域查询并做本地缓存。
 - 目标平台 Windows 单机；数据与规则层不得依赖特定平台 API。
-- 所有地图数据来源必须可署名：当前为 SRTM/AWS Terrain Tiles + © OpenStreetMap contributors。
+- 所有地图数据来源必须可署名：当前为 SRTM/AWS Terrain Tiles + © OpenStreetMap contributors (ODbL)。
 
 ## 5. 性能预算
 

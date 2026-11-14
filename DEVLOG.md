@@ -125,6 +125,78 @@
 - 待办：城市**轮廓描边**还只是掩膜填充 + 分区线，没有真正的等值线描边。
   需要从掩膜跑一次 marching squares 得到每城轮廓多边形（烘焙期做，一次性）。
 
+
+### v1.4 渲染分层 + 一键烘焙 + 地图库
+- `renderer.ts` 793 行、超 `CONSTRAINTS.md` §2 的 700 行硬上限，按职责拆开：
+  `map/paint.ts`（View 与 PaintCtx、折线/多边形工具）、`map/layers/{landcover,contours,hydro,roads,towns,cities,detail}.ts`、
+  `map/control.ts`（控制场画布 + 接触线）；`renderer.ts` 只留编排与帧循环，降到约 425 行。
+- 顺带修两处统计错误：等高线段数会被下一次重建的清零覆盖；路网段数在"亮底 + 细线"两遍描边里重复累加。
+- 一键烘焙：新增 `Tools/bake_service.mjs`（零依赖），提供 `GET /api/zones`、`GET /api/bake`、
+  `POST /api/bake`、`POST /api/bake/cancel`；`Tools/serve.mjs` 与 `app/vite.config.ts` 共用同一个 handler，
+  开发模式与 `启动游戏.bat` 行为一致。`bake_map.py` 增加 `--title`（显示名，文件名仍用 `--name`）。
+- 世界视图改为「框选 → 生成战场 → 进入战场」：进度按 `bake_map.py` 的日志阶段解析
+  （DEM 瓦片 n/total → 路网 → 河流 → 水体 → 林地 → 城镇 → 街道 → 建成区 → 写盘），
+  完成后写入 `zones.json` 地图库；已记录区域在世界视图画绿框，单击直达。
+- 坑：Overpass 缓存键原来只有 `osm_<tag>.json`，不含区域 —— 新区域烘焙会直接复用富尔达的
+  22,085 条路段。已改为 `osm_<区域>_<tag>.json`，并把旧缓存整体迁移为 `osm_fulda_*`，
+  不重复下载 197 MB 现有数据。
+- 实测：4×4 km 区域、DEM 瓦片全命中时 9 秒完成；输出 1.61 MB 的那次其实串了富尔达路网
+  （缓存键 bug），修复后同一区域为 0.31 MB / 529 段路网。
+- Overpass 未缓存时单类查询 40–60 s 且偶发 502：4×4 km 首烘实测 8 分钟，主要时间都花在等公共实例。
+  因此增加镜像回退（主站 → private.coffee → kumi.systems），`places` 重试 3 次；
+  单站 502 不再直接产出"没有城市"的战场。
+- 界面与文档的耗时提示按实测改写为"首次约 3–10 分钟，缓存命中后十几秒"。
+- 坑：`urban_mask.png` 是固定文件名，烘焙新区域会直接覆盖富尔达的城区掩膜，连
+  `map_fulda.json` 的引用一起失效。已改为 `urban_mask_<区域>.png`；现有文件迁移为
+  `urban_mask_fulda.png`，`map_fulda.json` 同步更新引用。
+
+
+### v1.5 世界层瓦片金字塔 + 矢量层
+- `bake_world.py` 从"单张 2048² 晕渲"改为瓦片金字塔：输出 `world/t/{z}/{x}_{y}.jpg`（256²，z0..z6 可配）
+  与 `world/meta.json`。三种模式：`--download <z>`（只拉 DEM 到缓存）、
+  `--from-cache`（缓存拼图后逐瓦片算梯度，避免瓦片接缝）、`--from-image`（现有 world_terrain.jpg
+  直接切 z0..z3，零联网）。
+- 本次环境外网不可用（S3 单张 20 s 只下到 16 KB；GitHub raw / naciscdn / jsDelivr 连接重置），
+  所以先用 `--from-image` 生成 z0..z3（85 张瓦片 + meta，0.95 MB）。网络恢复后补齐高层：
+  `python Tools/bake_world.py --download 6` → `python Tools/bake_world.py --from-cache --max-zoom 6`。
+- 前端 `core/world.ts` 改为 Web Mercator 归一化坐标（`lonToX/latToY` 返回 0..1）与 `TileSet`
+  （LRU 220 张、最多 80 并发、失败记忆）；`WorldCanvas` 按视口裁剪绘制，先铺 minZoom 底图再叠当前层，
+  放大上限 `tileSize × 2^maxZoom × 2`，到达上限提示"框选进入战场"。
+- 层级选择用 `ceil` 而不是 `floor`（宁可不放大瓦片）：全球铺满时选 z3 而不是 z2，避免一进来就糊。
+- 初始视图对准当前战场中心，开局即可看到黄框。`--from-image` 的 z0..z3 与旧单图同分辨率，
+  画质不变，但换成按需加载并为 z4..z6 预留了结构；`SIZE = 2048` 的硬编码随之消失。
+- 世界层矢量：新增 `Tools/bake_world_vectors.py`（Natural Earth 10m roads / populated places →
+  简化 + bbox，输出 `world/vectors.json`）。前端按 zoom 分级：主干道 z0+、次级 z4+、
+  城市点按 rank、名称仅 z4+ 且 rank ≤ 3。
+- Natural Earth 当前无法下载，已用富尔达战场数据做临时验证（城市点/道路/标签渲染正常），
+  验证后删除临时 `vectors.json`，不留假数据。
+
+
+### v1.6 加载体验：预览图、缓存校验、细节预取
+- 新增 `Tools/make_preview.py`：从已烘焙战场的 DEM 生成 512 宽晕渲预览（富尔达 35.5 KB）；
+  `bake_map.py` 写盘后自动调用，输出 `preview_<区域>.jpg`；App 的 loading 界面用它做背景。
+- `serve.mjs` 静态服务加 ETag：数据文件二次访问走 304（实测 `if-none-match` → 304），
+  `assets/` 下带 hash 的文件改 `public, max-age=31536000, immutable`。
+- 细节层预取：`nearestDetailKeys()` 返回最近两座城镇，主城镇加载后顺带预取第二座，
+  缩放时不必等 700 ms 轮询到下一座。
+- 顺带把 App 文案里的 `tools/bake_map.py` 统一成 `Tools/`。
+
+
+### v1.7 代码质量与约束对齐
+- 约束审计发现 `core/` 里出现 `fetch` 与 `new Image()`（world / detail / zones），违反 §3
+  "纯规则层不得 import DOM、不得请求网络"。已按层拆开：`core/` 只保留类型与纯函数
+  （坐标换算、`pickZoom`、`maxScaleOf`、`nearestDetailKeys`、`makeZoneKey` / `zoneTitle`）；
+  DOM 与网络移到 `data/worldSource.ts`（`TileSet` + `loadWorld` + `loadWorldVectors`）、
+  `data/loadDetail.ts`、`data/bakeApi.ts`。
+- `WorldCanvas.tsx` 630 → 552 行，UI 面板抽到 `ui/WorldPanels.tsx`
+  （`WorldTools` / `WorldPickPanel` / `WorldLibraryPanel` / `BakeCard` / `WorldHint`）。
+- 清理未使用符号与占位写法：`core/scenario.ts` 的 `Seg`、`bake_map.py` 的 `import sys`、
+  `bake_world_vectors.py` 的 `import math`、`catch { void 0 }`、
+  `bake_service` 里把 dist 同步失败伪装成 `error = null`（改为写日志）。
+- `tsc --noUnusedLocals --noUnusedParameters` 现在也是 0 告警。
+- 审计结果：`strip_comments` clean（41 文件）、首屏 gzip 64.9 KB、最大前端文件 552 行、
+  最大数据文件 1.67 MB；用 Edge headless 回归了世界视图与战场视图（均 60 FPS）。
+
 ---
 
 ## 技术决策与原因
