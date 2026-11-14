@@ -1,0 +1,29 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+app/dist/
+.vite/
+app/node_modules/.vite/
+app/node_modules/.vite-temp/
+
+# 地图烘焙缓存（体积大，可用 Tools/bake_*.py 重新生成）
+Tools/.tile-cache/
+
+# 运行时存档
+Saves/*
+!Saves/.gitkeep
+
+# 日志与临时文件
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
