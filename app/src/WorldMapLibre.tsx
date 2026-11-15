@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttributionControl,
   Map as MapLibreMap,
@@ -18,7 +18,6 @@ import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './
 import { DemSampler, loadDemManifest } from './data/terrain';
 import {
   contourGeoJson,
-  labelGeoJson,
   militaryStyle,
   type ContourDoc,
   type DemTier,
@@ -31,7 +30,7 @@ import {
   pmtilesUrl,
   registerPmtiles,
   tierBands,
-  zonesAt,
+  zonesInBounds,
   type PmtilesZone,
 } from './data/pmtilesBasemap';
 
@@ -75,10 +74,10 @@ function bearing(deg: number): string {
   return dirs[Math.round(deg / 45) % 8];
 }
 
-function tierOf(zone: PmtilesZone, index: number, from: number): Tier {
+function tierOf(zone: PmtilesZone, _index: number, from: number): Tier {
   const isWorld = zone.kind === 'world';
   return {
-    id: isWorld ? 'world' : `detail${index}`,
+    id: isWorld ? 'world' : `detail_${zone.key}`,
     url: pmtilesUrl(zone.file),
     bounds: zone.bbox,
     minzoom: zone.minzoom,
@@ -104,6 +103,9 @@ export function WorldMapLibre(): JSX.Element {
   const [gridOn, setGridOn] = useState(true);
   const [loading, setLoading] = useState(true);
   const [failure, setFailure] = useState<string | null>(null);
+  const [viewEpoch, setViewEpoch] = useState(0);
+  const mountedRef = useRef("");
+  const zonesRef = useRef<PmtilesZone[]>([]);
   const ringsRef = useRef(false);
 
   useEffect(() => {
@@ -226,7 +228,10 @@ export function WorldMapLibre(): JSX.Element {
         setLoading(false);
         return;
       }
-      const tiersZones = zonesAt(zones, START.lon, START.lat);
+      zonesRef.current = zones;
+      const vb = map.getBounds();
+      const tiersZones = zonesInBounds(zones, [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()]);
+      mountedRef.current = tiersZones.map((z) => z.key).sort().join(',');
       const base = await loadBaseStyle(tiersZones[tiersZones.length - 1]);
       const bands = tierBands(tiersZones);
       const tiers = bands.map(({ zone, from }, i) => tierOf(zone, i, from));
@@ -261,15 +266,13 @@ export function WorldMapLibre(): JSX.Element {
 
       const region = tiersZones.find((z) => z.kind !== 'world');
       let contours: FC | null = null;
-      let labels: FC | null = null;
       if (region) {
         const res = await fetch(`/data/contours_${region.key}.json`, { cache: 'no-cache' }).catch(() => null);
         if (res && res.ok) {
           const doc = (await res.json()) as ContourDoc;
-          const mPerDegLat = 110540;
-          const mPerDegLon = 111320 * Math.cos((doc.origin[1] * Math.PI) / 180);
+          const mPerDegLat = doc.mPerDegLat ?? 110540;
+          const mPerDegLon = doc.mPerDegLon ?? 111320 * Math.cos((doc.origin[1] * Math.PI) / 180);
           contours = contourGeoJson(doc, mPerDegLon, mPerDegLat);
-          labels = labelGeoJson(doc.labels, doc.origin, mPerDegLon, mPerDegLat);
         }
       }
 
@@ -280,7 +283,6 @@ export function WorldMapLibre(): JSX.Element {
         tiers,
         demTiers,
         contours,
-        contourLabels: labels,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
       });
       if (!alive) return;
@@ -319,6 +321,33 @@ export function WorldMapLibre(): JSX.Element {
     });
     return () => {
       alive = false;
+    };
+  }, [viewEpoch]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    let timer = 0;
+    const check = () => {
+      const zones = zonesRef.current;
+      if (!zones.length) return;
+      const b = map.getBounds();
+      const next = zonesInBounds(zones, [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()])
+        .map((z) => z.key)
+        .sort()
+        .join(',');
+      if (next === mountedRef.current) return;
+      mountedRef.current = next;
+      setViewEpoch((v) => v + 1);
+    };
+    const onMoveEnd = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(check, 350);
+    };
+    map.on('moveend', onMoveEnd);
+    return () => {
+      window.clearTimeout(timer);
+      map.off('moveend', onMoveEnd);
     };
   }, []);
 

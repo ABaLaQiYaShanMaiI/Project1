@@ -1,4 +1,4 @@
-﻿import { writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 
 const url = process.argv[2] ?? 'http://127.0.0.1:5201/';
 const out = process.argv[3] ?? 'map.png';

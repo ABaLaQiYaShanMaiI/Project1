@@ -40,7 +40,6 @@ export interface StyleInputs {
   tiers: Tier[];
   demTiers?: DemTier[];
   contours?: FC | null;
-  contourLabels?: FC | null;
   grid?: FC | null;
 }
 
@@ -293,6 +292,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     { id: 'background', type: 'background', paint: { 'background-color': PAPER } },
   ];
 
+  const reliefLayers: Record<string, unknown>[] = [];
   for (const dem of inp.demTiers ?? []) {
     sources[dem.id] = {
       type: 'raster-dem',
@@ -304,7 +304,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       bounds: dem.bounds,
       attribution: 'AWS Terrain Tiles（SRTM）',
     };
-    out.push({
+    reliefLayers.push({
       id: `${dem.id}-relief`,
       type: 'hillshade',
       source: dem.id,
@@ -333,10 +333,6 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
 
   if (inp.contours) {
     sources.contours = { type: 'geojson', data: inp.contours };
-    sources['contour-labels'] = {
-      type: 'geojson',
-      data: inp.contourLabels ?? { type: 'FeatureCollection', features: [] },
-    };
     sources.grid = { type: 'geojson', data: inp.grid ?? { type: 'FeatureCollection', features: [] } };
     sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
   }
@@ -371,35 +367,62 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       {
         id: 'contour-label',
         type: 'symbol',
-        source: 'contour-labels',
-        minzoom: 8,
+        source: 'contours',
+        filter: ['==', ['get', 'b'], 1],
+        minzoom: 9,
         layout: {
           'text-field': ['to-string', ['get', 'v']],
           'text-font': ['Noto Sans Regular'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 8, 8, 13, 10.5],
-          'text-rotate': ['get', 'rot'],
-          'text-rotation-alignment': 'map',
-          'text-padding': 2,
-          'symbol-placement': 'point',
+          'text-size': ['interpolate', ['linear'], ['zoom'], 9, 8, 12, 9.5, 15, 11],
+          'symbol-placement': 'line',
+          'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 9, 260, 12, 420, 15, 640],
+          'text-keep-upright': true,
+          'text-padding': 3,
+          'text-max-angle': 35,
+          'symbol-avoid-edges': false,
         },
         paint: { 'text-color': '#7a5027', 'text-halo-color': '#f0e9da', 'text-halo-width': 1.6 },
+      },
+      {
+        id: 'contour-label-all',
+        type: 'symbol',
+        source: 'contours',
+        minzoom: 11.5,
+        layout: {
+          'text-field': ['to-string', ['get', 'v']],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 11.5, 8.5, 15, 10.5],
+          'symbol-placement': 'line',
+          'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 11.5, 300, 15, 460],
+          'text-keep-upright': true,
+          'text-padding': 4,
+          'text-max-angle': 30,
+        },
+        paint: { 'text-color': '#8a6134', 'text-halo-color': '#f2ecdf', 'text-halo-width': 1.5 },
       },
     );
   }
 
+  let reliefPlaced = false;
   inp.tiers.forEach((tier, i) => {
     const suffix = i === 0 ? '' : `__${tier.id}`;
     let inserted = false;
     for (const layer of tierLayers(inp.base, tier, suffix)) {
+      out.push(layer);
+      if (!reliefPlaced && String(layer['source-layer']) === 'landcover') {
+        out.push(...reliefLayers);
+        reliefPlaced = true;
+      }
       if (!inserted && contourLayers.length && String(layer['source-layer']) === 'roads') {
         out.push(...contourLayers);
         inserted = true;
       }
-      out.push(layer);
     }
     if (!inserted && contourLayers.length && i === inp.tiers.length - 1) out.push(...contourLayers);
     out.push(...railsOf(tier, suffix));
   });
+
+  if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
 
   if (inp.contours) {
     out.push(
@@ -450,10 +473,11 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
 export interface ContourDoc {
   origin: [number, number];
   spanM: [number, number];
+  mPerDegLat?: number;
+  mPerDegLon?: number;
   interval: number;
   bold: number;
   levels: Array<{ v: number; b: number; l: number[][] }>;
-  labels: number[][];
 }
 
 export function contourGeoJson(doc: ContourDoc, mPerDegLon: number, mPerDegLat: number): FC {
@@ -471,24 +495,5 @@ export function contourGeoJson(doc: ContourDoc, mPerDegLon: number, mPerDegLat: 
       }),
     },
   }));
-  return { type: 'FeatureCollection', features };
-}
-
-export function labelGeoJson(
-  labels: number[][],
-  origin: [number, number],
-  mPerDegLon: number,
-  mPerDegLat: number,
-): FC {
-  const features = labels.map(([x, y, ang, v]) => {
-    let a = ang;
-    if (a > 90) a -= 180;
-    if (a < -90) a += 180;
-    return {
-      type: 'Feature' as const,
-      properties: { v, rot: -a },
-      geometry: { type: 'Point' as const, coordinates: [origin[0] + x / mPerDegLon, origin[1] + y / mPerDegLat] },
-    };
-  });
   return { type: 'FeatureCollection', features };
 }

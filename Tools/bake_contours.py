@@ -82,15 +82,20 @@ def load_mosaic(key, zmin, zmax):
     return mosaic, (lon_l, lat_t, lon_r, lat_b), z
 
 
+def merc(lat):
+    return math.asinh(math.tan(math.radians(lat)))
+
+
 def crop_bbox(mosaic, bounds, bbox, nx_out):
     lon_l, lat_t, lon_r, lat_b = bounds
     w, s, e, n = bbox
     px = mosaic.shape[1] / (lon_r - lon_l)
-    py = mosaic.shape[0] / (lat_t - lat_b)
+    my_t, my_b = merc(lat_t), merc(lat_b)
+    py = mosaic.shape[0] / (my_t - my_b)
     u0 = int(round((w - lon_l) * px))
     u1 = int(round((e - lon_l) * px))
-    v0 = int(round((lat_t - n) * py))
-    v1 = int(round((lat_t - s) * py))
+    v0 = int(round((my_t - merc(n)) * py))
+    v1 = int(round((my_t - merc(s)) * py))
     u0, v0 = max(0, u0), max(0, v0)
     u1, v1 = min(mosaic.shape[1], u1), min(mosaic.shape[0], v1)
     sub = mosaic[v0:v1, u0:u1]
@@ -231,12 +236,12 @@ def main():
     ap = argparse.ArgumentParser(description="从本地 DEM 生成等高线矢量（计曲线 + 高程标注锚点）")
     ap.add_argument("--key", default="fulda")
     ap.add_argument("--bbox", default="8.849,50.240,10.591,51.000")
-    ap.add_argument("--grid", type=int, default=400)
-    ap.add_argument("--interval", type=float, default=0.0)
+    ap.add_argument("--grid", type=int, default=1200)
+    ap.add_argument("--interval", type=float, default=25.0)
     ap.add_argument("--bold", type=float, default=0.0)
-    ap.add_argument("--tol", type=float, default=190.0)
-    ap.add_argument("--min-km", type=float, default=2.0)
-    ap.add_argument("--label-km", type=float, default=6.0)
+    ap.add_argument("--tol", type=float, default=45.0)
+    ap.add_argument("--min-km", type=float, default=0.6)
+    ap.add_argument("--label-km", type=float, default=3.5)
     args = ap.parse_args()
 
     bbox = tuple(float(v) for v in args.bbox.split(","))
@@ -253,7 +258,7 @@ def main():
     interval = args.interval
     if interval <= 0:
         span = grid.max() - grid.min()
-        interval = 50.0 if span < 1200 else 100.0
+        interval = 25.0 if span < 1200 else 50.0
     bold = args.bold if args.bold > 0 else interval * 5
     levels = np.arange(math.floor(grid.min() / interval) * interval, grid.max() + interval, interval)
     levels = [float(v) for v in levels if v > grid.min() and v < grid.max()]
@@ -265,7 +270,6 @@ def main():
     cell_h = (bbox[3] - bbox[1]) * pr["mPerDegLat"] / (rows - 1)
 
     out_levels = []
-    labels = []
     total_v = 0
     for lv in levels:
         segs = level_segments(grid, x0, y0, cell_w, cell_h, lv)
@@ -295,9 +299,6 @@ def main():
             continue
         bold_flag = 1 if abs(lv / bold - round(lv / bold)) < 1e-6 else 0
         out_levels.append({"v": lv, "b": bold_flag, "l": polys})
-        if bold_flag:
-            for (lx, ly, ang) in label_points([simplify(ln, args.tol) for ln in lines], args.label_km * 1000, 6):
-                labels.append([int(round(lx)), int(round(ly)), int(round(ang)), int(lv)])
 
     out_levels = [o for o in out_levels if o]
     span_x = (bbox[2] - bbox[0]) * pr["mPerDegLon"]
@@ -306,11 +307,12 @@ def main():
         "key": args.key,
         "origin": [round(lon0, 6), round(lat0, 6)],
         "spanM": [round(span_x, 1), round(span_y, 1)],
+        "mPerDegLat": round(pr["mPerDegLat"], 4),
+        "mPerDegLon": round(pr["mPerDegLon"], 4),
         "interval": interval,
         "bold": bold,
         "vertices": total_v,
         "levels": out_levels,
-        "labels": labels,
         "attribution": SOURCE,
         "generated": time.strftime("%Y-%m-%d %H:%M"),
     }
@@ -318,7 +320,7 @@ def main():
     with open(out, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
     size = os.path.getsize(out)
-    log(f"完成 {os.path.basename(out)} {size / 1048576:.2f} MB，{len(out_levels)} 层，{total_v} 顶点，{len(labels)} 标注")
+    log(f"完成 {os.path.basename(out)} {size / 1048576:.2f} MB，{len(out_levels)} 层，{total_v} 顶点，0 标注")
 
 
 if __name__ == "__main__":

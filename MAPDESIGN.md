@@ -63,7 +63,16 @@ L2 热点      tiles/fulda.pmtiles   z9-z13   42 MB     战术尺度（已有）
 | 烘焙 GeoJSON | 0.21 MB | 无限清晰 | 是 |
 
 代价是低倍太密 -> 用**透明度随缩放淡入**（z5 0.16 -> z14 0.64）代替几何 LOD。
-当前参数：50 m 等高距 / 250 m 计曲线 / 网格 400 px / 简化 190 m / 最短 2 km。
+当前参数：**25 m 等高距 / 125 m 计曲线 / 网格 1200 px（约 103 m/px）/ 简化 45 m / 最短 0.6 km**，
+33 层 / 113,954 顶点 / 1.37 MB。
+
+标注用 `symbol-placement: 'line'` 沿线上字，而不是烘焙固定锚点——锚点密度不随缩放变化，
+放大后会稀疏、缩小时被碰撞剔除。现在两层：计曲线 z >= 9、全部等级 z >= 11.5，
+`symbol-spacing` 随 zoom 插值（260 -> 640 px）。
+
+**地理配准**：DEM 瓦片是 Mercator，裁剪必须用 `asinh(tan(lat))` 做 y 映射，按纬度线性取行会
+在 0.76 度跨度内产生数百米纵向错位。烘焙时把实际投影常量写进 JSON（`mPerDegLat` / `mPerDegLon`），
+前端优先采用，不再自己猜。
 
 `bake_contours.py` 直接吃 `--bbox`，投影用常量（`mPerDegLat 110540`、`mPerDegLon 111320*cos(lat)`），
 不再依赖区域 JSON。

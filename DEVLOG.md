@@ -706,6 +706,33 @@ node Tools/fetch_basemap.mjs --key=world --world    # z0-z6，约 44 MB
 `git checkout HEAD -- DEVLOG.md` 恢复到已提交的 v1.22 版本，再把这两条重新补回来。
 **教训：整理长文档只能插入/替换片段，不要整文件重写。**
 
+### v1.25 等高线精度：25 m 等高距、逐条标注、Mercator 对齐
+
+玩家反馈两件事：① 只有 250/500 有数字；② 等高线跟绿/黄色块对不上。都成立，根因不同。
+
+**① 只有计曲线有数字**：标注层按 `b == 1` 过滤，而 `bold = interval x 5`，所以只有 250/500/750 有字。
+改为两层：`contour-label`（计曲线，z >= 9）+ `contour-label-all`（全部等级，z >= 11.5），
+都用 `symbol-placement: 'line'`，沿等高线自动排布、随缩放调整间距（`symbol-spacing` 随 zoom 插值 260->640 px）。
+标注不再使用烘焙时打的固定锚点——那批锚点按地面 6 km 间距生成，缩放后密度不变，这才是"缩放后看不见"的根本原因。
+`bake_contours.py` 已停止生成锚点数组（`labels`），JSON 从 1.40 MB 降到 1.37 MB。
+
+**② 等高线与色块不重合**，两个独立原因：
+
+| 原因 | 影响 | 修法 |
+| --- | --- | --- |
+| DEM 裁剪按**纬度线性**取行，而瓦片是 Mercator 投影 | 0.76 度跨度内纵向错位可达数百米 | `crop_bbox()` 改用 `asinh(tan(lat))` 做 y 映射 |
+| 等高线网格只有 277 m/px（`--grid 400`），放大后是折线块 | 压不住矢量色块的细节 | 默认改为 `--grid 1200`（约 103 m/px）、`--tol 45`、`--min-km 0.6` |
+
+同时 `bake_contours.py` 把实际用的投影常量写进 JSON（`mPerDegLat` / `mPerDegLon`），
+前端优先用它们换算米->度；以前前端自己按 `110540 / 111320*cos(lat)` 猜，和烘焙时的常量可能不一致。
+
+**参数变更**：等高距 50 -> **25 m**，计曲线 250 -> **125 m**，层数 16 -> **33**，
+顶点 16,785 -> **113,954**，文件 0.21 MB -> **1.37 MB**（仍在 4 MB 上限内）。
+
+**踩坑**：用 PowerShell `Set-Content -Encoding UTF8` 改 Python 文件会写入 BOM，
+Python 报 `invalid non-printable character U+FEFF`。改 Python 文件一律用 Python 读写
+（`io.open(..., encoding='utf-8-sig')` 读、`utf-8` 写）——这是 DEVLOG 踩坑 #3 的重演。
+
 ---
 
 ## 技术决策与原因

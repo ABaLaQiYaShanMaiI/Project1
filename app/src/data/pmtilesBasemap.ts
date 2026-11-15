@@ -54,12 +54,31 @@ function inside(bbox: [number, number, number, number], lon: number, lat: number
   return lon >= w && lon <= e && lat >= s && lat <= n;
 }
 
+function overlaps(a: [number, number, number, number], b: [number, number, number, number]): boolean {
+  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
+}
+
+const MAX_REGION_TIERS = 2;
+
 export function zonesAt(zones: PmtilesZone[], lon: number, lat: number): PmtilesZone[] {
   const worlds = zones.filter((z) => z.kind === 'world').sort((a, b) => a.maxzoom - b.maxzoom);
   const regions = zones
     .filter((z) => z.kind !== 'world' && inside(z.bbox, lon, lat))
     .sort((a, b) => a.maxzoom - b.maxzoom);
   const out = [...worlds, ...regions];
+  return out.length ? out : zones.slice(0, 1);
+}
+
+export function zonesInBounds(
+  zones: PmtilesZone[],
+  bounds: [number, number, number, number],
+): PmtilesZone[] {
+  const worlds = zones.filter((z) => z.kind === 'world').sort((a, b) => a.maxzoom - b.maxzoom);
+  const regions = zones
+    .filter((z) => z.kind !== 'world' && overlaps(z.bbox, bounds))
+    .sort((a, b) => a.maxzoom - b.maxzoom);
+  const kept = regions.length > MAX_REGION_TIERS ? regions.slice(regions.length - MAX_REGION_TIERS) : regions;
+  const out = [...worlds, ...kept];
   return out.length ? out : zones.slice(0, 1);
 }
 
@@ -89,15 +108,18 @@ export function pmtilesUrl(file: string): string {
   return `pmtiles://${location.origin}/data/tiles/${file}`;
 }
 
+const baseCache = new Map<string, StyleSpecification>();
+
 export async function loadBaseStyle(zone: PmtilesZone): Promise<StyleSpecification> {
+  const hit = baseCache.get(zone.key);
+  if (hit) return JSON.parse(JSON.stringify(hit)) as StyleSpecification;
   const candidates = ['base.style.json', zone.style];
   for (const name of candidates) {
     const res = await fetch(`/data/tiles/${name}`, { cache: 'no-cache' });
     if (!res.ok) continue;
     const style = (await res.json()) as StyleSpecification;
-    const src = (style.sources as Record<string, { url?: string }>).protomaps;
-    if (src) src.url = pmtilesUrl(zone.file);
-    return style;
+    baseCache.set(zone.key, style);
+    return JSON.parse(JSON.stringify(style)) as StyleSpecification;
   }
   throw new Error(`底图样式缺失：${zone.style}`);
 }
