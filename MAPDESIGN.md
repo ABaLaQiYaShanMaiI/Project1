@@ -143,9 +143,9 @@
 | --- | --- | --- | --- |
 | M1 | 接入 ESA WorldCover built-up 掩膜 | 网络 + rasterio/Pillow | 真实城区边界，替换街道密度推断 |
 | M2 | 拉取 OSM `boundary=administrative` / `place=suburb` | Overpass | 区划边界 |
-| M3 | 面提取 + 合并 + 块数控制（`Tools/bake_blocks.py`） | M1/M2 | 每城 1–30 个 `poly` |
-| M4 | 参数计算（frontage/defense/terrain/moveCost/value） | M3 | 参数化地块 |
-| M5 | 前端多边形渲染 + 参数卡（`poly` 优先，回退旧形状） | M4 | 可视地块 |
+| M3 | 面提取 + 合并 + 块数控制（`Tools/bake_blocks.py`） | M1/M2 | 每城 1–30 个 `poly` ✅ 已做（栅格 + 连通分量 + 像素面积） |
+| M4 | 参数计算（frontage/defense/terrain/moveCost/value） | M3 | 参数化地块 ✅ 部分（frontage/defense/builtRatio/roadKm/value） |
+| M5 | 前端多边形渲染 + 参数卡（`poly` 优先，回退旧形状） | M4 | 可视地块 ✅ 已做（分组批量填充） |
 | M6 | 大桥/隧道/渡口、林地通行性接入 | OSM/WorldCover | 战术关键点 |
 
 M5 之前的任何一步都不会破坏现有战场（`poly` 可选、旧数据回退）。
@@ -265,7 +265,7 @@ M5 之前的任何一步都不会破坏现有战场（`poly` 可选、旧数据�
 | 批量烘焙队列 | ⬜ |
 | 地图包导入/导出（.zip） | ⬜ |
 | 世界层城市/主路矢量 | ⬜（GitHub 不可达） |
-| Overpass 合并查询（7 次 → 1–2 次） | ⬜（可把 3–8 分钟压到 1–2 分钟） |
+| Overpass 合并查询（7 次 → 1–2 次） | ✅ 已做（分块 + 串行 + 镜像） |
 
 ### 10.5 建议的推进顺序
 

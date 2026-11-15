@@ -204,8 +204,6 @@ def point_in_poly(x, y, poly):
 OVERPASS = "https://overpass-api.de/api/interpreter"
 OVERPASS_MIRRORS = [
     "https://overpass-api.de/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
 ]
 
 def overpass_cached(tag, query, tries=2):
@@ -224,11 +222,13 @@ def overpass_cached(tag, query, tries=2):
     return data
 
 def overpass(query, tries=2):
+    session = requests.Session()
+    session.trust_env = False
     for i in range(tries):
         url = OVERPASS_MIRRORS[i % len(OVERPASS_MIRRORS)]
         t0 = time.time()
         try:
-            r = requests.post(url, data={"data": query}, headers=UA, timeout=240)
+            r = session.post(url, data={"data": query}, headers=UA, timeout=240)
             if r.status_code == 200:
                 log(f"    overpass {r.status_code} {len(r.content)/1024:.0f}KB in {time.time()-t0:.1f}s")
                 return r.json()
@@ -241,57 +241,6 @@ def overpass(query, tries=2):
 def bbox_str():
     return f'{BBOX["south"]:.5f},{BBOX["west"]:.5f},{BBOX["north"]:.5f},{BBOX["east"]:.5f}'
 
-def q_roads():
-    return f"""[out:json][timeout:180];
-(
-  way["highway"~"^(motorway|trunk|primary)$"]({bbox_str()});
-);
-out geom;"""
-
-def q_rivers():
-    return f"""[out:json][timeout:180];
-(
-  way["waterway"~"^(river|canal)$"]({bbox_str()});
-);
-out geom;"""
-
-def q_places():
-    return f"""[out:json][timeout:120];
-(
-  node["place"~"^(city|town|village)$"]({bbox_str()});
-);
-out;"""
-
-def q_water():
-    return f"""[out:json][timeout:180];
-(
-  wr["natural"="water"]({bbox_str()});
-);
-out geom;"""
-
-def q_forest(bb=None):
-    b = bb or bbox_str()
-    return f"""[out:json][timeout:240];
-(
-  wr["landuse"="forest"]({b});
-);
-out geom;"""
-
-def q_minor():
-    return f"""[out:json][timeout:300];
-(
-  way["highway"~"^(residential|service|unclassified|living_street|pedestrian)$"]({bbox_str()});
-);
-out geom;"""
-
-def q_builtup(bb=None):
-    b = bb or bbox_str()
-    return f"""[out:json][timeout:240];
-(
-  wr["landuse"~"^(residential|commercial|industrial)$"]({b});
-);
-out geom;"""
-
 def split_bbox(nx=2, ny=2):
     lats = [BBOX["south"] + (BBOX["north"] - BBOX["south"]) * i / ny for i in range(ny + 1)]
     lons = [BBOX["west"] + (BBOX["east"] - BBOX["west"]) * i / nx for i in range(nx + 1)]
@@ -300,6 +249,61 @@ def split_bbox(nx=2, ny=2):
         for i in range(nx):
             out.append(f"{lats[j]:.5f},{lons[i]:.5f},{lats[j+1]:.5f},{lons[i+1]:.5f}")
     return out
+
+def q_all(bb):
+    return f"""[out:json][timeout:300];
+(
+  way["highway"~"^(motorway|trunk|primary|secondary)$"]({bb});
+  way["waterway"~"^(river|canal)$"]({bb});
+  wr["natural"="water"]({bb});
+  wr["landuse"="forest"]({bb});
+  node["place"~"^(city|town|village)$"]({bb});
+  way["highway"~"^(residential|service|unclassified|living_street|pedestrian)$"]({bb});
+  wr["landuse"~"^(residential|commercial|industrial)$"]({bb});
+  relation["boundary"="administrative"]["admin_level"~"^(8|9)$"]({bb});
+  wr["place"~"^(suburb|neighbourhood|quarter|borough)$"]({bb});
+);
+out geom;"""
+
+
+def fetch_all(force_block=0):
+    area_km2 = (
+        (BBOX["north"] - BBOX["south"])
+        * M_PER_DEG_LAT
+        * (BBOX["east"] - BBOX["west"])
+        * M_PER_DEG_LON
+        / 1e6
+    )
+    n = force_block
+    if n <= 0:
+        n = 1
+        if area_km2 > 600:
+            n = 2
+        if area_km2 > 2400:
+            n = 3
+        if area_km2 > 5400:
+            n = 4
+    parts = [bbox_str()] if n == 1 else split_bbox(n, n)
+    log(f"overpass: {len(parts)} merged query(ies), area {area_km2:.0f} km2")
+
+    results = []
+    for i, part in enumerate(parts):
+        results.append(overpass_cached(f"all{n}_{i}", q_all(part), tries=4))
+        if i + 1 < len(parts):
+            time.sleep(1.5)
+
+    seen = set()
+    elements = []
+    for r in results:
+        for el in (r or {}).get("elements", []):
+            key = (el.get("type"), el.get("id"))
+            if key in seen:
+                continue
+            seen.add(key)
+            elements.append(el)
+    log(f"overpass: {len(elements)} unique elements")
+    return elements
+
 
 def polygons_of(el):
     out = []
@@ -401,91 +405,98 @@ def main():
     ap.add_argument("--span-km", default="111,72", help="东西,南北 跨度(km), 例 111,72")
     ap.add_argument("--name", default="fulda", help="区域名（输出 map_<name>.json）")
     ap.add_argument("--title", default="", help="显示名称，默认同 --name")
+    ap.add_argument("--block", type=int, default=0, help="强制 Overpass 分块 n×n（0=按面积自动）")
     args = ap.parse_args()
     lat, lon = [float(x) for x in args.center.split(",")]
     sx, sy = [float(x) * 1000.0 for x in args.span_km.split(",")]
     configure(lat, lon, sx, sy, args.name, args.title)
 
-    t0 = time.time()
+    t_start = time.time()
     log("bbox", {k: round(v, 4) for k, v in BBOX.items()})
 
     dem, ox, oy = build_dem()
     log("DEM ok, range", round(float(dem.min())), "-", round(float(dem.max())))
 
-    log("query roads ...")
+    log("query all layers (merged) ...")
+    elements = fetch_all(args.block)
+
     KEEP_ROADS = {"motorway", "trunk", "primary", "secondary"}
+    MINOR_ROADS = {"residential", "service", "unclassified", "living_street", "pedestrian"}
     TOL = {"motorway": 20.0, "trunk": 20.0, "primary": 25.0, "secondary": 35.0}
-    roads = []
-    for el in overpass_cached("roads", q_roads()).get("elements", []):
-        cls = el.get("tags", {}).get("highway", "road")
-        if cls not in KEEP_ROADS:
-            continue
-        pts = way_to_m(el)
-        if len(pts) < 2:
-            continue
+    roads, rivers, water, forest, cities, minor, builtup_polys, regions = [], [], [], [], [], [], [], []
 
-        pts = simplify(pts, TOL.get(cls, 30.0))
-        if len(pts) < 2:
-            continue
-        roads.append({"c": cls, "p": pts})
-    log("  roads", len(roads))
-
-    log("query rivers ...")
-    rivers = []
-    for el in overpass_cached("rivers", q_rivers()).get("elements", []):
-        pts = way_to_m(el)
-        if len(pts) < 2:
-            continue
-        if path_length(pts) < 600:
-            continue
-        rivers.append({"p": simplify(pts, 90.0)})
-    log("  rivers", len(rivers))
-
-    log("query water ...")
-    water = []
-    for el in overpass_cached("water2", q_water()).get("elements", []):
-        for pts in polygons_of(el):
-            area, _ = poly_area_centroid(pts)
-            if area < 400e3:
-                continue
-            water.append({"p": simplify(pts, 60.0)})
-    log("  water polys", len(water))
-
-    log("query forest ...")
-    forest = []
-
-    for idx, bb in enumerate(split_bbox(2, 2)):
-        part = overpass_cached(f"forest_{idx}", q_forest(bb), tries=3)
-        n0 = len(forest)
-        for el in part.get("elements", []):
-            for pts in polygons_of(el):
-                area, _ = poly_area_centroid(pts)
-                if area < 1.0e6:
-                    continue
-                forest.append({"p": simplify(pts, 120.0)})
-        log(f"  forest part {idx}: +{len(forest)-n0}")
-    log("  forest polys", len(forest))
-
-    log("query places ...")
-    cities = []
-    for el in overpass_cached("places", q_places(), tries=3).get("elements", []):
+    for el in elements:
         tags = el.get("tags", {})
-        pop = 0
-        try:
-            pop = int(str(tags.get("population", "0")).replace(",", "").strip() or 0)
-        except Exception:
+        hw = tags.get("highway")
+        if hw in KEEP_ROADS:
+            pts = way_to_m(el)
+            if len(pts) >= 2:
+                pts = simplify(pts, TOL.get(hw, 30.0))
+                if len(pts) >= 2:
+                    roads.append({"c": hw, "p": pts})
+            continue
+        if hw in MINOR_ROADS:
+            pts = way_to_m(el)
+            if len(pts) >= 2:
+                minor.append(pts)
+            continue
+        if tags.get("waterway") in ("river", "canal"):
+            pts = way_to_m(el)
+            if len(pts) >= 2 and path_length(pts) >= 600:
+                rivers.append({"p": simplify(pts, 90.0)})
+            continue
+        if tags.get("natural") == "water":
+            for pts in polygons_of(el):
+                if poly_area_centroid(pts)[0] >= 400e3:
+                    water.append({"p": simplify(pts, 60.0)})
+            continue
+        if tags.get("landuse") == "forest":
+            for pts in polygons_of(el):
+                if poly_area_centroid(pts)[0] >= 1.0e6:
+                    forest.append({"p": simplify(pts, 120.0)})
+            continue
+        if tags.get("place") in ("city", "town", "village"):
+            if "lat" not in el or "lon" not in el:
+                continue
             pop = 0
-        cities.append({
-            "n": tags.get("name", "?"),
-            "r": tags.get("place", "village"),
-            "lat": el["lat"],
-            "lon": el["lon"],
-            "x": round(ll2m(el["lat"], el["lon"])[0], 1),
-            "y": round(ll2m(el["lat"], el["lon"])[1], 1),
-            "pop": pop,
-        })
+            try:
+                pop = int(str(tags.get("population", "0")).replace(",", "").strip() or 0)
+            except Exception:
+                pop = 0
+            cities.append({
+                "n": tags.get("name", "?"),
+                "r": tags.get("place", "village"),
+                "lat": el["lat"],
+                "lon": el["lon"],
+                "x": round(ll2m(el["lat"], el["lon"])[0], 1),
+                "y": round(ll2m(el["lat"], el["lon"])[1], 1),
+                "pop": pop,
+            })
+            continue
+        if tags.get("landuse") in ("residential", "commercial", "industrial"):
+            for pts in polygons_of(el):
+                if poly_area_centroid(pts)[0] >= 20e3:
+                    builtup_polys.append(pts)
+            continue
+        if tags.get("boundary") == "administrative" and str(tags.get("admin_level")) in ("8", "9"):
+            for pts in polygons_of(el):
+                if poly_area_centroid(pts)[0] >= 60e3:
+                    regions.append({
+                        "n": tags.get("name", "?"),
+                        "l": int(tags.get("admin_level", 8)),
+                        "p": simplify(pts, 90.0),
+                    })
+            continue
+        if tags.get("place") in ("suburb", "neighbourhood", "quarter", "borough"):
+            for pts in polygons_of(el):
+                if poly_area_centroid(pts)[0] >= 40e3:
+                    regions.append({"n": tags.get("name", "?"), "l": 10, "p": simplify(pts, 60.0)})
+
     cities.sort(key=lambda c: {"city": 0, "town": 1, "village": 2}.get(c["r"], 3))
-    log("  places", len(cities))
+    log(
+        f"  roads {len(roads)} rivers {len(rivers)} water {len(water)} forest {len(forest)} "
+        f"cities {len(cities)} minor {len(minor)} builtup {len(builtup_polys)} regions {len(regions)}"
+    )
 
     log("sampling hexes ...")
     hexes = []
@@ -533,28 +544,6 @@ def main():
                 hit += 1
                 break
         return hit / total
-
-    log("query minor streets ...")
-    minor = []
-    for el in overpass_cached("minor", q_minor(), tries=3).get("elements", []):
-        pts = way_to_m(el)
-        if len(pts) >= 2:
-            minor.append(pts)
-    log("  minor streets", len(minor))
-
-    log("query built-up ...")
-    builtup_polys = []
-    for idx, bb in enumerate(split_bbox(2, 2)):
-        part = overpass_cached(f"builtup_{idx}", q_builtup(bb), tries=3)
-        n0 = len(builtup_polys)
-        for el in part.get("elements", []):
-            for pts in polygons_of(el):
-                area, _ = poly_area_centroid(pts)
-                if area < 20e3:
-                    continue
-                builtup_polys.append(pts)
-        log(f"  builtup part {idx}: +{len(builtup_polys)-n0}")
-    log("  builtup polys", len(builtup_polys))
 
     RANK_SCORE = {"city": 3, "town": 2, "village": 1}
     built_area = {}
@@ -935,7 +924,14 @@ def main():
     txt = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     with open(OUT, "w", encoding="utf-8") as f:
         f.write(txt)
-    log(f"wrote {OUT}  ({len(txt)/1024/1024:.2f} MB)  in {time.time()-t0:.1f}s")
+
+    if regions:
+        rpath = os.path.join(os.path.dirname(OUT), f"regions_{CACHE_KEY}.json")
+        rtxt = json.dumps({"regions": regions}, ensure_ascii=False, separators=(",", ":"))
+        with open(rpath, "w", encoding="utf-8") as f:
+            f.write(rtxt)
+        log(f"regions {len(regions)} -> {os.path.basename(rpath)} ({len(rtxt) / 1024 / 1024:.2f} MB)")
+    log(f"wrote {OUT}  ({len(txt)/1024/1024:.2f} MB)  in {time.time()-t_start:.1f}s")
     log("roads", len(roads), "rivers", len(rivers), "towns", len(towns))
 
     try:

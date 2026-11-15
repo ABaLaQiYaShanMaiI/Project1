@@ -221,6 +221,11 @@ function HoverCard(): JSX.Element | null {
       <div className="hc-row">
         {d.frontage} 连 · 防御 +{d.defense}
       </div>
+      <div className="hc-row dim">
+        {d.area.toFixed(1)} km²
+        {d.builtRatio != null ? ` · 建筑 ${Math.round(d.builtRatio * 100)}%` : ''}
+        {d.roadKm != null ? ` · 路 ${d.roadKm.toFixed(1)} km` : ''}
+      </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { drawRoads } from './layers/roads';
 import {
   countVisibleTowns,
   drawCapturePoints,
+  drawTownBlocks,
   drawTownGlow,
   drawTownLabels,
   drawTownMarks,
@@ -287,6 +288,8 @@ export class MapRenderer {
     const contourSegs = drawContours(p, meta.dem, meta.spanM, lv === 2 ? 25 : 50);
 
     drawHydro(p, this.data.water, this.data.rivers, zf);
+
+    drawTownBlocks(p, this.data.towns, this.field, this.showControl);
 
     if (this.detail && this.view.scale > 0.035) {
       if (!this.detailPaths) this.detailPaths = buildDetailPaths(this.detail);

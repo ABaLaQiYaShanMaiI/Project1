@@ -54,12 +54,69 @@ export function drawTownMarks(p: PaintCtx, towns: Town[]): void {
   }
 }
 
+const BLOCK_FILL: Record<string, string> = {
+  ally: 'rgba(88, 148, 218, 0.2)',
+  enemy: 'rgba(202, 92, 72, 0.18)',
+  contested: 'rgba(210, 176, 70, 0.2)',
+  neutral: 'rgba(214, 190, 152, 0.14)',
+};
+
+export function drawTownBlocks(p: PaintCtx, towns: Town[], field: ControlField | null, show: boolean): void {
+  const groups: Record<string, Array<[number, number][]>> = { ally: [], enemy: [], contested: [], neutral: [] };
+  for (const t of towns) {
+    if (t.kind !== 'poly') continue;
+    const rr = t.r * p.view.scale;
+    if (rr < 6) continue;
+    const tx = p.sx(t.x);
+    const ty = p.sy(t.y);
+    if (tx < -rr || ty < -rr || tx > p.w + rr || ty > p.h + rr) continue;
+    for (const d of t.districts) {
+      const poly = d.poly;
+      if (!poly || poly.length < 3) continue;
+      let key = 'neutral';
+      if (show && field) {
+        const cx = d.cp ? d.cp[0] : t.x;
+        const cy = d.cp ? d.cp[1] : t.y;
+        key = controlAt(field, cx, cy).control;
+      }
+      groups[key].push(poly);
+    }
+  }
+
+  const ctx = p.ctx;
+  p.drawInWorld(ctx, () => {
+    for (const key of Object.keys(groups)) {
+      const list = groups[key];
+      if (!list.length) continue;
+      const path = new Path2D();
+      for (const poly of list) {
+        path.moveTo(poly[0][0], poly[0][1]);
+        for (let i = 1; i < poly.length; i++) path.lineTo(poly[i][0], poly[i][1]);
+        path.closePath();
+      }
+      ctx.fillStyle = BLOCK_FILL[key];
+      ctx.fill(path);
+    }
+    const outline = new Path2D();
+    for (const key of Object.keys(groups)) {
+      for (const poly of groups[key]) {
+        outline.moveTo(poly[0][0], poly[0][1]);
+        for (let i = 1; i < poly.length; i++) outline.lineTo(poly[i][0], poly[i][1]);
+        outline.closePath();
+      }
+    }
+    ctx.lineWidth = 1.2 / p.view.scale;
+    ctx.strokeStyle = 'rgba(38, 28, 18, 0.5)';
+    ctx.stroke(outline);
+  });
+}
+
 export function drawTownOutlines(p: PaintCtx, towns: Town[]): void {
   p.withUrbanClip(p.ctx, (c) => {
     p.drawInWorld(c, () => {
       const pxPerM = 1 / p.view.scale;
       for (const t of towns) {
-        if (t.kind === 'parcel') continue;
+        if (t.kind === 'poly' || t.kind === 'parcel') continue;
         const px = p.sx(t.x);
         const py = p.sy(t.y);
         const rr = t.r * p.view.scale;

@@ -17,11 +17,32 @@ export function townFrontage(t: Town): number {
   return t.districts.reduce((s, d) => s + d.frontage, 0);
 }
 
+function pointInPoly(poly: Array<[number, number]>, x: number, y: number): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0];
+    const yi = poly[i][1];
+    const xj = poly[j][0];
+    const yj = poly[j][1];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi || 1e-12) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
 export function districtAt(t: Town, x: number, y: number): District | null {
   const ds = townDistricts(t);
   const dx = x - t.x;
   const dy = y - t.y;
   const d = Math.hypot(dx, dy);
+  if (t.kind === 'poly') {
+    for (const k of ds) {
+      if (k.poly && k.poly.length >= 3 && pointInPoly(k.poly, x, y)) return k;
+    }
+    if (d > t.r * 1.05) return null;
+    return ds[0] ?? null;
+  }
   if (d > t.r * 1.05) return null;
   if (t.kind === 'parcel') return ds[0] ?? null;
   if (t.kind === 'band') {
@@ -58,6 +79,12 @@ export function hitDistrict(
 
 export function districtPath(t: Town, d: District): Path2D {
   const p = new Path2D();
+  if (d.poly && d.poly.length >= 3) {
+    p.moveTo(d.poly[0][0], d.poly[0][1]);
+    for (let i = 1; i < d.poly.length; i++) p.lineTo(d.poly[i][0], d.poly[i][1]);
+    p.closePath();
+    return p;
+  }
   if (d.shape === 'band') {
     const [ux, uy] = t.axis;
     const [, , smin, smax] = t.box;

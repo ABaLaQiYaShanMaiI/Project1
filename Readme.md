@@ -80,11 +80,13 @@ DEM 与 OSM 结果按区域缓存在 `Tools/.tile-cache/`（`osm_<区域>_*.json
 | `app/src/core/` | 纯规则层：时间、城镇分区、控制场、栅格采样、细节层与地图库 |
 | `app/src/map/` | 战场渲染：`renderer.ts` 编排；`paint.ts` 视图/绘制上下文；`layers/` 各地理图层 |
 | `app/src/WorldCanvas.tsx` | 世界视图：框选战场、地图库、一键烘焙 |
-| `app/public/data/` | 烘焙数据（战场 1.9MB + 世界底图 0.7MB），全程离线 |
+| `app/public/data/` | 烘焙数据（战场 0.95MB + 世界底图 0.7MB + 区划 2.2MB），全程离线 |
 | `Tools/bake_map.py` | 区域烘焙（`--center / --span-km / --name / --title`） |
 | `Tools/bake_service.mjs` | 本地烘焙服务与地图库接口（`/api/bake`、`/api/zones`） |
 | `Tools/make_preview.py` | 战场预览图（`preview_<区域>.jpg`，loading 背景用） |
 | `Tools/bake_world.py` | 世界底图瓦片金字塔（`--download` / `--from-cache` / `--from-image`） |
+| `Tools/bake_blocks.py` | 区划型地块（道路切分 + 行政区归并 + 参数） |
+| `Tools/add_roads.py` | 增量补路网等级（bbox 分块 + 几何哈希去重） |
 | `Tools/bake_world_vectors.py` | 世界层矢量（Natural Earth 城市 + 主干道 → `world/vectors.json`） |
 | `Tools/serve.mjs` | 零依赖静态服务器（启动器用） |
 | `Tools/strip_comments.mjs` `tools/strip_comments.py` | 去注释 / 自检（代码不允许注释） |

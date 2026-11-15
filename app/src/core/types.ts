@@ -59,7 +59,7 @@ export interface Satellite {
 
 export interface DistrictData {
   label: string;
-  shape: 'core' | 'wedge' | 'band';
+  shape: 'core' | 'wedge' | 'band' | 'poly';
   r0: number;
   r1: number;
   a0: number;
@@ -70,6 +70,10 @@ export interface DistrictData {
   frontage: number;
   defense: number;
   cp?: [number, number];
+  poly?: [number, number][];
+  builtRatio?: number;
+  roadKm?: number;
+  value?: number;
 }
 
 export interface Town {
@@ -79,7 +83,7 @@ export interface Town {
   y: number;
   r: number;
   coreR: number;
-  kind: 'parcel' | 'radial' | 'band';
+  kind: 'parcel' | 'radial' | 'band' | 'poly';
   axis: [number, number];
   box: [number, number, number, number];
   elong: number;
