@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+﻿import { writeFileSync } from 'node:fs';
 
 const url = process.argv[2] ?? 'http://127.0.0.1:5201/';
 const out = process.argv[3] ?? 'map.png';
@@ -44,10 +44,7 @@ await send('Emulation.setDeviceMetricsOverride', {
 await send('Page.navigate', { url });
 await new Promise((r) => setTimeout(r, waitMs));
 
-const click = await evaluate(
-  `(()=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim().endsWith('世界'));if(b)b.click();return !!b;})()`,
-);
-if (!click) console.log('warning: world tab not found');
+
 await new Promise((r) => setTimeout(r, Number(process.argv[6] ?? 9000)));
 
 const preEval = process.argv[7] ?? '';

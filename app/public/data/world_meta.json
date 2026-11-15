@@ -1,9 +1,0 @@
-{
- "name": "世界",
- "projection": "web-mercator",
- "zoom": 3,
- "width": 2048,
- "height": 2048,
- "generated": "2026-11-14 19:42",
- "attribution": "高程: SRTM/AWS Terrain Tiles"
-}

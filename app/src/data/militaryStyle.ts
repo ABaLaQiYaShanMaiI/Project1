@@ -3,7 +3,6 @@ import type { StyleSpecification } from 'maplibre-gl';
 const INK = '#2f2a22';
 const HALO = '#f3eee1';
 const PAPER = '#e9e4d8';
-const M_PER_DEG_LAT = 110540;
 
 export interface FeatureLike {
   type: 'Feature';
@@ -16,23 +15,48 @@ export interface FC {
   features: FeatureLike[];
 }
 
-export interface DemInfo {
+export interface Tier {
+  id: string;
+  url: string;
+  bounds: [number, number, number, number];
+  minzoom: number;
+  maxzoom: number;
+  styleMin: number;
+  styleMax: number;
+}
+
+export interface DemTier {
+  id: string;
   tiles: string;
   minzoom: number;
   maxzoom: number;
-  bbox: [number, number, number, number];
+  bounds: [number, number, number, number];
+  styleMin: number;
+  styleMax: number;
 }
 
 export interface StyleInputs {
   base: StyleSpecification;
-  dem?: DemInfo | null;
+  tiers: Tier[];
+  demTiers?: DemTier[];
   contours?: FC | null;
   contourLabels?: FC | null;
   grid?: FC | null;
-  origin: [number, number];
-  mPerDegLon: number;
-  bounds: [number, number, number, number];
 }
+
+const MAIN_ROADS = ['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link'];
+
+const MAIN_FILL: Record<string, string> = {
+  motorway: '#c9552f',
+  motorway_link: '#c9552f',
+  trunk: '#d0803c',
+  trunk_link: '#d0803c',
+  primary: '#d3a15c',
+  primary_link: '#d3a15c',
+};
+
+const FAINT_ROAD = '#cfc7b4';
+const FAINT_CASING = '#ded7c6';
 
 const COVER: Record<string, string> = {
   grassland: '#d6dcc0',
@@ -54,6 +78,7 @@ const LANDUSE: Record<string, string> = {
   beach: '#ece2c8',
   zoo: '#d7ddc3',
   aerodrome: '#d9d4e0',
+  airfield: '#d9d4e0',
   runway: '#cfcadb',
   pedestrian: '#e6ddcd',
   pier: '#ded6c6',
@@ -62,7 +87,11 @@ const LANDUSE: Record<string, string> = {
   railway: '#d9d2c6',
   cemetery: '#d3ddc6',
   military: '#d6cdc6',
-  park_p: '#cfdcbd',
+  native_reserve: '#cfdcc0',
+  nature_reserve: '#cfdcc0',
+  national_park: '#cfdcc0',
+  wetland: '#cdd9c8',
+  meadow: '#d8dfc2',
 };
 
 interface RoadSpec {
@@ -96,28 +125,24 @@ function roadClass(id: string): { cls: string; casing: boolean; tunnel: boolean;
     .replace('_casing_late', '')
     .replace('_casing_early', '')
     .replace('_casing', '');
-  const cls = body.split('_')[0] === 'minor' && body.includes('minor_service') ? 'minor_service' : body;
+  const cls = body.includes('minor_service') ? 'minor_service' : body;
   return { cls, casing, tunnel, bridge };
 }
 
-function zoomWidth(base: number): unknown {
-  return [
-    'interpolate',
-    ['exponential', 1.5],
-    ['zoom'],
-    4,
-    base * 0.16,
-    7,
-    base * 0.4,
-    10,
-    base * 0.72,
-    13,
-    base,
-    16,
-    base * 1.8,
-    18,
-    base * 2.8,
+function zoomWidth(base: number, factor?: unknown): unknown {
+  const stops: Array<[number, number]> = [
+    [4, base * 0.16],
+    [7, base * 0.4],
+    [10, base * 0.72],
+    [13, base],
+    [16, base * 1.8],
+    [18, base * 2.8],
   ];
+  const out: unknown[] = ['interpolate', ['exponential', 1.5], ['zoom']];
+  for (const [z, v] of stops) {
+    out.push(z, factor ? ['*', v, factor] : v);
+  }
+  return out;
 }
 
 function restyle(layer: Record<string, unknown>): Record<string, unknown> {
@@ -133,9 +158,7 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
     paint['fill-color'] = '#e8e2d4';
   } else if (id === 'landcover') {
     const match: unknown[] = ['match', ['get', 'kind']];
-    for (const [k, v] of Object.entries(COVER)) {
-      match.push(k, v);
-    }
+    for (const [k, v] of Object.entries(COVER)) match.push(k, v);
     match.push('#dde0cd');
     paint['fill-color'] = match;
     paint['fill-opacity'] = 0.92;
@@ -154,7 +177,9 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
   } else if (sourceLayer === 'boundaries') {
     const country = id === 'boundaries_country';
     paint['line-color'] = country ? '#7c6c55' : '#a2957f';
-    paint['line-width'] = country ? ['interpolate', ['linear'], ['zoom'], 4, 0.7, 10, 1.4] : ['interpolate', ['linear'], ['zoom'], 6, 0.4, 12, 0.9];
+    paint['line-width'] = country
+      ? ['interpolate', ['linear'], ['zoom'], 2, 0.6, 4, 0.8, 10, 1.4]
+      : ['interpolate', ['linear'], ['zoom'], 6, 0.4, 12, 0.9];
     paint['line-dasharray'] = country ? [3, 2] : [4, 3];
   } else if (sourceLayer === 'roads' && layer.type === 'line') {
     const rc = roadClass(id);
@@ -163,24 +188,33 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
       paint['line-width'] = zoomWidth(1.7);
       delete paint['line-dasharray'];
     } else if (rc) {
+      const key: unknown = ['coalesce', ['get', 'kind_detail'], ['get', 'kind']];
+      const isMain: unknown = ['in', key, ['literal', MAIN_ROADS]];
+      const slighten: unknown = ['case', isMain, 1, 0.45];
       const spec = ROADS[rc.cls] ?? ROADS.other;
-      paint['line-color'] = rc.casing ? spec.casing : spec.fill;
-      paint['line-width'] = zoomWidth(spec.w + (rc.casing ? 1.1 : 0));
-      if (rc.tunnel) paint['line-opacity'] = 0.45;
+      if (rc.casing) {
+        paint['line-color'] = ['case', isMain, spec.casing, FAINT_CASING];
+        paint['line-width'] = zoomWidth(spec.w + 1.1, slighten);
+        paint['line-opacity'] = ['case', isMain, 1, 0.42];
+      } else {
+        const match: unknown[] = ['match', key];
+        for (const [k, v] of Object.entries(MAIN_FILL)) match.push(k, v);
+        match.push(FAINT_ROAD);
+        paint['line-color'] = ['case', isMain, match, FAINT_ROAD];
+        paint['line-width'] = zoomWidth(spec.w, slighten);
+        paint['line-opacity'] = ['case', isMain, 1, 0.62];
+      }
+      if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.45, 0.26];
+      if (rc.cls === 'minor_service' || rc.cls === 'other' || rc.cls === 'link') {
+        next.minzoom = 13;
+      }
     }
   } else if (sourceLayer === 'places') {
-    const size =
-      id === 'places_country'
-        ? 13
-        : id === 'places_region'
-          ? 11.5
-          : id === 'places_locality'
-            ? 11.5
-            : 10.5;
+    const size = id === 'places_country' ? 13 : id === 'places_region' ? 11.5 : id === 'places_locality' ? 11.5 : 10.5;
     paint['text-color'] = INK;
     paint['text-halo-color'] = HALO;
     paint['text-halo-width'] = 1.5;
-    layout['text-size'] = ['interpolate', ['linear'], ['zoom'], 4, size * 0.82, 10, size * 1.1];
+    layout['text-size'] = ['interpolate', ['linear'], ['zoom'], 3, size * 0.8, 10, size * 1.1];
   } else if (sourceLayer === 'roads' && layer.type === 'symbol') {
     paint['text-color'] = '#6b6252';
     paint['text-halo-color'] = '#f6f2e6';
@@ -198,69 +232,118 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
-function insertBefore(layers: Record<string, unknown>[], id: string, add: Record<string, unknown>[]): void {
-  const at = layers.findIndex((l) => String(l.id) === id);
-  if (at < 0) layers.push(...add);
-  else layers.splice(at, 0, ...add);
+function clampZoom(layer: Record<string, unknown>, tier: Tier): boolean {
+  const own = typeof layer.minzoom === 'number' ? layer.minzoom : 0;
+  const ownMax = typeof layer.maxzoom === 'number' ? layer.maxzoom : 24;
+  const min = Math.max(own, tier.styleMin);
+  const max = Math.min(ownMax, tier.styleMax);
+  if (min >= max) return false;
+  layer.minzoom = min;
+  layer.maxzoom = max;
+  return true;
 }
 
-function insertAfter(layers: Record<string, unknown>[], id: string, add: Record<string, unknown>[]): void {
-  let at = -1;
-  for (let i = layers.length - 1; i >= 0; i--) {
-    if (String(layers[i].id) === id) {
-      at = i;
-      break;
-    }
+function tierLayers(base: StyleSpecification, tier: Tier, suffix: string): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const raw of base.layers as unknown as Record<string, unknown>[]) {
+    if (raw.type === 'background') continue;
+    if (raw.id === 'roads_rail') continue;
+    const layer = restyle({ ...raw, id: `${String(raw.id)}${suffix}` });
+    if (!clampZoom(layer, tier)) continue;
+    layer.source = tier.id;
+    out.push(layer);
   }
-  if (at < 0) layers.push(...add);
-  else layers.splice(at + 1, 0, ...add);
+  return out;
+}
+
+function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
+  const rail = restyle({
+    id: `roads_rail${suffix}`,
+    type: 'line',
+    source: tier.id,
+    'source-layer': 'roads',
+    filter: ['==', ['get', 'kind'], 'rail'],
+    layout: { visibility: 'visible' },
+    paint: {},
+  });
+  clampZoom(rail, tier);
+  return [
+    rail,
+    {
+      id: `rail-hatch${suffix}`,
+      type: 'line',
+      source: tier.id,
+      'source-layer': 'roads',
+      filter: ['==', ['get', 'kind'], 'rail'],
+      minzoom: tier.styleMin,
+      maxzoom: tier.styleMax,
+      paint: {
+        'line-color': '#f7f4ea',
+        'line-width': zoomWidth(0.95),
+        'line-dasharray': [1.6, 2.4],
+      },
+    },
+  ];
 }
 
 export function militaryStyle(inp: StyleInputs): StyleSpecification {
   const style = JSON.parse(JSON.stringify(inp.base)) as StyleSpecification;
-  const layers = style.layers as unknown as Record<string, unknown>[];
   const sources = style.sources as Record<string, unknown>;
+  const out: Record<string, unknown>[] = [
+    { id: 'background', type: 'background', paint: { 'background-color': PAPER } },
+  ];
 
-  style.layers = layers.map(restyle) as unknown as StyleSpecification['layers'];
-
-  const vec = sources.protomaps as Record<string, unknown> | undefined;
-  if (vec) {
-    vec.bounds = inp.bounds;
-    vec.minzoom = 0;
-    vec.maxzoom = 14;
-  }
-
-  if (inp.dem) {
-    sources.dem = {
+  for (const dem of inp.demTiers ?? []) {
+    sources[dem.id] = {
       type: 'raster-dem',
-      tiles: [inp.dem.tiles],
+      tiles: [dem.tiles],
       encoding: 'terrarium',
       tileSize: 256,
-      minzoom: inp.dem.minzoom,
-      maxzoom: inp.dem.maxzoom,
-      bounds: inp.dem.bbox,
+      minzoom: dem.minzoom,
+      maxzoom: dem.maxzoom,
+      bounds: dem.bounds,
       attribution: 'AWS Terrain Tiles（SRTM）',
     };
-    insertBefore(style.layers as unknown as Record<string, unknown>[], 'landcover', [
-      {
-        id: 'relief',
-        type: 'hillshade',
-        source: 'dem',
-        layout: { visibility: 'visible' },
-        paint: {
-          'hillshade-exaggeration': 0.55,
-          'hillshade-illumination-direction': 315,
-          'hillshade-shadow-color': '#6b5738',
-          'hillshade-highlight-color': '#fffdf6',
-          'hillshade-accent-color': '#b09a76',
-        },
+    out.push({
+      id: `${dem.id}-relief`,
+      type: 'hillshade',
+      source: dem.id,
+      minzoom: dem.styleMin,
+      maxzoom: dem.styleMax,
+      paint: {
+        'hillshade-exaggeration': 0.55,
+        'hillshade-illumination-direction': 315,
+        'hillshade-shadow-color': '#6b5738',
+        'hillshade-highlight-color': '#fffdf6',
+        'hillshade-accent-color': '#b09a76',
       },
-    ]);
+    });
+  }
+
+  for (const tier of inp.tiers) {
+    sources[tier.id] = {
+      type: 'vector',
+      url: tier.url,
+      bounds: tier.bounds,
+      minzoom: tier.minzoom,
+      maxzoom: tier.maxzoom,
+      attribution: '© OpenStreetMap contributors · Protomaps (ODbL)',
+    };
   }
 
   if (inp.contours) {
     sources.contours = { type: 'geojson', data: inp.contours };
-    insertBefore(style.layers as unknown as Record<string, unknown>[], 'roads_runway', [
+    sources['contour-labels'] = {
+      type: 'geojson',
+      data: inp.contourLabels ?? { type: 'FeatureCollection', features: [] },
+    };
+    sources.grid = { type: 'geojson', data: inp.grid ?? { type: 'FeatureCollection', features: [] } };
+    sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
+  }
+
+  const contourLayers: Record<string, unknown>[] = [];
+  if (inp.contours) {
+    contourLayers.push(
       {
         id: 'contour',
         type: 'line',
@@ -285,12 +368,6 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
           'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.7, 9, 1.0, 13, 1.5],
         },
       },
-    ]);
-  }
-
-  if (inp.contourLabels) {
-    sources['contour-labels'] = { type: 'geojson', data: inp.contourLabels };
-    insertAfter(style.layers as unknown as Record<string, unknown>[], 'contour-bold', [
       {
         id: 'contour-label',
         type: 'symbol',
@@ -305,35 +382,27 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
           'text-padding': 2,
           'symbol-placement': 'point',
         },
-        paint: {
-          'text-color': '#7a5027',
-          'text-halo-color': '#f0e9da',
-          'text-halo-width': 1.6,
-        },
+        paint: { 'text-color': '#7a5027', 'text-halo-color': '#f0e9da', 'text-halo-width': 1.6 },
       },
-    ]);
+    );
   }
 
-  insertAfter(style.layers as unknown as Record<string, unknown>[], 'roads_rail', [
-    {
-      id: 'rail-hatch',
-      type: 'line',
-      source: 'protomaps',
-      'source-layer': 'roads',
-      filter: ['==', ['get', 'kind'], 'rail'],
-      layout: { visibility: 'visible' },
-      paint: {
-        'line-color': '#f7f4ea',
-        'line-width': zoomWidth(0.95),
-        'line-dasharray': [1.6, 2.4],
-      },
-    },
-  ]);
+  inp.tiers.forEach((tier, i) => {
+    const suffix = i === 0 ? '' : `__${tier.id}`;
+    let inserted = false;
+    for (const layer of tierLayers(inp.base, tier, suffix)) {
+      if (!inserted && contourLayers.length && String(layer['source-layer']) === 'roads') {
+        out.push(...contourLayers);
+        inserted = true;
+      }
+      out.push(layer);
+    }
+    if (!inserted && contourLayers.length && i === inp.tiers.length - 1) out.push(...contourLayers);
+    out.push(...railsOf(tier, suffix));
+  });
 
-  if (inp.grid) {
-    sources.grid = { type: 'geojson', data: inp.grid };
-    sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
-    insertBefore(style.layers as unknown as Record<string, unknown>[], 'boundaries_country', [
+  if (inp.contours) {
+    out.push(
       {
         id: 'grid-minor',
         type: 'line',
@@ -371,9 +440,10 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         },
         paint: { 'text-color': '#8f2f1f', 'text-halo-color': '#f6f0e4', 'text-halo-width': 1.4 },
       },
-    ]);
+    );
   }
 
+  style.layers = out as unknown as StyleSpecification['layers'];
   return style;
 }
 

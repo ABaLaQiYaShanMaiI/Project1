@@ -3,7 +3,6 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { exec } from 'node:child_process';
-import { handleApi } from './bake_service.mjs';
 import { serveRange } from './range_serve.mjs';
 
 const ROOT = fileURLToPath(new URL('../app/dist', import.meta.url));
@@ -40,7 +39,6 @@ async function exists(p) {
 const server = createServer(async (req, res) => {
   try {
     if (await serveRange(ROOT, req, res)) return;
-    if (await handleApi(req, res)) return;
     const url = new URL(req.url, 'http://localhost');
     let path = decodeURIComponent(url.pathname);
     if (path === '/' || path === '') path = '/index.html';
@@ -65,7 +63,7 @@ const server = createServer(async (req, res) => {
     }
     const buf = await readFile(file);
     res.writeHead(200, {
-      'content-type': MIME[extname(file)] ?? 'application/octet-stream',
+      'content-type': MIME[ext] ?? 'application/octet-stream',
       'cache-control': cache,
       etag,
       'content-length': buf.length,

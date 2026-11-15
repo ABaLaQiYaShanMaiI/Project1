@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, statSync, readFileSync, writeFileSync, unlinkSync, renameSync } from 'node:fs';
+﻿import { existsSync, mkdirSync, statSync, readFileSync, writeFileSync, unlinkSync, renameSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
@@ -16,6 +16,7 @@ const MIRROR = 'https://data.source.coop/protomaps/openstreetmap/v4.pmtiles';
 const STYLE_API = 'https://npm-style.protomaps.dev/style.json';
 const ATTRIBUTION = '© OpenStreetMap contributors · Protomaps (ODbL)';
 const DEFAULT_BBOX = '8.849,50.240,10.591,51.000';
+const WORLD_BBOX = '-180,-85,180,85';
 const FONT = 'Noto Sans Regular';
 
 function log(...a) {
@@ -266,12 +267,13 @@ function readIndex(file) {
 async function main() {
   ensureDir(OUT);
   ensureDir(CACHE);
-  const key = arg('key', 'fulda');
-  const bbox = arg('bbox', DEFAULT_BBOX);
-  const maxzoom = Number(arg('maxzoom', '13'));
+  const world = arg('world', '') === '1' || process.argv.includes('--world');
+  const key = arg('key', world ? 'world' : 'fulda');
+  const bbox = world ? WORLD_BBOX : arg('bbox', DEFAULT_BBOX);
+  const maxzoom = Number(arg('maxzoom', world ? '6' : '13'));
   const minzoomArg = arg('minzoom', '');
   const minzoom = minzoomArg ? Number(minzoomArg) : null;
-  const name = arg('name', '富尔达缺口');
+  const name = arg('name', world ? '全球底图' : '富尔达缺口');
   const theme = arg('theme', 'light');
   const force = arg('force', '') === '1';
   const skipCli = arg('skip-cli', '') === '1';
@@ -298,6 +300,7 @@ async function main() {
   log('取 style', theme);
   const style = offlineStyle(await fetchJson(styleUrl), key);
   writeFileSync(join(OUT, `${key}.style.json`), JSON.stringify(style), 'utf8');
+  writeFileSync(join(OUT, 'base.style.json'), JSON.stringify(style), 'utf8');
   log('图层', style.layers.length, '（符号层改为纯文字 + 本地字形）');
 
   await fetchGlyphs(join(OUT, 'glyphs', FONT));
@@ -315,6 +318,7 @@ async function main() {
     style: `${key}.style.json`,
     bbox: bounds,
     center,
+    kind: world ? 'world' : 'region',
     minzoom: h.minzoom,
     maxzoom: h.maxzoom,
     sizeMB: Number((size / 1048576).toFixed(2)),

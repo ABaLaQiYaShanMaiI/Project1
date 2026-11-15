@@ -12,6 +12,14 @@ export interface DemManifest {
   sizeMB: number;
 }
 
+export interface DemTiles {
+  tiles: string;
+  minzoom: number;
+  maxzoom: number;
+  bbox: [number, number, number, number];
+  tileSize?: number;
+}
+
 interface Loaded {
   data: Uint8ClampedArray;
   size: number;
@@ -25,7 +33,7 @@ export class DemSampler {
   private listeners = new Set<() => void>();
   readonly zoom: number;
 
-  constructor(readonly man: DemManifest) {
+  constructor(readonly man: DemTiles) {
     this.zoom = man.maxzoom;
   }
 

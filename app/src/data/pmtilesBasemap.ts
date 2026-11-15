@@ -14,6 +14,7 @@ export interface PmtilesZone {
   theme: string;
   attribution: string;
   generated: string;
+  kind?: 'world' | 'region';
 }
 
 let cache: PmtilesZone[] | null = null;
@@ -28,7 +29,9 @@ export async function loadPmtilesZones(): Promise<PmtilesZone[]> {
       return cache;
     }
     const data = (await res.json()) as { zones?: PmtilesZone[] };
-    const list = Array.isArray(data.zones) ? data.zones.filter((z) => Boolean(z?.key && z?.file)) : [];
+    const list = Array.isArray(data.zones)
+      ? data.zones.filter((z) => Boolean(z?.key && z?.file && Array.isArray(z?.bbox)))
+      : [];
     const checked = await Promise.all(
       list.map(async (z) => {
         const ok = await fetch(`/data/tiles/${z.file}`, { method: 'HEAD' })
@@ -37,26 +40,44 @@ export async function loadPmtilesZones(): Promise<PmtilesZone[]> {
         return ok ? z : null;
       }),
     );
-    cache = checked.filter((z): z is PmtilesZone => z !== null);
+    cache = checked
+      .filter((z): z is PmtilesZone => z !== null)
+      .sort((a, b) => (a.kind === 'world' ? -1 : b.kind === 'world' ? 1 : a.maxzoom - b.maxzoom));
   } catch {
     cache = [];
   }
   return cache;
 }
 
-export function pickZone(zones: PmtilesZone[], lon: number, lat: number): PmtilesZone | null {
-  for (const z of zones) {
-    const [w, s, e, n] = z.bbox;
-    if (lon >= w && lon <= e && lat >= s && lat <= n) return z;
+function inside(bbox: [number, number, number, number], lon: number, lat: number): boolean {
+  const [w, s, e, n] = bbox;
+  return lon >= w && lon <= e && lat >= s && lat <= n;
+}
+
+export function zonesAt(zones: PmtilesZone[], lon: number, lat: number): PmtilesZone[] {
+  const worlds = zones.filter((z) => z.kind === 'world').sort((a, b) => a.maxzoom - b.maxzoom);
+  const regions = zones
+    .filter((z) => z.kind !== 'world' && inside(z.bbox, lon, lat))
+    .sort((a, b) => a.maxzoom - b.maxzoom);
+  const out = [...worlds, ...regions];
+  return out.length ? out : zones.slice(0, 1);
+}
+
+export function tierBands(zones: PmtilesZone[]): Array<{ zone: PmtilesZone; from: number }> {
+  const out: Array<{ zone: PmtilesZone; from: number }> = [];
+  let from = 0;
+  for (const zone of zones) {
+    out.push({ zone, from });
+    from = zone.maxzoom + 1;
   }
-  return zones[0] ?? null;
+  return out;
 }
 
 export function registerPmtiles(): Promise<void> {
   if (!protocol) {
     protocol = (async () => {
       const [{ Protocol }, ml] = await Promise.all([import('pmtiles'), import('maplibre-gl')]);
-      const add = (ml as unknown as { addProtocol?: unknown; default?: { addProtocol?: unknown } });
+      const add = ml as unknown as { addProtocol?: unknown; default?: { addProtocol?: unknown } };
       const fn = (add.addProtocol ?? add.default?.addProtocol) as (name: string, handler: unknown) => void;
       fn('pmtiles', new Protocol().tile);
     })();
@@ -64,11 +85,19 @@ export function registerPmtiles(): Promise<void> {
   return protocol;
 }
 
-export async function loadLocalStyle(zone: PmtilesZone): Promise<StyleSpecification> {
-  const res = await fetch(`/data/tiles/${zone.style}`, { cache: 'no-cache' });
-  if (!res.ok) throw new Error(`底图样式缺失：${zone.style}`);
-  const style = (await res.json()) as StyleSpecification;
-  const src = (style.sources as Record<string, { url?: string }>).protomaps;
-  if (src) src.url = `pmtiles://${location.origin}/data/tiles/${zone.file}`;
-  return style;
+export function pmtilesUrl(file: string): string {
+  return `pmtiles://${location.origin}/data/tiles/${file}`;
+}
+
+export async function loadBaseStyle(zone: PmtilesZone): Promise<StyleSpecification> {
+  const candidates = ['base.style.json', zone.style];
+  for (const name of candidates) {
+    const res = await fetch(`/data/tiles/${name}`, { cache: 'no-cache' });
+    if (!res.ok) continue;
+    const style = (await res.json()) as StyleSpecification;
+    const src = (style.sources as Record<string, { url?: string }>).protomaps;
+    if (src) src.url = pmtilesUrl(zone.file);
+    return style;
+  }
+  throw new Error(`底图样式缺失：${zone.style}`);
 }

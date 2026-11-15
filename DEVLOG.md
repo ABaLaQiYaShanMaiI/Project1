@@ -4,6 +4,37 @@
 
 ---
 
+**阅读顺序**：先看下节「当前架构」，再按需查「版本沿革」里的具体条目；踩坑集中在文末「踩坑记录」。
+
+**文档分工**（四份，不重叠）：
+
+| 文件 | 管什么 |
+| --- | --- |
+| `Readme.md` | 门面：方针、怎么跑、有什么、数据管线 |
+| `CONSTRAINTS.md` | 硬约束：注释禁令、体量预算、架构边界、数据规则、产品红线 |
+| `MAPDESIGN.md` | 地图设计：分层、取景、交通线分级、等高线、格网、视觉基调 |
+| `DEVLOG.md` | 决策原因与踩坑历史（本文件） |
+
+## 当前架构（v1.24 起）
+
+```
+App.tsx ── TopBar / SidePanel
+        └─ WorldMapLibre（懒加载，含 maplibre-gl + pmtiles）
+              ├─ data/pmtilesBasemap.ts   index.json → zonesAt → tierBands
+              ├─ data/militaryStyle.ts    按 tier 生成整套图层
+              ├─ data/terrain.ts          DEM 采样（高程/坡度/坡向）
+              └─ core/geo.ts              UTM 正算、格网、射程圈
+本地数据（离线）
+  tiles/world.pmtiles z0-z6 · tiles/<区域>.pmtiles z0-z13 · base.style.json · glyphs
+  dem/world z0-z5 · dem/<区域> z9-z11 · contours_<区域>.json
+```
+
+- **没有战场视图**（v1.24 删除，勿复辟）；
+- 底图按 tier 叠加，后一层从前一层 `maxzoom+1` 接管，缺层不空白；
+- 运行时零网络请求；`.mjs` 的 MIME 由 `Tools/serve.mjs` 保证（否则 worker 不加载、整图不渲染）。
+
+---
+
 ## 命名
 
 - 曾用名：铁幕六角 / NATO-Hex War（六角格时期）。
@@ -590,6 +621,90 @@ type ∈ hold 守线 | fire 开火 | move 移动 | attack 攻击 | withdraw 撤�
 - 没有压制、士气、弹药、油料；
 - 夺控点与实控范围目前**不随战果变化**（`ControlField` 是烘焙好的静态场，要改成动态生成）；
 - 敌军不会自己下令——目前只能手动摆位，没有 AI。
+
+### v1.23 底图铺满 + 交通线分级 + 代码体检
+
+**取景**：原来 `fitBounds`（contain）导致两侧留纸色空白，一拖就出界，看着像「只有富尔达有图」。
+改为 cover 取景 + 相机限位。踩坑：手算 `156543*cos/2^z` 与实际渲染差一档——`Emulation` 环境下
+`getZoom()` 与 `getBounds()` 不一致，**不要手算 zoom，只信 `getBounds()` 的反馈闭环**。
+（v1.24 有了全球层后，限位与 cover 逻辑整体删除。）
+
+**交通线分级**：Protomaps 把 primary/secondary/tertiary 都塞进 `kind=major_road`，之前一片橙色麻线。
+查瓦片属性发现 `kind_detail` 带 OSM 原值，据此分级：主干（motorway/trunk/primary + link）描边加粗；
+次级淡化 62% 且宽度 0.45 折；`minor_service/other/link` 设 `minzoom 13`。铁路深灰实线 + 白虚线。
+实现限制：MapLibre **同一属性只允许一个 zoom 插值**，宽度必须写成
+`['*', interpolate(zoom), ['case', isMain, 1, 0.45]]`。
+
+**代码体检**：
+
+| 项 | 结果 |
+| --- | --- |
+| CONSTRAINTS §3 core 不碰 DOM | **发现并修复**：`core/towns.ts` 的 `districtPath()` 用了 `Path2D`，移到 `map/` |
+| 死代码 | 删 `capacityOf/capOf/childEchelon/isMoving`、`movePlatoon/toggleUnits`、`M_PER_DEG_LAT`、`StyleInputs.origin/mPerDegLon`；`districtContains` 收为私有 |
+| 隐患 | `anchorCache` 是模块级 `Map<districtKey>`，换图撞 key → 改 `WeakMap<Town, Map>` |
+| 死代码转功能 | `renderer.visibleUnitCount()` 进状态栏 |
+
+---
+
+### v1.24 转向：只做世界地图，删掉战场视图
+
+产品方向变了：**世界地图是产品本体，战场视图删掉**。理由：战场渲染信息量不够、观感不理想，
+与其修补不如把力气全放在世界地图上；初版也不再绑定富尔达一块地区。
+
+#### 删掉的东西
+
+| 类别 | 内容 | 规模 |
+| --- | --- | --- |
+| 渲染 | `MapCanvas`、`map/renderer.ts`、`map/layers/*`（8 图层）、`map/{basemap,control,terrain,paint,districtPath}` | 约 2,300 行 |
+| 旧 Canvas 世界视图 | `WorldCanvas.tsx` + `ui/WorldPanels.tsx` | 约 760 行 |
+| 规则层 | `core/{towns,units,urban,orders,scenario,detail,sample,time,world,types}.ts` | 约 1,500 行 |
+| 数据层 | `data/{loadMap,loadScenario,loadDetail,unitStore,worldSource,basemap,zones,bakeApi}.ts` | 约 400 行 |
+| 战场数据 | `map_fulda/regions_fulda/detail_*/scenario_*/terrain/urban/preview/world_*` | 约 7.7 MB |
+| 烘焙工具 | `bake_map / bake_blocks / bake_town_detail / add_roads / make_preview / bake_terrain / bake_world / bake_world_vectors / bake_service` | 9 个 |
+| 样式 | `styles.css` 960 → 396 行 | −564 行 |
+
+前端 **约 4,700 行 → 1,769 行（−62%）**，14 个文件；首屏 JS 80 KB → 49 KB gzip。
+
+#### 底图改成「全球 + 区域」分层
+
+`militaryStyle()` 改为按 **tier 列表**生成：每层复制一套 base 图层、绑各自 source、按
+`styleMin/styleMax` 裁剪 minzoom/maxzoom。`zonesAt()` 取命中坐标的全部区域包 + 全部全球包；
+`tierBands()` 分配接管区间（后一层 `styleMin` = 前一层 `maxzoom+1`）。全球层一直渲染（超出
+maxzoom 就 overzoom），区域层叠在上面——**任何位置都至少有图，缺层也不会空白**。
+有全球层后，`setMaxBounds` + `fitCover` 那套取景限位**全部删除**。
+
+全球晕渲用 `dem/world`（z0–z5，1,366 文件 / 86 MB）单独一个 `raster-dem` tier，
+和区域 DEM（`dem/fulda` z9–z11）叠加。
+
+#### 踩坑：`pmtiles extract` 的「假卡死」
+
+提取全球包时输出文件大小长时间停在 42.36 MB 不动，`show` 报 `magic number not detected`，
+看起来像卡死。**其实是预分配了文件大小**，下载仍在继续；我用 `Select-Object -Last` 把进度条
+缓冲了，看不到而已。教训：**不要用输出文件大小判断 extract 进度**。
+
+带宽差异极大：不开 VPN 时 15–30 kB/s，开 VPN 后先到 200 kB/s 再跌到 3–20 kB/s，
+23 分钟只完成 13/43 MB。**半成品已删除**（避免留坏包），全球矢量包留待带宽好时重跑：
+
+```bash
+node Tools/fetch_basemap.mjs --key=world --world    # z0-z6，约 44 MB
+```
+
+`fetch_basemap.mjs` 已支持 `--world`（无 bbox、maxzoom 默认 6、`index.json` 写 `kind:'world'`、
+额外产出共享 `base.style.json`）。`bake_contours.py` 去掉对已删的 `map_<区域>.json` 的依赖，
+改为直接吃 `--bbox`，投影用常量（`mPerDegLat 110540`、`mPerDegLon 111320*cos`）。
+
+#### 踩坑：两处 MapLibre 崩溃
+
+1. `maxBounds: [[-180,-85],[180,85]]` 会让 `calcMatrices` 空指针（整张地图不挂载）——
+   去掉 maxBounds，MapLibre 自己已限制 ±85°。
+2. 图层开关 effect 里 `map.getStyle().layers` 在样式未就绪时是 `undefined` → 崩 React。
+   现在先取 `style` 再判 `Array.isArray(style.layers)`，并对 `setLayoutProperty` 逐个 try/catch。
+
+#### 另一个事故：文档被覆盖
+
+整理文档时用整文件写入覆盖了本文件，丢掉 v1.23/v1.24 两条记录。
+`git checkout HEAD -- DEVLOG.md` 恢复到已提交的 v1.22 版本，再把这两条重新补回来。
+**教训：整理长文档只能插入/替换片段，不要整文件重写。**
 
 ---
 

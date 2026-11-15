@@ -11,6 +11,8 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "..", "app", "public", "data")
 SOURCE = "AWS Terrain Tiles（Terrarium / SRTM）· 本地 DEM 生成"
+M_PER_DEG_LAT = 110540.0
+M_PER_DEG_LON = 111320.0
 
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -228,7 +230,7 @@ def label_points(lines, spacing, max_per_line):
 def main():
     ap = argparse.ArgumentParser(description="从本地 DEM 生成等高线矢量（计曲线 + 高程标注锚点）")
     ap.add_argument("--key", default="fulda")
-    ap.add_argument("--map", default="app/public/data/map_fulda.json")
+    ap.add_argument("--bbox", default="8.849,50.240,10.591,51.000")
     ap.add_argument("--grid", type=int, default=400)
     ap.add_argument("--interval", type=float, default=0.0)
     ap.add_argument("--bold", type=float, default=0.0)
@@ -237,13 +239,10 @@ def main():
     ap.add_argument("--label-km", type=float, default=6.0)
     args = ap.parse_args()
 
-    mpath = args.map if os.path.isabs(args.map) else os.path.join(HERE, "..", args.map)
-    with open(mpath, encoding="utf-8") as f:
-        meta = json.load(f)["meta"]
-    b = meta["bbox"]
-    bbox = (b["west"], b["south"], b["east"], b["north"])
-    pr = meta["projection"]
-    lat0, lon0 = meta["center"]
+    bbox = tuple(float(v) for v in args.bbox.split(","))
+    lat0 = (bbox[1] + bbox[3]) / 2.0
+    lon0 = (bbox[0] + bbox[2]) / 2.0
+    pr = {"mPerDegLat": M_PER_DEG_LAT, "mPerDegLon": M_PER_DEG_LON * math.cos(math.radians(lat0))}
 
     mosaic, bounds, z = load_mosaic(args.key, 9, 11)
     grid = crop_bbox(mosaic, bounds, bbox, args.grid)
