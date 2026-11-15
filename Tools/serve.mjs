@@ -4,6 +4,7 @@ import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { exec } from 'node:child_process';
 import { handleApi } from './bake_service.mjs';
+import { serveRange } from './range_serve.mjs';
 
 const ROOT = fileURLToPath(new URL('../app/dist', import.meta.url));
 const START_PORT = Number(process.argv[2] ?? 5183);
@@ -12,8 +13,10 @@ const OPEN_BROWSER = !process.argv.includes('--no-open');
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.pbf': 'application/x-protobuf',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
@@ -36,6 +39,7 @@ async function exists(p) {
 
 const server = createServer(async (req, res) => {
   try {
+    if (await serveRange(ROOT, req, res)) return;
     if (await handleApi(req, res)) return;
     const url = new URL(req.url, 'http://localhost');
     let path = decodeURIComponent(url.pathname);
@@ -51,7 +55,9 @@ const server = createServer(async (req, res) => {
       return;
     }
     const etag = `W/"${info.size.toString(16)}-${Math.floor(info.mtimeMs).toString(16)}"`;
-    const cache = path.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache';
+    const ext = extname(file).toLowerCase();
+    const cache =
+      path.startsWith('/assets/') && ext !== '.mjs' ? 'public, max-age=31536000, immutable' : 'no-cache';
     if (req.headers['if-none-match'] === etag) {
       res.writeHead(304, { etag, 'cache-control': cache });
       res.end();

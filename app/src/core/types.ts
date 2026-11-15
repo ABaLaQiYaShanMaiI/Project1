@@ -25,6 +25,7 @@ export interface MapMeta {
   urbanMask: UrbanMask;
   attribution: string;
   sources: string[];
+  terrain?: { file: string; width: number; height: number };
 }
 
 export type Pt = [number, number];

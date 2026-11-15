@@ -11,6 +11,15 @@ app/node_modules/.vite-temp/
 # 地图烘焙缓存（体积大，可用 Tools/bake_*.py 重新生成）
 Tools/.tile-cache/
 
+# pmtiles CLI（17 MB 二进制，Tools/fetch_basemap.mjs 自动下载）
+Tools/bin/
+
+# 本地底图包与派生样式（体积大，用 Tools/fetch_basemap.mjs 重新生成）
+app/public/data/tiles/
+
+# 本地 DEM 瓦片（15 MB，用 Tools/bake_dem.py 重新生成）
+app/public/data/dem/
+
 # 运行时存档
 Saves/*
 !Saves/.gitkeep

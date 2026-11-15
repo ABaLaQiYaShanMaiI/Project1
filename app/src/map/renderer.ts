@@ -4,6 +4,7 @@ import { districtPath, hitDistrict } from '../core/towns';
 import type { ControlField } from '../core/scenario';
 import type { DetailLayer } from '../core/detail';
 import { buildTerrainCanvas } from './terrain';
+import { BasemapTiles } from './basemap';
 import { buildCoverCanvas } from './layers/landcover';
 import { drawContours } from './layers/contours';
 import { drawHydro } from './layers/hydro';
@@ -19,6 +20,9 @@ import {
 } from './layers/towns';
 import { drawCities } from './layers/cities';
 import { buildDetailPaths, drawDetailLayer } from './layers/detail';
+import { drawOccupancy, drawOrderLines, drawPlatoons, platoonUnderCursor } from './layers/units';
+import { urbanIndex, districtCenter, type UrbanIndex } from '../core/urban';
+import { visibleUnitIds, type Unit } from '../core/units';
 import { buildControlCanvases, drawFrontLine } from './control';
 import type { PaintCtx, View } from './paint';
 
@@ -45,6 +49,17 @@ export interface RenderState {
   selected: Selection | null;
   showControl: boolean;
   showIntel: boolean;
+  showBasemap: boolean;
+  showTerrain: boolean;
+  showContours: boolean;
+  showHydro: boolean;
+  showRoads: boolean;
+  showBlocks: boolean;
+  showLabels: boolean;
+  showUnits: boolean;
+  platoons: Unit[];
+  selectedPlatoon: string | null;
+  hoverPlatoon: string | null;
 }
 
 const LEVEL: Record<ZoomLevel, number> = { L0: 0, L1: 1, L2: 2 };
@@ -64,6 +79,7 @@ export class MapRenderer {
   private statCv: HTMLCanvasElement;
   private statCtx: CanvasRenderingContext2D;
   private terrainCv: HTMLCanvasElement;
+  private terrainImg: HTMLImageElement | null = null;
   private coverCv: HTMLCanvasElement;
   private urbanImg: HTMLImageElement | null = null;
   private detail: DetailLayer | null = null;
@@ -75,6 +91,15 @@ export class MapRenderer {
   private field: ControlField | null = null;
   private showControl = true;
   private showIntel = true;
+  private basemap: BasemapTiles | null = null;
+  private showBasemap = false;
+  private showTerrain = true;
+  private showContours = true;
+  private showHydro = true;
+  private showRoads = true;
+  private showBlocks = true;
+  private showLabels = true;
+  private basemapDirtyTimer = 0;
 
   view: View = { cx: 0, cy: 0, scale: 0.01 };
   private baseScale = 0.01;
@@ -92,6 +117,8 @@ export class MapRenderer {
   lastDrawMs = 0;
   segmentCount = 0;
   visibleTowns = 0;
+  private platoons: Unit[] = [];
+  private urban: UrbanIndex | null = null;
 
   constructor(canvas: HTMLCanvasElement, private data: MapData) {
     this.canvas = canvas;
@@ -104,6 +131,14 @@ export class MapRenderer {
     const cellW = spanX / (m.dem.cols - 1);
     const cellH = spanY / (m.dem.rows - 1);
     this.terrainCv = buildTerrainCanvas(m.dem, cellW, cellH);
+    if (m.terrain) {
+      const t = new Image();
+      t.onload = () => {
+        this.terrainImg = t;
+        this.dirty = true;
+      };
+      t.src = '/data/' + m.terrain.file;
+    }
     this.coverCv = buildCoverCanvas(m.landcover);
     const img = new Image();
     img.onload = () => {
@@ -113,6 +148,19 @@ export class MapRenderer {
     img.src = '/data/' + data.meta.urbanMask.file;
 
     this.gpu = detectGpu();
+
+    this.basemap = new BasemapTiles(data.meta);
+    this.basemap.onLoad = () => {
+      if (this.basemapDirtyTimer) return;
+      this.basemapDirtyTimer = window.setTimeout(() => {
+        this.basemapDirtyTimer = 0;
+        this.dirty = true;
+      }, 60);
+    };
+  }
+
+  get basemapFailed(): boolean {
+    return this.basemap?.failedHard ?? false;
   }
 
   setDetail(layer: DetailLayer | null): void {
@@ -181,6 +229,42 @@ export class MapRenderer {
   districtAtScreen(sx: number, sy: number): { town: Town; district: District } | null {
     const { x, y } = this.screenToWorld(sx, sy);
     return hitDistrict(this.data.towns, x, y);
+  }
+
+  platoonAtScreen(sx: number, sy: number): Unit | null {
+    if (!this.platoons.length) return null;
+    const shown = visibleUnitIds(this.platoons, this.view.scale);
+    return platoonUnderCursor(this.paint(this.ctx), this.platoons, shown, sx, sy);
+  }
+
+  visibleUnitCount(): number {
+    if (!this.platoons.length) return 0;
+    return visibleUnitIds(this.platoons, this.view.scale).size;
+  }
+
+  districtNearScreen(sx: number, sy: number, padPx = 18): { town: Town; district: District } | null {
+    const direct = this.districtAtScreen(sx, sy);
+    if (direct) return direct;
+    const { x, y } = this.screenToWorld(sx, sy);
+    const limit = padPx / this.view.scale;
+    let best: { town: Town; district: District } | null = null;
+    let bestD = Infinity;
+    for (const ref of this.urbanRefs().refs) {
+      const c = districtCenter(ref.town, ref.district);
+      const d = Math.hypot(c[0] - x, c[1] - y);
+      if (d < bestD) {
+        bestD = d;
+        best = { town: ref.town, district: ref.district };
+      }
+    }
+    if (!best) return null;
+    const radius = Math.sqrt(Math.max(1e4, best.district.area * 1e6) / Math.PI);
+    return bestD <= radius + limit ? best : null;
+  }
+
+  urbanRefs(): UrbanIndex {
+    if (!this.urban) this.urban = urbanIndex(this.data.towns);
+    return this.urban;
   }
 
   zoomAt(sx: number, sy: number, factor: number): void {
@@ -263,14 +347,24 @@ export class MapRenderer {
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(this.terrainCv, x0, y0, dx, dy);
-    ctx.drawImage(this.coverCv, x0, y0, dx, dy);
-    if (this.urbanImg) {
-      ctx.imageSmoothingEnabled = false;
-      ctx.globalAlpha = lv === 0 ? 0.92 : lv === 1 ? 0.84 : 0.72;
-      ctx.drawImage(this.urbanImg, x0, y0, dx, dy);
-      ctx.globalAlpha = 1;
-      ctx.imageSmoothingEnabled = true;
+    const baseDrawn =
+      this.showBasemap && this.basemap
+        ? this.basemap.draw(ctx, this.view, this.w, this.h, this.dpr)
+        : false;
+    if (!baseDrawn && this.showTerrain) {
+      if (this.terrainImg) {
+        ctx.drawImage(this.terrainImg, x0, y0, dx, dy);
+      } else {
+        ctx.drawImage(this.terrainCv, x0, y0, dx, dy);
+      }
+      ctx.drawImage(this.coverCv, x0, y0, dx, dy);
+      if (this.urbanImg) {
+        ctx.imageSmoothingEnabled = false;
+        ctx.globalAlpha = lv === 0 ? 0.92 : lv === 1 ? 0.84 : 0.72;
+        ctx.drawImage(this.urbanImg, x0, y0, dx, dy);
+        ctx.globalAlpha = 1;
+        ctx.imageSmoothingEnabled = true;
+      }
     }
 
     const ctlAlpha = lv === 0 ? 1 : lv === 1 ? 0.82 : 0.62;
@@ -285,9 +379,9 @@ export class MapRenderer {
       ctx.globalAlpha = 1;
     }
 
-    const contourSegs = drawContours(p, meta.dem, meta.spanM, lv === 2 ? 25 : 50);
+    const contourSegs = baseDrawn || !this.showContours ? 0 : drawContours(p, meta.dem, meta.spanM, lv === 2 ? 25 : 50);
 
-    drawHydro(p, this.data.water, this.data.rivers, zf);
+    if (!baseDrawn && this.showHydro) drawHydro(p, this.data.water, this.data.rivers, zf);
 
     drawTownBlocks(p, this.data.towns, this.field, this.showControl);
 
@@ -296,16 +390,24 @@ export class MapRenderer {
       drawDetailLayer(p, this.detailPaths);
     }
 
-    this.segmentCount = contourSegs + drawRoads(p, this.data.roads, lv, zf);
+    this.segmentCount = contourSegs + (this.showRoads ? drawRoads(p, this.data.roads, lv, zf) : 0);
 
     drawFrontLine(p, this.field, this.showControl);
 
-    drawTownGlow(p, this.data.towns);
-    drawTownMarks(p, this.data.towns);
-    drawTownOutlines(p, this.data.towns);
-    drawTownLabels(p, this.data.towns, zf);
-    drawCapturePoints(p, this.data.towns, this.field, this.showControl);
-    drawCities(p, this.data.cities, this.data.towns, lv, zf);
+    if (this.showBlocks) {
+      drawTownGlow(p, this.data.towns);
+      drawTownMarks(p, this.data.towns);
+      drawTownOutlines(p, this.data.towns);
+    }
+    if (this.showLabels) {
+      drawTownLabels(p, this.data.towns, zf);
+    }
+    if (this.showBlocks) {
+      drawCapturePoints(p, this.data.towns, this.field, this.showControl);
+    }
+    if (this.showLabels) {
+      drawCities(p, this.data.cities, this.data.towns, lv, zf);
+    }
 
     this.visibleTowns = countVisibleTowns(p, this.data.towns);
 
@@ -364,9 +466,26 @@ export class MapRenderer {
   render(state: RenderState): void {
     const t0 = performance.now();
     if (state.level !== this.level) this.setLevel(state.level);
-    if (state.showControl !== this.showControl || state.showIntel !== this.showIntel) {
+    const changed =
+      state.showControl !== this.showControl ||
+      state.showIntel !== this.showIntel ||
+      state.showBasemap !== this.showBasemap ||
+      state.showTerrain !== this.showTerrain ||
+      state.showContours !== this.showContours ||
+      state.showHydro !== this.showHydro ||
+      state.showRoads !== this.showRoads ||
+      state.showBlocks !== this.showBlocks ||
+      state.showLabels !== this.showLabels;
+    if (changed) {
       this.showControl = state.showControl;
       this.showIntel = state.showIntel;
+      this.showBasemap = state.showBasemap;
+      this.showTerrain = state.showTerrain;
+      this.showContours = state.showContours;
+      this.showHydro = state.showHydro;
+      this.showRoads = state.showRoads;
+      this.showBlocks = state.showBlocks;
+      this.showLabels = state.showLabels;
       this.dirty = true;
     }
 
@@ -430,6 +549,8 @@ export class MapRenderer {
       ctx.stroke();
     }
 
+    this.drawUnits(ctx, state);
+
     this.drawScaleBar(ctx);
     ctx.font = '10px "Microsoft YaHei", system-ui, sans-serif';
     ctx.textAlign = 'right';
@@ -442,6 +563,20 @@ export class MapRenderer {
     ctx.fillText(attr, this.w - 6, this.h - 4);
 
     this.lastDrawMs = performance.now() - t0;
+  }
+
+  private drawUnits(ctx: CanvasRenderingContext2D, state: RenderState): void {
+    this.platoons = state.platoons;
+    if (!state.showUnits || !this.platoons.length) return;
+    const p = this.paint(ctx);
+    const idx = this.urbanRefs();
+    const counts = new Map<string, number>();
+    for (const u of this.platoons) counts.set(u.districtKey, (counts.get(u.districtKey) ?? 0) + 1);
+    const selKey = this.platoons.find((u) => u.id === state.selectedPlatoon)?.districtKey ?? null;
+    drawOccupancy(p, counts, idx, selKey);
+    const shown = visibleUnitIds(this.platoons, this.view.scale);
+    drawOrderLines(p, this.platoons, state.selectedPlatoon);
+    drawPlatoons(p, this.platoons, state.selectedPlatoon, state.hoverPlatoon, shown);
   }
 
   private drawScaleBar(ctx: CanvasRenderingContext2D): void {

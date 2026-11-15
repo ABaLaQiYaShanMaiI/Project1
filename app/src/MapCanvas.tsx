@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import { MapRenderer } from './map/renderer';
 import { store } from './store';
 import { useStore } from './hooks';
@@ -69,25 +69,50 @@ export function MapCanvas(): JSX.Element {
           canvas.style.cursor = 'grabbing';
         }
       } else {
-        const hit = r.districtAtScreen(p.x, p.y);
+        const unit = r.platoonAtScreen(p.x, p.y);
+        store.hoverPlatoon = unit ? unit.id : null;
+        const hit = unit ? null : r.districtNearScreen(p.x, p.y);
         store.setHover(hit ? { town: hit.town, district: hit.district, sx: p.x, sy: p.y } : null);
         store.setCursor(r.screenToWorld(p.x, p.y));
+        canvas.style.cursor = unit ? 'pointer' : store.placing ? 'cell' : 'crosshair';
       }
     };
 
     const onUp = (e: PointerEvent) => {
       const p = local(e);
       if (dragging && moved <= 4) {
-        const hit = r.districtAtScreen(p.x, p.y);
+        const unit = r.platoonAtScreen(p.x, p.y);
+        if (unit) {
+          store.selectPlatoon(unit.id);
+          store.setHover(null);
+          dragging = false;
+          return;
+        }
+        const hit = r.districtNearScreen(p.x, p.y);
         const w = r.screenToWorld(p.x, p.y);
-        if (hit) {
+        if (hit && store.orderMode) {
+          const ref = r.urbanRefs().byKey.get(hit.district.key);
+          if (ref) store.issueOrder(store.orderMode, ref);
+        } else if (hit && store.placing) {
+          const ref = r.urbanRefs().byKey.get(hit.district.key);
+          if (ref) store.addPlatoonTo(ref);
+        } else if (hit) {
           store.select({ kind: 'district', townId: hit.town.id, district: hit.district, x: w.x, y: w.y });
+        } else if (store.placing) {
+          store.cancelPlacing();
         } else {
           store.select({ kind: 'point', x: w.x, y: w.y });
         }
       }
       dragging = false;
       canvas.style.cursor = 'crosshair';
+    };
+
+    const onContext = (e: MouseEvent) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const unit = r.platoonAtScreen(e.clientX - rect.left, e.clientY - rect.top);
+      if (unit) store.removePlatoon(unit.id);
     };
 
     const onLeave = () => {
@@ -107,6 +132,7 @@ export function MapCanvas(): JSX.Element {
     canvas.addEventListener('pointercancel', onUp);
     canvas.addEventListener('pointerleave', onLeave);
     canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('contextmenu', onContext);
 
     let raf = 0;
     let last = performance.now();
@@ -116,10 +142,19 @@ export function MapCanvas(): JSX.Element {
     let lastDetailCheck = 0;
 
     const loop = (now: number) => {
-      const dt = (now - last) / 1000;
+      const raw = (now - last) / 1000;
       last = now;
+      const stalled = raw > 0.5;
+      const dt = stalled ? 0 : raw;
+      if (stalled) {
+        frames = 0;
+        acc = 0;
+      }
 
+      const minutesBefore = store.clock.minutes;
       store.clock.update(dt);
+      const dm = store.clock.minutes - minutesBefore;
+      if (dm > 0) store.stepOrders(dm);
 
       try {
         r.render({
@@ -128,7 +163,19 @@ export function MapCanvas(): JSX.Element {
           selected: store.selected,
           showControl: store.showControl,
           showIntel: store.showIntel,
+          showBasemap: store.onlineBasemap,
+          showTerrain: store.showTerrain,
+          showContours: store.showContours,
+          showHydro: store.showHydro,
+          showRoads: store.showRoads,
+          showBlocks: store.showBlocks,
+          showLabels: store.showLabels,
+          showUnits: store.showUnits,
+          platoons: store.units,
+          selectedPlatoon: store.selectedPlatoon,
+          hoverPlatoon: store.hoverPlatoon,
         });
+        if (store.onlineBasemap && r.basemapFailed) store.setBasemap(false);
       } catch (err) {
         const ctx = canvas.getContext('2d')!;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -164,7 +211,7 @@ export function MapCanvas(): JSX.Element {
       acc += dt;
       if (now - lastEmit > 100) {
         store.perf = {
-          fps: acc > 0 ? frames / acc : 0,
+          fps: acc > 0.05 ? frames / acc : store.perf.fps,
           drawMs: r.lastDrawMs,
           rebuildMs: r.lastRebuildMs,
           towns: r.visibleTowns,
@@ -188,6 +235,7 @@ export function MapCanvas(): JSX.Element {
       canvas.removeEventListener('pointercancel', onUp);
       canvas.removeEventListener('pointerleave', onLeave);
       canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('contextmenu', onContext);
     };
   }, []);
 

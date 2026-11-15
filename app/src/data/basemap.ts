@@ -29,6 +29,51 @@ export function localBasemap(meta: WorldMeta): BasemapSource {
 const OPENTOPO = 'https://a.tile.opentopomap.org';
 const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
 
+export function mapTilerKey(): string {
+  try {
+    return localStorage.getItem('maptilerKey') ?? '';
+  } catch {
+    return '';
+  }
+}
+
+export function saveMapTilerKey(v: string): void {
+  try {
+    localStorage.setItem('maptilerKey', v.trim());
+  } catch {
+    return;
+  }
+}
+
+export function mapTilerSources(): BasemapSource[] {
+  const key = mapTilerKey();
+  if (!key) return [];
+  return [
+    {
+      id: 'mt-topo',
+      label: 'MapTiler 地形',
+      attribution: '© MapTiler · © OpenStreetMap contributors',
+      minZoom: 1,
+      maxZoom: 16,
+      tileSize: 256,
+      maxConcurrent: 4,
+      local: false,
+      url: (z, x, y) => `https://api.maptiler.com/maps/topo-v2/${z}/${x}/${y}.png?key=${key}`,
+    },
+    {
+      id: 'mt-sat',
+      label: 'MapTiler 卫星',
+      attribution: '© MapTiler · © OpenStreetMap contributors',
+      minZoom: 1,
+      maxZoom: 16,
+      tileSize: 256,
+      maxConcurrent: 4,
+      local: false,
+      url: (z, x, y) => `https://api.maptiler.com/maps/satellite-v2/${z}/${x}/${y}.png?key=${key}`,
+    },
+  ];
+}
+
 export function onlineBasemaps(): BasemapSource[] {
   return [
     {
@@ -36,7 +81,7 @@ export function onlineBasemaps(): BasemapSource[] {
       label: '在线地形（Esri Topo）',
       attribution: '© Esri, HERE, Garmin, © OpenStreetMap contributors',
       minZoom: 2,
-      maxZoom: 12,
+      maxZoom: 14,
       tileSize: 256,
       maxConcurrent: 4,
       local: false,

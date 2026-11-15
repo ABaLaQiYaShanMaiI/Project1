@@ -1,0 +1,326 @@
+import argparse
+import json
+import math
+import os
+import sys
+import time
+
+import numpy as np
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA = os.path.join(HERE, "..", "app", "public", "data")
+SOURCE = "AWS Terrain Tiles（Terrarium / SRTM）· 本地 DEM 生成"
+
+sys.stdout.reconfigure(encoding="utf-8")
+
+EDGES = [(3, 0), (0, 1), (3, 1), (1, 2), (3, 0, 1, 2), (0, 2), (3, 2), (2, 3), (0, 2), (0, 1, 2, 3), (1, 2), (1, 3), (0, 1), (3, 0)]
+
+CASE_PAIRS = {
+    1: [(3, 0)],
+    2: [(0, 1)],
+    3: [(3, 1)],
+    4: [(1, 2)],
+    5: [(3, 0), (1, 2)],
+    6: [(0, 2)],
+    7: [(3, 2)],
+    8: [(2, 3)],
+    9: [(0, 2)],
+    10: [(0, 1), (2, 3)],
+    11: [(1, 2)],
+    12: [(1, 3)],
+    13: [(0, 1)],
+    14: [(3, 0)],
+}
+
+
+def log(*a):
+    print(f"[contour {time.strftime('%H:%M:%S')}]", *a, flush=True)
+
+
+def deg2tile(lat, lon, z):
+    n = 2 ** z
+    return (
+        (lon + 180.0) / 360.0 * n,
+        (1.0 - math.asinh(math.tan(math.radians(lat))) / math.pi) / 2.0 * n,
+    )
+
+
+def tile2deg(x, y, z):
+    n = 2 ** z
+    lon = x / n * 360.0 - 180.0
+    lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / n))))
+    return lon, lat
+
+
+def load_mosaic(key, zmin, zmax):
+    root = os.path.join(DATA, "dem", key)
+    with open(os.path.join(root, "index.json"), encoding="utf-8") as f:
+        man = json.load(f)
+    z = min(man["maxzoom"], zmax)
+    z = max(man["minzoom"], z)
+    w, s, e, n = man["bbox"]
+    x0, y0 = deg2tile(n, w, z)
+    x1, y1 = deg2tile(s, e, z)
+    tx0, ty0 = int(x0), int(y0)
+    tx1, ty1 = int(x1), int(y1)
+    nx, ny = tx1 - tx0 + 1, ty1 - ty0 + 1
+    log(f"mosaic z{z} {nx}x{ny} tiles")
+    mosaic = np.zeros((ny * 256, nx * 256), dtype=np.float32)
+    for j in range(ny):
+        for i in range(nx):
+            p = os.path.join(root, str(z), str(tx0 + i), f"{ty0 + j}.png")
+            if not os.path.exists(p):
+                continue
+            a = np.asarray(Image.open(p).convert("RGB")).astype(np.float32)
+            el = (a[:, :, 0] * 256.0 + a[:, :, 1] + a[:, :, 2] / 256.0) - 32768.0
+            mosaic[j * 256:(j + 1) * 256, i * 256:(i + 1) * 256] = el
+    lon_l, lat_t = tile2deg(tx0, ty0, z)
+    lon_r, lat_b = tile2deg(tx0 + nx, ty0 + ny, z)
+    return mosaic, (lon_l, lat_t, lon_r, lat_b), z
+
+
+def crop_bbox(mosaic, bounds, bbox, nx_out):
+    lon_l, lat_t, lon_r, lat_b = bounds
+    w, s, e, n = bbox
+    px = mosaic.shape[1] / (lon_r - lon_l)
+    py = mosaic.shape[0] / (lat_t - lat_b)
+    u0 = int(round((w - lon_l) * px))
+    u1 = int(round((e - lon_l) * px))
+    v0 = int(round((lat_t - n) * py))
+    v1 = int(round((lat_t - s) * py))
+    u0, v0 = max(0, u0), max(0, v0)
+    u1, v1 = min(mosaic.shape[1], u1), min(mosaic.shape[0], v1)
+    sub = mosaic[v0:v1, u0:u1]
+    h = max(2, int(round(nx_out * sub.shape[0] / max(1, sub.shape[1]))))
+    return np.asarray(Image.fromarray(sub, "F").resize((nx_out, h), Image.LANCZOS), dtype=np.float32)
+
+
+def level_segments(e, x0, y0, cell_w, cell_h, lv):
+    a = e[:-1, :-1]
+    b = e[:-1, 1:]
+    c = e[1:, 1:]
+    d = e[1:, :-1]
+    lo = np.minimum(np.minimum(a, b), np.minimum(c, d))
+    hi = np.maximum(np.maximum(a, b), np.maximum(c, d))
+    band = (lo < lv) & (hi >= lv)
+    if not band.any():
+        return []
+    idx = ((a > lv).astype(np.uint8) | ((b > lv).astype(np.uint8) << 1) |
+           ((c > lv).astype(np.uint8) << 2) | ((d > lv).astype(np.uint8) << 3))
+    jj, ii = np.nonzero(band)
+    cases = idx[jj, ii]
+    ax, bx, cx, dx = a[jj, ii], b[jj, ii], c[jj, ii], d[jj, ii]
+    xl = x0 + ii * cell_w
+    yt = y0 - jj * cell_h
+    pts = {}
+    m = cases != 0
+    ms = (bx - ax)
+    pts[0] = (xl + np.divide(lv - ax, ms, out=np.zeros_like(ax), where=np.abs(ms) > 1e-9) * cell_w, yt)
+    ms = (cx - bx)
+    pts[1] = (xl + cell_w, yt - np.divide(lv - bx, ms, out=np.zeros_like(bx), where=np.abs(ms) > 1e-9) * cell_h)
+    ms = (dx - cx)
+    pts[2] = (xl + cell_w - np.divide(lv - cx, ms, out=np.zeros_like(cx), where=np.abs(ms) > 1e-9) * cell_w, yt - cell_h)
+    ms = (ax - dx)
+    pts[3] = (xl, yt - cell_h + np.divide(lv - dx, ms, out=np.zeros_like(dx), where=np.abs(ms) > 1e-9) * cell_h)
+    out = []
+    for case, pairs in CASE_PAIRS.items():
+        sel = cases == case
+        if not sel.any():
+            continue
+        for e1, e2 in pairs:
+            p1x, p1y = pts[e1][0][sel], pts[e1][1][sel]
+            p2x, p2y = pts[e2][0][sel], pts[e2][1][sel]
+            out.append(np.stack([p1x, p1y, p2x, p2y], axis=1))
+    return out
+
+
+def stitch(segments, tol_key=1000.0):
+    nodes = {}
+    for seg in segments:
+        for k in range(0, len(seg), 2):
+            key = (round(seg[k] * tol_key), round(seg[k + 1] * tol_key))
+            if key not in nodes:
+                nodes[key] = [seg[k], seg[k + 1], []]
+    for si, seg in enumerate(segments):
+        k0 = (round(seg[0] * tol_key), round(seg[1] * tol_key))
+        k1 = (round(seg[2] * tol_key), round(seg[3] * tol_key))
+        if k0 == k1:
+            continue
+        nodes[k0][2].append((k1, si))
+        nodes[k1][2].append((k0, si))
+    used = [False] * len(segments)
+    lines = []
+    order = [k for k, v in nodes.items() if len(v[2]) != 2] + list(nodes.keys())
+    for start in order:
+        cur = start
+        chain = [start]
+        while True:
+            nxt = None
+            for nb, si in nodes[cur][2]:
+                if not used[si]:
+                    used[si] = True
+                    nxt = nb
+                    break
+            if nxt is None:
+                break
+            chain.append(nxt)
+            cur = nxt
+            if cur == start:
+                break
+        if len(chain) >= 2:
+            lines.append([(nodes[k][0], nodes[k][1]) for k in chain])
+    return lines
+
+
+def simplify(pts, tol):
+    if len(pts) < 3:
+        return pts
+    p = np.asarray(pts, dtype=np.float64)
+    keep = np.zeros(len(p), dtype=bool)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(p) - 1)]
+    while stack:
+        i0, i1 = stack.pop()
+        if i1 <= i0 + 1:
+            continue
+        a = p[i0]
+        b = p[i1]
+        ab = b - a
+        ln = math.hypot(ab[0], ab[1])
+        seg = p[i0 + 1:i1]
+        if ln < 1e-9:
+            dist = np.hypot(seg[:, 0] - a[0], seg[:, 1] - a[1])
+        else:
+            dist = np.abs(ab[0] * (a[1] - seg[:, 1]) - ab[1] * (a[0] - seg[:, 0])) / ln
+        k = int(np.argmax(dist))
+        if dist[k] > tol:
+            mid = i0 + 1 + k
+            keep[mid] = True
+            stack.append((i0, mid))
+            stack.append((mid, i1))
+    return [tuple(v) for v in p[keep]]
+
+
+def label_points(lines, spacing, max_per_line):
+    out = []
+    for pts in lines:
+        if len(pts) < 8:
+            continue
+        acc = 0.0
+        nxt = spacing * 0.5
+        placed = 0
+        for i in range(1, len(pts)):
+            x0, y0 = pts[i - 1]
+            x1, y1 = pts[i]
+            d = math.hypot(x1 - x0, y1 - y0)
+            while acc + d >= nxt and placed < max_per_line:
+                t = (nxt - acc) / max(d, 1e-9)
+                out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, math.degrees(math.atan2(y1 - y0, x1 - x0))))
+                placed += 1
+                nxt += spacing
+            acc += d
+            if placed >= max_per_line:
+                break
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(description="从本地 DEM 生成等高线矢量（计曲线 + 高程标注锚点）")
+    ap.add_argument("--key", default="fulda")
+    ap.add_argument("--map", default="app/public/data/map_fulda.json")
+    ap.add_argument("--grid", type=int, default=400)
+    ap.add_argument("--interval", type=float, default=0.0)
+    ap.add_argument("--bold", type=float, default=0.0)
+    ap.add_argument("--tol", type=float, default=190.0)
+    ap.add_argument("--min-km", type=float, default=2.0)
+    ap.add_argument("--label-km", type=float, default=6.0)
+    args = ap.parse_args()
+
+    mpath = args.map if os.path.isabs(args.map) else os.path.join(HERE, "..", args.map)
+    with open(mpath, encoding="utf-8") as f:
+        meta = json.load(f)["meta"]
+    b = meta["bbox"]
+    bbox = (b["west"], b["south"], b["east"], b["north"])
+    pr = meta["projection"]
+    lat0, lon0 = meta["center"]
+
+    mosaic, bounds, z = load_mosaic(args.key, 9, 11)
+    grid = crop_bbox(mosaic, bounds, bbox, args.grid)
+    rows, cols = grid.shape
+    m_per_px = (bbox[2] - bbox[0]) * pr["mPerDegLon"] / cols
+    log(f"网格 {cols}x{rows} ≈ {m_per_px:.0f} m/px，高程 {grid.min():.0f}–{grid.max():.0f} m")
+
+    interval = args.interval
+    if interval <= 0:
+        span = grid.max() - grid.min()
+        interval = 50.0 if span < 1200 else 100.0
+    bold = args.bold if args.bold > 0 else interval * 5
+    levels = np.arange(math.floor(grid.min() / interval) * interval, grid.max() + interval, interval)
+    levels = [float(v) for v in levels if v > grid.min() and v < grid.max()]
+    log(f"等高距 {interval:.0f} m，计曲线 {bold:.0f} m，层数 {len(levels)}")
+
+    x0 = -((bbox[2] - bbox[0]) * pr["mPerDegLon"]) / 2.0
+    y0 = ((bbox[3] - bbox[1]) * pr["mPerDegLat"]) / 2.0
+    cell_w = (bbox[2] - bbox[0]) * pr["mPerDegLon"] / (cols - 1)
+    cell_h = (bbox[3] - bbox[1]) * pr["mPerDegLat"] / (rows - 1)
+
+    out_levels = []
+    labels = []
+    total_v = 0
+    for lv in levels:
+        segs = level_segments(grid, x0, y0, cell_w, cell_h, lv)
+        if not segs:
+            continue
+        flat = np.concatenate(segs, axis=0)
+        keep = np.hypot(flat[:, 2] - flat[:, 0], flat[:, 3] - flat[:, 1]) >= 1.0
+        flat = flat[keep]
+        if len(flat) == 0:
+            continue
+        lines = stitch(flat)
+        polys = []
+        for ln in lines:
+            if len(ln) < 2:
+                continue
+            p = simplify(ln, args.tol)
+            length = sum(math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]) for i in range(1, len(p)))
+            if length < args.min_km * 1000 or len(p) < 2:
+                continue
+            arr = []
+            for (px, py) in p:
+                arr.append(int(round(px)))
+                arr.append(int(round(py)))
+            polys.append(arr)
+            total_v += len(p)
+        if not polys:
+            continue
+        bold_flag = 1 if abs(lv / bold - round(lv / bold)) < 1e-6 else 0
+        out_levels.append({"v": lv, "b": bold_flag, "l": polys})
+        if bold_flag:
+            for (lx, ly, ang) in label_points([simplify(ln, args.tol) for ln in lines], args.label_km * 1000, 6):
+                labels.append([int(round(lx)), int(round(ly)), int(round(ang)), int(lv)])
+
+    out_levels = [o for o in out_levels if o]
+    span_x = (bbox[2] - bbox[0]) * pr["mPerDegLon"]
+    span_y = (bbox[3] - bbox[1]) * pr["mPerDegLat"]
+    doc = {
+        "key": args.key,
+        "origin": [round(lon0, 6), round(lat0, 6)],
+        "spanM": [round(span_x, 1), round(span_y, 1)],
+        "interval": interval,
+        "bold": bold,
+        "vertices": total_v,
+        "levels": out_levels,
+        "labels": labels,
+        "attribution": SOURCE,
+        "generated": time.strftime("%Y-%m-%d %H:%M"),
+    }
+    out = os.path.join(DATA, f"contours_{args.key}.json")
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
+    size = os.path.getsize(out)
+    log(f"完成 {os.path.basename(out)} {size / 1048576:.2f} MB，{len(out_levels)} 层，{total_v} 顶点，{len(labels)} 标注")
+
+
+if __name__ == "__main__":
+    main()

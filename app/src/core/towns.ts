@@ -17,7 +17,7 @@ export function townFrontage(t: Town): number {
   return t.districts.reduce((s, d) => s + d.frontage, 0);
 }
 
-function pointInPoly(poly: Array<[number, number]>, x: number, y: number): boolean {
+export function pointInPoly(poly: Array<[number, number]>, x: number, y: number): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const xi = poly[i][0];

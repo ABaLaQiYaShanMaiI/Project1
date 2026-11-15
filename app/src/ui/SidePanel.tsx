@@ -1,10 +1,28 @@
 import { useStore, store } from '../hooks';
 import type { MapData } from '../core/types';
-import type { Selection } from '../store';
+import type { LayerKey, Selection } from '../store';
+import { mapTilerKey, saveMapTilerKey } from '../data/basemap';
+import { SIDE_LABEL, UNIT_LABEL, type Side, type UnitKind } from '../core/markers';
+import { POSTURE_HINT, POSTURE_LABEL, POSTURE_ORDER, ECHELON_COST, ECHELON_LABEL, ECHELON_ORDER } from '../core/units';
+import { neighbourRefs, platoonCap, urbanIndex } from '../core/urban';
+import { ORDER_HINT, ORDER_LABEL, ORDER_ORDER } from '../core/orders';
+
+const UNIT_KINDS: UnitKind[] = ['infantry', 'armor', 'artillery', 'recon', 'hq'];
+const SIDES: Side[] = ['nato', 'wp'];
 import { COVER_LABEL } from '../core/types';
 import { sampleBilinear, sampleNearest } from '../core/sample';
 import { townFrontage } from '../core/towns';
 import { controlAt, CONTROL_LABEL } from '../core/scenario';
+
+const LAYERS: Array<[LayerKey, string]> = [
+  ['showTerrain', '地形晕渲'],
+  ['showContours', '等高线'],
+  ['showHydro', '水系'],
+  ['showRoads', '路网'],
+  ['showBlocks', '城镇地块'],
+  ['showLabels', '城镇标注'],
+  ['showUnits', '兵排'],
+];
 
 export function SidePanel(): JSX.Element {
   useStore();
@@ -47,6 +65,81 @@ export function SidePanel(): JSX.Element {
         </button>
       </div>
 
+      <UrbanPanel />
+
+      {store.mode !== 'world' && (
+        <div className="layer-panel">
+          <div className="lp-title">地图效果</div>
+          {LAYERS.map(([key, label]) => (
+            <label key={key} className="lp-item">
+              <input
+                type="checkbox"
+                checked={store[key]}
+                onChange={(e) => store.setLayer(key, e.target.checked)}
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+          <label className="lp-item">
+            <input type="checkbox" checked={store.onlineBasemap} onChange={() => store.toggleBasemap()} />
+            <span>在线底图（Esri）</span>
+          </label>
+          <div className="lp-key">
+            <input
+              type="password"
+              placeholder="MapTiler Key（可选）"
+              defaultValue={mapTilerKey()}
+              onChange={(e) => saveMapTilerKey(e.target.value)}
+              spellCheck={false}
+            />
+            <div className="lp-hint">填好后到世界视图点底图按钮循环选择</div>
+          </div>
+        </div>
+      )}
+
+      <div className="layer-panel">
+        <div className="lp-title">兵牌</div>
+        <div className="unit-sides">
+          {SIDES.map((s) => (
+            <button
+              key={s}
+              className={`unit-side ${s} ${store.markerSide === s ? 'on' : ''}`}
+              onClick={() => store.setMarkerSide(s)}
+            >
+              {SIDE_LABEL[s]}
+            </button>
+          ))}
+        </div>
+        <div className="unit-grid">
+          {UNIT_KINDS.map((k) => (
+            <button
+              key={k}
+              className={`unit-btn ${store.placing && store.markerKind === k ? 'on' : ''}`}
+              onClick={() => store.setMarkerKind(k)}
+            >
+              {UNIT_LABEL[k]}
+            </button>
+          ))}
+        </div>
+        <div className="echelon-row">
+          {ECHELON_ORDER.map((e) => (
+            <button
+              key={e}
+              className={`echelon-btn ${store.markerEchelon === e ? 'on' : ''}`}
+              title={e === 'company' ? '连：含 3 排 × 3 班，占 3 个排位' : e === 'platoon' ? '排：含 3 班，占 1 个排位' : '班：占 1/3 排位'}
+              onClick={() => store.setEchelon(e)}
+            >
+              {ECHELON_LABEL[e]}
+            </button>
+          ))}
+        </div>
+        <div className="lp-hint">
+          {store.placing
+            ? `点城区放置 ${SIDE_LABEL[store.markerSide]}${UNIT_LABEL[store.markerKind]}${ECHELON_LABEL[store.markerEchelon]}；下层自动随行`
+            : '选兵种与梯队后点击城区；右键撤出。放大到 L1/L2 才看得到下级'}
+        </div>
+      </div>
+
       <div className="side-status" title={detail(map, sel)}>
         <div className="ss-line">{summary}</div>
         {sel?.kind === 'district' && sel.district && (
@@ -56,6 +149,166 @@ export function SidePanel(): JSX.Element {
         )}
       </div>
     </aside>
+  );
+}
+
+function UrbanPanel(): JSX.Element | null {
+  const map = store.map;
+  if (!map) return null;
+  const idx = urbanIndex(map.towns);
+  const unit = store.units.find((u) => u.id === store.selectedPlatoon);
+  const townSel = store.selected?.kind === 'district' ? store.selected : null;
+  const activeKey = unit?.districtKey ?? townSel?.district.key ?? null;
+  const ref = activeKey ? idx.byKey.get(activeKey) : null;
+  if (!ref) {
+    return (
+      <div className="layer-panel">
+        <div className="lp-title">巷战</div>
+        <div className="lp-hint">点城区看容量与邻接；点兵排改姿态。兵排只能进城，野战请用野外布防。</div>
+      </div>
+    );
+  }
+
+  const cap = platoonCap(ref.district);
+  const cost = (side: Side): number =>
+    store.units
+      .filter((u) => u.districtKey === ref.key && u.side === side && !u.parentId)
+      .reduce((s, u) => s + ECHELON_COST[u.echelon], 0);
+  const mine = cost('nato');
+  const foe = cost('wp');
+  const total = mine + foe;
+  const over = total > cap;
+  const neighbours = neighbourRefs(idx, ref.key);
+  const fmt = (v: number): string => (Number.isInteger(v) ? String(v) : v.toFixed(1));
+
+  return (
+    <div className="layer-panel">
+      <div className="lp-title">巷战 · {ref.town.n}</div>
+      <div className="urban-head">
+        <span className="urban-name">{ref.district.label}</span>
+        <span className={`urban-cap ${over ? 'over' : Math.abs(total - cap) < 1e-6 ? 'full' : ''}`}>
+          {fmt(total)}/{cap} 排
+        </span>
+      </div>
+      <div className="urban-bar">
+        <i className="mine" style={{ width: `${Math.min(100, (mine / Math.max(1, cap)) * 100)}%` }} />
+        <i className="foe" style={{ width: `${Math.min(100, (foe / Math.max(1, cap)) * 100)}%` }} />
+      </div>
+      <div className="lp-hint">
+        防御 +{ref.district.defense} · 建筑 {Math.round((ref.district.builtRatio ?? 0) * 100)}% · 路{' '}
+        {(ref.district.roadKm ?? 0).toFixed(1)} km
+      </div>
+      {over && (
+        <div className="urban-warn">
+          超编 {fmt(total - cap)} 个排：不增加火力，只增加暴露与伤亡（城区战斗宽度是硬规则）。
+        </div>
+      )}
+
+      {unit ? (
+        <>
+          <div className="urban-sub">
+            {SIDE_LABEL[unit.side]} · {unit.label} · {POSTURE_LABEL[unit.posture]}
+          </div>
+          <div className="urban-tree">
+            {(() => {
+              const c = store.countsOf(unit.id);
+              return `编成：${c.company} 连 · ${c.platoon} 排 · ${c.squad} 班`;
+            })()}
+          </div>
+          <div className="posture-grid">
+            {POSTURE_ORDER.map((k) => (
+              <button
+                key={k}
+                className={`posture-btn ${unit.posture === k ? 'on' : ''}`}
+                title={POSTURE_HINT[k]}
+                onClick={() => store.setPosture(k)}
+              >
+                {POSTURE_LABEL[k]}
+              </button>
+            ))}
+          </div>
+          <div className="urban-hint">{POSTURE_HINT[unit.posture]}（整棵树一起改）</div>
+          <div className="order-row">
+            {ORDER_ORDER.map((t) => (
+              <button
+                key={t}
+                className={`order-btn ${store.orderMode === t ? 'on' : ''}`}
+                title={ORDER_HINT[t]}
+                onClick={() => {
+                  const needsTarget = t === 'move' || t === 'attack';
+                  if (needsTarget) store.setOrderMode(t);
+                  else store.issueOrder(t);
+                }}
+              >
+                {ORDER_LABEL[t]}
+              </button>
+            ))}
+          </div>
+          <div className="urban-hint">
+            {store.orderMode
+              ? `已选「${ORDER_LABEL[store.orderMode]}」：点目标街区下达，下级自动跟进`
+              : `当前命令：${ORDER_LABEL[unit.order.type]}${
+                  unit.parentId ? (unit.order.pinned ? '（单独指令）' : '（随上级）') : '（本部）'
+                }`}
+          </div>
+          {unit.order.pinned && unit.parentId ? (
+            <button className="btn small" onClick={() => store.releasePinnedOrders()}>
+              解除单独指令
+            </button>
+          ) : null}
+          <button className="btn small danger" onClick={() => store.removePlatoon(unit.id)}>
+            撤出{ECHELON_LABEL[unit.echelon]}（含下级）
+          </button>
+        </>
+      ) : null}
+
+      {neighbours.length > 0 && (
+        <>
+          <div className="lp-title urban-gap">相邻街区 · {neighbours.length}</div>
+          <div className="urban-adj">
+            {neighbours.map((n) => {
+              const nCap = platoonCap(n.district);
+              const nOwn = store.districtOccupancy(n.key);
+              return (
+                <button
+                  key={n.key}
+                  className="adj-item"
+                  onClick={() => {
+                    if (unit) store.moveUnit(unit.id, n);
+                    else store.select({ kind: 'district', townId: n.town.id, district: n.district, x: 0, y: 0 });
+                  }}
+                  title={unit ? `把该${ECHELON_LABEL[unit.echelon]}（含下级）移入${n.district.label}` : '选中该街区'}
+                >
+                  <span>{n.district.label}</span>
+                  <span className={`mono adj-cap ${nOwn > nCap ? 'over' : ''}`}>
+                    {fmt(nOwn)}/{nCap}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="lp-hint">
+            {unit ? `点街区即可把该${ECHELON_LABEL[unit.echelon]}连同下属一起移过去` : '点街区选中，看它的容量'}
+          </div>
+        </>
+      )}
+
+      {store.units.length > 0 && (
+        <button className="btn small" onClick={() => store.clearPlatoons()}>
+          清空全部部队（{store.units.filter((u) => !u.parentId).length} 个上级 / {store.units.length} 个兵牌）
+        </button>
+      )}
+
+      {store.battleLog.length > 0 && (
+        <div className="battle-log">
+          {store.battleLog.slice(0, 3).map((l, i) => (
+            <div key={i} className="bl-line">
+              {l}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -15,9 +15,9 @@
 | 项 | 上限 |
 | --- | --- |
 | 前端单文件 | 700 行 |
-| 单个数据文件 | 4 MB |
-| 前端首屏 JS（gzip） | 120 KB |
-| 生产依赖 | 只允许 `react` `react-dom`；构建期 `vite` `typescript` `@vitejs/plugin-react` |
+| 单个数据文件 | 4 MB（本地底图 `.pmtiles` 例外：按区域裁剪，单包 ≤ 64 MB） |
+| 前端首屏 JS（gzip） | 120 KB（世界视图按需加载的 `maplibre-gl` + `pmtiles` 单独成 chunk，不计入首屏） |
+| 生产依赖 | 只允许 `react` `react-dom` `maplibre-gl` `pmtiles`；构建期 `vite` `typescript` `@vitejs/plugin-react` |
 | Python 依赖 | 只允许 `numpy` `Pillow` `requests` |
 
 新增依赖必须在 `DEVLOG.md` 记一条，写清为什么现有依赖做不到。
@@ -36,6 +36,9 @@
   `app/public/data/`，带来源与生成时间，之后必须能离线复现同一张战场。
 - 禁止使用在线瓦片（`tile.openstreetmap.org` 政策明确禁止批量下载、预取与离线打包）；
   地形一律烘焙成本地 JSON/JPG，OSM 数据只走 Overpass 的区域查询并做本地缓存。
+- 底图统一走**本地 PMTiles**（`Tools/fetch_basemap.mjs` 在烘焙期从 Protomaps 日构建按 bbox 裁剪），
+  运行时由 `pmtiles://` 协议按 HTTP Range 读取本地文件，不请求任何第三方服务。
+  在线 MapTiler 仅在玩家自填 key 时作为参考底图，可随时关闭。
 - 目标平台 Windows 单机；数据与规则层不得依赖特定平台 API。
 - 所有地图数据来源必须可署名：当前为 SRTM/AWS Terrain Tiles + © OpenStreetMap contributors (ODbL)。
 

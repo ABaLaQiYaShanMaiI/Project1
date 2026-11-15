@@ -56,6 +56,16 @@ export function TopBar(): JSX.Element {
           </button>
         </div>
 
+        <div className="seg" role="group" aria-label="底图">
+          <button
+            className={`seg-btn ${store.onlineBasemap ? 'active' : ''}`}
+            title="叠加在线专业地形底图（Esri，需要网络；失败自动回退本地）"
+            onClick={() => store.toggleBasemap()}
+          >
+            在线底图
+          </button>
+        </div>
+
         <div className="seg" role="group" aria-label="时间倍速">
           {SPEEDS.map((s) => (
             <button

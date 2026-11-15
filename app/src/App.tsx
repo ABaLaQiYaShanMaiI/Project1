@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { MapCanvas } from './MapCanvas';
 import { WorldCanvas } from './WorldCanvas';
 import { TopBar } from './ui/TopBar';
@@ -7,6 +7,12 @@ import { StatusBar } from './ui/StatusBar';
 import { useStore, store } from './hooks';
 import { loadMap } from './data/loadMap';
 import { loadScenario } from './data/loadScenario';
+import { mapTilerKey } from './data/basemap';
+import { loadPmtilesZones } from './data/pmtilesBasemap';
+
+const WorldMapLibre = lazy(() =>
+  import('./WorldMapLibre').then((m) => ({ default: m.WorldMapLibre })),
+);
 
 function mapKey(): string {
   const q = new URLSearchParams(location.search).get('map') || '/data/map_fulda.json';
@@ -17,6 +23,21 @@ function mapKey(): string {
 export function App(): JSX.Element {
   useStore();
   const [preview, setPreview] = useState<string | null>(null);
+  const [hasBasemap, setHasBasemap] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    loadPmtilesZones()
+      .then((zones) => {
+        if (alive) setHasBasemap(zones.length > 0 || Boolean(mapTilerKey()));
+      })
+      .catch(() => {
+        if (alive) setHasBasemap(Boolean(mapTilerKey()));
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const url = `/data/preview_${mapKey()}.jpg`;
@@ -104,7 +125,17 @@ export function App(): JSX.Element {
       <TopBar />
       <div className="main">
         <SidePanel />
-        {store.mode === 'world' ? <WorldCanvas /> : <MapCanvas />}
+        {store.mode === 'world' ? (
+          hasBasemap ? (
+            <Suspense fallback={<div className="ml-wrap" />}>
+              <WorldMapLibre />
+            </Suspense>
+          ) : (
+            <WorldCanvas />
+          )
+        ) : (
+          <MapCanvas />
+        )}
       </div>
       <StatusBar />
     </div>

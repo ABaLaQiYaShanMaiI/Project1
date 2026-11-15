@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { store } from './store';
+import { SIDE_COLOR, type Marker } from './core/markers';
 import {
   lonToX,
   latToY,
@@ -11,7 +12,7 @@ import {
   type WorldVectors,
 } from './core/world';
 import { loadWorld, loadWorldVectors, TileSet } from './data/worldSource';
-import { localBasemap, onlineBasemaps, type BasemapSource } from './data/basemap';
+import { localBasemap, mapTilerSources, onlineBasemaps, type BasemapSource } from './data/basemap';
 import { bakeStatus, cancelBake, loadZones, startBake } from './data/bakeApi';
 import { makeZoneKey, zoneTitle, type BakeStatus, type ZoneEntry } from './core/zones';
 import { BakeCard, WorldHint, WorldLibraryPanel, WorldPickPanel, WorldTools } from './ui/WorldPanels';
@@ -72,16 +73,70 @@ function clipName(name: string, max = 16): string {
   return name.length > max ? `${name.slice(0, max)}…` : name;
 }
 
+function drawUnitSymbol(ctx: CanvasRenderingContext2D, m: Marker, px: number, py: number): void {
+  const w = 28;
+  const h = 19;
+  const c = SIDE_COLOR[m.side];
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.fillStyle = c.fill;
+  ctx.strokeStyle = c.stroke;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.rect(-w / 2, -h / 2, w, h);
+  ctx.fill();
+  ctx.stroke();
+
+  const x0 = -w / 2 + 3.5;
+  const x1 = w / 2 - 3.5;
+  const y0 = -h / 2 + 3.5;
+  const y1 = h / 2 - 3.5;
+  ctx.strokeStyle = c.stroke;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  if (m.kind === 'infantry') {
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.moveTo(x1, y0);
+    ctx.lineTo(x0, y1);
+  } else if (m.kind === 'armor') {
+    ctx.ellipse(0, 0, (x1 - x0) / 2, (y1 - y0) / 2, 0, 0, Math.PI * 2);
+  } else if (m.kind === 'artillery') {
+    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+  } else if (m.kind === 'recon') {
+    ctx.moveTo(x0, y1);
+    ctx.lineTo(x1, y0);
+  } else {
+    ctx.moveTo(0, y0);
+    ctx.lineTo(0, y1);
+    ctx.moveTo(-4, y1 - 3);
+    ctx.lineTo(4, y1 - 3);
+  }
+  ctx.stroke();
+
+  ctx.font = '600 8.5px "Microsoft YaHei", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.lineWidth = 2.6;
+  ctx.strokeStyle = 'rgba(12,16,22,0.82)';
+  ctx.strokeText(m.label, 0, h / 2 + 2);
+  ctx.fillStyle = c.text;
+  ctx.fillText(m.label, 0, h / 2 + 2);
+  ctx.restore();
+}
+
 export function WorldCanvas(): JSX.Element {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef({ scale: 0.3, ox: 0, oy: 0, w: 0, h: 0, dpr: 1, fit: 0.3, min: 0.3 });
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [tiles, setTiles] = useState<TileSet | null>(null);
+  const [localTiles, setLocalTiles] = useState<TileSet | null>(null);
   const [meta, setMeta] = useState<WorldMeta | null>(null);
   const [source, setSource] = useState<BasemapSource | null>(null);
   const drawRef = useRef<(() => void) | null>(null);
   const [zoomHint, setZoomHint] = useState(false);
+  const [markers, setMarkers] = useState<Marker[]>(store.markers);
   const hintTimer = useRef<number | null>(null);
   const [pick, setPick] = useState<{ lat: number; lon: number } | null>(null);
   const [box, setBox] = useState<Box | null>(null);
@@ -101,7 +156,8 @@ export function WorldCanvas(): JSX.Element {
         if (!alive) return;
         setImg(r.img);
         setMeta(r.meta);
-        setSource(r.tiles ? r.tiles.source : null);
+        setLocalTiles(r.tiles);
+        setSource(r.tiles ? onlineBasemaps()[0] : null);
       })
       .catch((e: Error) => {
         store.error = e.message;
@@ -113,17 +169,26 @@ export function WorldCanvas(): JSX.Element {
   }, []);
 
   useEffect(() => {
+    const unsub = store.subscribe(() => setMarkers(store.markers));
+    return unsub;
+  }, []);
+
+  useEffect(() => {
     if (!source) {
       setTiles(null);
+      return;
+    }
+    if (source.local) {
+      setTiles(localTiles);
       return;
     }
     const ts = new TileSet(source);
     ts.onLoad = () => drawRef.current?.();
     ts.onFail = () => {
-      if (!source.local && meta) setSource(localBasemap(meta));
+      if (meta) setSource(localBasemap(meta));
     };
     setTiles(ts);
-  }, [source, meta]);
+  }, [source, meta, localTiles]);
 
   useEffect(() => {
     let alive = true;
@@ -194,18 +259,12 @@ export function WorldCanvas(): JSX.Element {
       canvas.height = Math.round(rect.height * dpr);
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
-      S.fit = Math.max(rect.width, rect.height) * 0.98;
-      S.min = Math.min(rect.width, rect.height) * 0.8;
+      S.fit = Math.min(rect.width, rect.height) * 0.96;
+      S.min = S.fit * 0.8;
       if (!S.ox && !S.oy) {
         S.scale = S.fit;
-        const c = store.map?.meta.center;
-        if (c) {
-          S.ox = rect.width / 2 - lonToX(c[1]) * S.scale;
-          S.oy = rect.height / 2 - latToY(c[0]) * S.scale;
-        } else {
-          S.ox = (rect.width - S.scale) / 2;
-          S.oy = (rect.height - S.scale) / 2;
-        }
+        S.ox = (rect.width - S.scale) / 2;
+        S.oy = (rect.height - S.scale) / 2;
       }
       draw();
     };
@@ -219,12 +278,12 @@ export function WorldCanvas(): JSX.Element {
       if (img) {
         ctx.drawImage(img, S.ox, S.oy, S.scale, S.scale);
       }
-      if (tiles && source) {
-        const tz = pickZoom(S.scale, source.minZoom, source.maxZoom);
+      const drawTileSet = (ts: TileSet) => {
+        const tz = pickZoom(S.scale * S.dpr, ts.source.minZoom, ts.source.maxZoom);
         const tn = 2 ** tz;
         const tilePx = S.scale / tn;
-        if (tz > source.minZoom) {
-          const base = tiles.get(source.minZoom, 0, 0);
+        if (tz > ts.source.minZoom) {
+          const base = ts.get(ts.source.minZoom, 0, 0);
           if (base) ctx.drawImage(base, S.ox, S.oy, S.scale, S.scale);
         }
         const tx0 = Math.max(0, Math.floor((0 - S.ox) / tilePx));
@@ -233,14 +292,16 @@ export function WorldCanvas(): JSX.Element {
         const ty1 = Math.min(tn - 1, Math.ceil((S.h - S.oy) / tilePx));
         for (let ty = ty0; ty <= ty1; ty++) {
           for (let tx = tx0; tx <= tx1; tx++) {
-            const tile = tiles.get(tz, tx, ty);
+            const tile = ts.get(tz, tx, ty);
             if (!tile) continue;
             ctx.drawImage(tile, S.ox + tx * tilePx, S.oy + ty * tilePx, tilePx + 0.5, tilePx + 0.5);
           }
         }
-      }
+      };
+      if (localTiles) drawTileSet(localTiles);
+      if (tiles && source && !source.local) drawTileSet(tiles);
 
-      if (vectors) {
+      if (vectors && source?.local) {
         const vz = pickZoom(S.scale, meta.minZoom, meta.maxZoom);
         const west = xToLon((0 - S.ox) / S.scale);
         const east = xToLon((S.w - S.ox) / S.scale);
@@ -357,6 +418,13 @@ export function WorldCanvas(): JSX.Element {
         ctx.lineTo(px, py + 9);
         ctx.stroke();
       }
+
+      for (const m of markers) {
+        const px = lonToX(m.lon) * S.scale + S.ox;
+        const py = latToY(m.lat) * S.scale + S.oy;
+        if (px < -40 || py < -40 || px > S.w + 40 || py > S.h + 40) continue;
+        drawUnitSymbol(ctx, m, px, py);
+      }
     };
 
     const ro = new ResizeObserver(resize);
@@ -369,6 +437,16 @@ export function WorldCanvas(): JSX.Element {
     let lx = 0;
     let ly = 0;
     let anchor: { x: number; y: number } | null = null;
+    let dragMarker: Marker | null = null;
+
+    const markerAt = (sx: number, sy: number): Marker | null => {
+      for (const m of markers) {
+        const px = lonToX(m.lon) * S.scale + S.ox;
+        const py = latToY(m.lat) * S.scale + S.oy;
+        if (Math.abs(sx - px) <= 16 && Math.abs(sy - py) <= 12) return m;
+      }
+      return null;
+    };
 
     const toImg = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -389,6 +467,18 @@ export function WorldCanvas(): JSX.Element {
 
     const onDown = (e: PointerEvent) => {
       canvas.setPointerCapture(e.pointerId);
+      const rect = canvas.getBoundingClientRect();
+      if (!selecting && !store.placing) {
+        const hit = markerAt(e.clientX - rect.left, e.clientY - rect.top);
+        if (hit) {
+          dragMarker = hit;
+          dragging = true;
+          moved = 0;
+          lx = e.clientX;
+          ly = e.clientY;
+          return;
+        }
+      }
       dragging = true;
       moved = 0;
       lx = e.clientX;
@@ -406,6 +496,13 @@ export function WorldCanvas(): JSX.Element {
       moved += Math.abs(dx) + Math.abs(dy);
       lx = e.clientX;
       ly = e.clientY;
+      if (dragMarker) {
+        const p = toImg(e);
+        const u = Math.max(0, Math.min(1, p.x));
+        const v = Math.max(0, Math.min(1, p.y));
+        store.moveMarker(dragMarker.id, xToLon(u), yToLat(v));
+        return;
+      }
       if (selecting && anchor) {
         const p = toImg(e);
         setBox({
@@ -422,7 +519,20 @@ export function WorldCanvas(): JSX.Element {
     };
 
     const onUp = (e: PointerEvent) => {
+      if (dragMarker) {
+        dragMarker = null;
+        dragging = false;
+        return;
+      }
       const p = toImg(e);
+      if (dragging && moved <= 4 && store.placing) {
+        if (p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1) {
+          store.addMarker(xToLon(p.x), yToLat(p.y));
+          store.cancelPlacing();
+        }
+        dragging = false;
+        return;
+      }
       if (dragging && moved <= 4) {
         if (selecting) {
           const z = zoneAt(p);
@@ -460,11 +570,19 @@ export function WorldCanvas(): JSX.Element {
       draw();
     };
 
+    const onContext = (e: MouseEvent) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const hit = markerAt(e.clientX - rect.left, e.clientY - rect.top);
+      if (hit) store.removeMarker(hit.id);
+    };
+
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
     canvas.addEventListener('pointercancel', onUp);
     canvas.addEventListener('wheel', onWheel, { passive: false });
+    canvas.addEventListener('contextmenu', onContext);
 
     return () => {
       ro.disconnect();
@@ -474,8 +592,9 @@ export function WorldCanvas(): JSX.Element {
       canvas.removeEventListener('pointerup', onUp);
       canvas.removeEventListener('pointercancel', onUp);
       canvas.removeEventListener('wheel', onWheel);
+      canvas.removeEventListener('contextmenu', onContext);
     };
-  }, [img, meta, tiles, source, vectors, pick, box, selecting, zones]);
+  }, [img, meta, tiles, source, vectors, pick, box, selecting, zones, markers]);
 
   const applyPreset = (wKm: number, hKm: number) => {
     if (!meta) return;
@@ -504,11 +623,22 @@ export function WorldCanvas(): JSX.Element {
     location.search = `?map=${encodeURIComponent(url)}`;
   };
 
-  const toggleBasemap = () => {
+  const cycleBasemap = () => {
     if (!meta) return;
-    if (source?.local) setSource(onlineBasemaps()[0]);
-    else setSource(localBasemap(meta));
+    const list = [localBasemap(meta), ...mapTilerSources(), ...onlineBasemaps()];
+    const i = list.findIndex((s) => s.id === source?.id);
+    setSource(list[(i + 1) % list.length]);
   };
+
+  const basemapLabel =
+    ({
+      local: '本地底图',
+      'mt-topo': 'MT 地形',
+      'mt-sat': 'MT 卫星',
+      'esri-topo': '地形底图',
+      'esri-imagery': '卫星影像',
+      opentopomap: 'OpenTopoMap',
+    } as Record<string, string>)[source?.id ?? 'local'] ?? '底图';
 
   const onBake = async () => {
     if (!info) return;
@@ -545,9 +675,9 @@ export function WorldCanvas(): JSX.Element {
       <WorldTools
         selecting={selecting}
         zoneCount={zones.length}
-        online={Boolean(source && !source.local)}
+        basemapLabel={basemapLabel}
         onToggleSelect={() => setSelecting((v) => !v)}
-        onToggleBasemap={toggleBasemap}
+        onCycleBasemap={cycleBasemap}
         onPreset={applyPreset}
       />
       {info ? (
