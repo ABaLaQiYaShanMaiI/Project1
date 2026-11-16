@@ -768,7 +768,116 @@ node Tools/fetch_basemap.mjs --key=world --world --source="E:\PersonalGame\v4.pm
 - 多层叠加的**性能**实测：137 层在软件渲染下偏慢，真机 GPU 未测；
 - 桥梁/隧道/渡口/机场符号（属性已在两层瓦片里，纯样式活）。
 
+### v1.27 交接状态（换会话前必读）
+
+#### 已完成并能跑
+
+| 能力 | 关键文件 | 状态 |
+| --- | --- | --- |
+| 三层底图 | `tiles/index.json` | world z0–6 42 MB / europe z6–8 106 MB / fulda z0–13 42 MB，共 190 MB |
+| 图层装配 | `data/militaryStyle.ts` | 按 tier 复制整套图层，`tierBands` 分配接管区间 |
+| 视口自动挂载 | `data/pmtilesBasemap.ts` | `zonesInBounds` + `moveend` 防抖重建，同屏最多 2 个区域层 |
+| 等高线 | `Tools/bake_contours.py` | 25 m 等高距 / 1200 网格 / Mercator 配准 / 沿线标注两层 |
+| 坡度通行 | `Tools/bake_slope.py` | 6 级色块瓦片，富尔达 2.04 MB、全球 3.58 MB，默认关闭 |
+| 测距/方位/剖面 | `map/measureTool.ts` | 大圆距离、真方位 + 密位、65 点剖面 SVG |
+| 交通线 | `militaryStyle.ts` | 主/次/支分级、匝道继承主路宽度与描边、桥隧纸色光晕 |
+| 铁路 | `railsOf()` | 黑 2.3px + 白枕木虚线 [1.1,2.1]，minzoom 7 |
+| 军事要素 | `tierLayers()` | 军事用地填充、机场虚线轮廓 |
+| 性能 | `WorldMapLibre.tsx` | renderWorldCopies:false、fadeDuration:0、DEM 缓存 48；实测 61 FPS / 91 MB 堆 / 200 图层 |
+
+#### 已知问题
+
+1. **高程采样器不回退全球 DEM**：measureTool 只挂区域 DEM（富尔达 z9–11），出区域显示 `—`。修法：复合采样器（区域优先，超 bbox 回退 world），约 40 行。
+2. **铁路大倍率偏「串珠」**：可降到白线 1.5 + 虚线 [2,2]。
+3. 200 图层在软件渲染 61 FPS，真机 GPU 未测。
+4. 字形分片已写进 `fetch_basemap.mjs`，但现有 `tiles/` 里的分片是手工补的。
+
+#### 下一步
+
+**城市单元格与占领**，契约见 `MAPDESIGN.md §11`，实现走浏览器内切分。
+
+#### 常用命令
+
+```powershell
+cd E:\PersonalGame\Project1\app; npm run dev
+Get-NetTCPConnection -State Listen -LocalPort 5183 | %{ Stop-Process -Id $_.OwningProcess -Force }
+Tools\bin\pmtiles.exe extract "E:\PersonalGame\v4.pmtiles" "app\public\data\tiles\xx.pmtiles" --bbox=W,S,E,N --maxzoom=13
+node Tools/fetch_basemap.mjs --key=xx --bbox=W,S,E,N --name=名称 --source="E:\PersonalGame\v4.pmtiles"
+python Tools/bake_dem.py --bbox=W,S,E,N --key=xx --zmin=9 --zmax=11
+python Tools/bake_contours.py --key=xx --bbox=W,S,E,N
+python Tools/bake_slope.py --key=xx
+node Tools/strip_comments.mjs --check; cd app; npx tsc --noEmit; npx vite build
+```
+
+#### 踩坑索引
+
+1. `maxBounds` 设成整个世界 → `calcMatrices` 空指针，整图不挂载。
+2. `map.getStyle()` 在样式就绪前是 undefined，取 `.layers` 会崩 React。
+3. 动态图层在 tier 循环里插入会重复，已有按 id 去重兜底，新增层要小心。
+4. PowerShell 写 UTF-8 给 Python 文件加 BOM → 报 `U+FEFF`，改 Python 文件用 Python 读写。
+5. 服务读 `app/dist`，改 `app/public/data/**` 后必须重新 build 或拷到 dist。
+6. `pmtiles extract` 输出文件是预分配的，别用大小判断进度。
+7. 整文件覆盖写长文档会丢历史——只插入片段。
+
 ---
+
+### v1.28 地块 v2：全球方格 + 城市加密
+
+任务：把 `MAPDESIGN §11` 的"城市单元格"从**按城烘焙**改成**全世界零数据铺满**——乡村一格，
+城市按规模裂成多格。设计契约已按 v2 重写（见 §11），这里只记决策与坑。
+
+#### 决策：地块改成 UTM 方格，不再切真实轮廓
+
+v1 的"行政区 / 主干道切分"走不通，原因是数据、体积、可复现性三样都卡死：全球底图只到 z6，
+99% 的城市没有切分数据；烘全世界是几百 MB 到 GB；瓦片简化会让同一城市两次切出不同结果。
+改成 **UTM 公里方格 + 四叉降级**：
+
+| 项 | 值 |
+| --- | --- |
+| 层级 | 8 km → 4 → 2 → 1 km（逐级四叉） |
+| 乡村 | 半径 < 1.2 km 的居民点不参与分裂，一个 8 km 地块就是一格 |
+| 城市 | 格内 5×5 采样，城市圆盘覆盖率 ≥ 16% 且边长 > 1 km 就裂成 4 格 |
+| 半径 | `8·√pop`，夹在 400 m – 40 km |
+| 预算 | 单视口 420 格，按 `覆盖率 × 面积` 从高到低裂 |
+
+#### 数据：一条城镇记录，几何 0 B
+
+| 产物 | 来源 | 体积 |
+| --- | --- | --- |
+| `data/cities.json` | 世界包 z6 的 `places` 点 | 5,615 城镇 / **73 KB** |
+| `data/cities_fulda.json` | 富尔达包 z13 | 1,623 居民点 / **18 KB** |
+| 地块几何 | 运行时现算 | **0 B**（单视口 ≤ 420 格 / ≤ 20 KB） |
+
+对比：烘全世界 = 6M 格 × 100–150 B = 几百 MB。**省了四个数量级**，而且新增城市不用重烘。
+
+#### 实测
+
+| 场景 | 格数 | 耗时 |
+| --- | --- | --- |
+| 富尔达 z14（7 万） | 56（48 × 1 km） | 4.4 ms |
+| 柏林 z12（370 万） | 258（256 × 1 km） | 2.1 ms |
+| 上海 z11 | 420（预算上限） | 1.5 ms |
+| 乡村 z13 | 1（8 km） | < 0.2 ms |
+
+#### 踩坑
+
+1. **MVT 几何是 zigzag 编码**：自己写解码器时按无符号 varint 读坐标，柏林被解到 15.54°E
+   （偏 2.1°，20 多公里）。几何 delta 一律 `(n >> 1) ^ -(n & 1)`。属性标签不受影响，所以
+   前几个城市看着"差不多对"，是坑里最阴的一个。
+2. **`places` 在不同缩放是不同东西**：z6 是干净的点（正是我们要的），z13 变成边界面/中心点，
+   同一个 Fulda 能出现在 9.684/50.533（市政边界质心，pop 136k）和 9.676/50.551（镇点，pop 68k）
+   两处。烘焙只收 `type === 1` 的点；面留到以后做"格边贴街区"的装饰时再处理。
+3. **半径公式单位写错**：`Math.min(50, ...)` 想写 50 km 实际是 50 m，全部半径归零 → 覆盖率恒 0
+   → 格子永远不分裂，看起来"算法不工作"。修完先用离线脚本打格数直方图，别在浏览器里猜。
+4. **图层插错位置会被底图压住**：一开始把 `cell-*` 插到第一个 symbol 层之前，结果落在 buildings
+   填充之下，格线在城里完全看不见（截图里只有乡村边界）。改插到栈顶（与军用格网一致）。
+5. PowerShell 正则批量改 TS 文件不稳（换行、引号），本轮改代码一律用 Python 读写。
+
+#### 下一步
+
+- 期 2：兵牌进出驱动归属（拖动兵牌 → 格子变色）；
+- 邻接移动：`cellAt` 探点算跨级邻接，不存邻接表；
+- 区域包逐个补 `cities_<key>.json`（一条命令：`node Tools/bake_cities.mjs --pack=... --zoom=13`）。
 
 ## 技术决策与原因
 

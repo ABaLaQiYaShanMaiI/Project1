@@ -1,11 +1,14 @@
 import { newMarker, type Marker, type Side, type UnitKind } from './core/markers';
+import type { CellInfo } from './core/cells';
+import { loadCellOwners, saveCellOwners, type CellOwners } from './data/cellStore';
 import { loadMarkers, saveMarkers } from './data/markerStore';
 
-export type WorldLayerKey = 'relief' | 'contour' | 'road' | 'rail' | 'building' | 'label' | 'grid';
+export type WorldLayerKey = 'relief' | 'contour' | 'slope' | 'road' | 'rail' | 'building' | 'label' | 'grid';
 
 export const WORLD_LAYER_ORDER: WorldLayerKey[] = [
   'relief',
   'contour',
+  'slope',
   'road',
   'rail',
   'building',
@@ -16,6 +19,7 @@ export const WORLD_LAYER_ORDER: WorldLayerKey[] = [
 export const WORLD_LAYER_LABEL: Record<WorldLayerKey, string> = {
   relief: '地形晕渲',
   contour: '等高线',
+  slope: '坡度通行',
   road: '交通线',
   rail: '铁路',
   building: '建筑物',
@@ -44,9 +48,14 @@ class Store {
   markerKind: UnitKind = 'infantry';
   placing = false;
 
+  cellsOn = true;
+  cellOwners: CellOwners = loadCellOwners();
+  cellHover: CellInfo | null = null;
+
   layers: Record<WorldLayerKey, boolean> = {
     relief: true,
     contour: true,
+    slope: false,
     road: true,
     rail: true,
     building: true,
@@ -79,6 +88,34 @@ class Store {
 
   setFps(fps: number): void {
     this.perf = { fps };
+  }
+
+  setCellsOn(on: boolean): void {
+    if (this.cellsOn === on) return;
+    this.cellsOn = on;
+    this.emit();
+  }
+
+  occupyCell(id: string, side: Side | null): void {
+    const next: CellOwners = { ...this.cellOwners };
+    if (side) next[id] = side;
+    else delete next[id];
+    this.cellOwners = next;
+    saveCellOwners(next);
+    this.emit();
+  }
+
+  clearCells(): void {
+    if (!Object.keys(this.cellOwners).length) return;
+    this.cellOwners = {};
+    saveCellOwners(this.cellOwners);
+    this.emit();
+  }
+
+  setCellHover(info: CellInfo | null): void {
+    if (this.cellHover?.id === info?.id) return;
+    this.cellHover = info;
+    this.emit();
   }
 
   setLayer(key: WorldLayerKey, on: boolean): void {

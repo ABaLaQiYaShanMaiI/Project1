@@ -25,6 +25,15 @@ export interface Tier {
   styleMax: number;
 }
 
+export interface SlopeTier {
+  id: string;
+  tiles: string;
+  minzoom: number;
+  maxzoom: number;
+  bounds: [number, number, number, number];
+  styleMin: number;
+}
+
 export interface DemTier {
   id: string;
   tiles: string;
@@ -39,6 +48,7 @@ export interface StyleInputs {
   base: StyleSpecification;
   tiers: Tier[];
   demTiers?: DemTier[];
+  slopeTiers?: SlopeTier[];
   contours?: FC | null;
   grid?: FC | null;
 }
@@ -207,19 +217,27 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
       const isLink: unknown = ['in', key, ['literal', LINK_ROADS]];
       const slighten: unknown = ['case', isMain, ['case', isLink, 0.82, 1], 0.45];
       const spec = ROADS[rc.cls] ?? ROADS.other;
+      const linkWidth =
+        rc.cls === 'link'
+          ? ROADS.highway.w
+          : spec.w;
+      const widthFactor: unknown =
+        rc.cls === 'link'
+          ? ['match', key, 'motorway_link', 0.86, 'trunk_link', 0.78, 'primary_link', 0.7, 0.34]
+          : slighten;
       if (rc.casing) {
         const cmatch: unknown[] = ['match', key];
         for (const [k, v] of Object.entries(MAIN_CASING)) cmatch.push(k, v);
         cmatch.push(FAINT_CASING);
         paint['line-color'] = rc.bridge ? PAPER : ['case', isMain, cmatch, FAINT_CASING];
-        paint['line-width'] = zoomWidth(spec.w + (rc.bridge ? 2.1 : 1.1), slighten);
+        paint['line-width'] = zoomWidth(linkWidth + (rc.bridge ? 2.1 : 1.1), widthFactor);
         paint['line-opacity'] = ['case', isMain, 1, 0.42];
       } else {
         const match: unknown[] = ['match', key];
         for (const [k, v] of Object.entries(MAIN_FILL)) match.push(k, v);
         match.push(FAINT_ROAD);
         paint['line-color'] = ['case', isMain, match, FAINT_ROAD];
-        paint['line-width'] = zoomWidth(spec.w, slighten);
+        paint['line-width'] = zoomWidth(linkWidth, widthFactor);
         paint['line-opacity'] = ['case', isMain, 1, 0.62];
       }
       if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.45, 0.26];
@@ -338,6 +356,26 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   const out: Record<string, unknown>[] = [
     { id: 'background', type: 'background', paint: { 'background-color': PAPER } },
   ];
+
+  const slopeLayers: Record<string, unknown>[] = [];
+  for (const sl of inp.slopeTiers ?? []) {
+    sources[`${sl.id}-slope`] = {
+      type: 'raster',
+      tiles: [sl.tiles],
+      tileSize: 256,
+      minzoom: sl.minzoom,
+      maxzoom: sl.maxzoom,
+      bounds: sl.bounds,
+    };
+    slopeLayers.push({
+      id: `slope-${sl.id}`,
+      type: 'raster',
+      source: `${sl.id}-slope`,
+      minzoom: Math.max(sl.styleMin, sl.minzoom),
+      maxzoom: 22,
+      paint: { 'raster-opacity': 0.42, 'raster-resampling': 'linear' },
+    });
+  }
 
   const reliefLayers: Record<string, unknown>[] = [];
   for (const dem of inp.demTiers ?? []) {
@@ -472,6 +510,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   });
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
+  if (slopeLayers.length) out.push(...slopeLayers);
 
   if (inp.contours) {
     out.push(

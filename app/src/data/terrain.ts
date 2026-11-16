@@ -81,7 +81,7 @@ export class DemSampler {
       this.cache.set(key, { data, size: img.width });
       this.order.push(key);
       this.pending.delete(key);
-      while (this.order.length > 90) {
+      while (this.order.length > 48) {
         const old = this.order.shift();
         if (old) this.cache.delete(old);
       }

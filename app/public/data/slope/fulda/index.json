@@ -1,0 +1,22 @@
+{
+ "key": "fulda",
+ "minzoom": 9,
+ "maxzoom": 11,
+ "bbox": [
+  8.84924,
+  50.24005,
+  10.59076,
+  50.99995
+ ],
+ "tiles": "/data/slope/fulda/{z}/{x}/{y}.png",
+ "classes": [
+  3,
+  8,
+  15,
+  25,
+  35
+ ],
+ "attribution": "AWS Terrain Tiles (Terrarium / SRTM, 公有领域)",
+ "sizeMB": 2.04,
+ "generated": "2026-11-16 22:37"
+}

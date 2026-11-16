@@ -15,12 +15,17 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useStore, store } from './hooks';
 import { SIDE_COLOR, type Marker } from './core/markers';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
+import { cellAreaKm2 } from './core/cells';
 import { DemSampler, loadDemManifest } from './data/terrain';
+import { loadCityDex, type CityDex } from './data/cities';
+import { createCellLayer, type CellLayer, type CellStats } from './map/cellLayer';
+import { installMeasure } from './map/measureTool';
 import {
   contourGeoJson,
   militaryStyle,
   type ContourDoc,
   type DemTier,
+  type SlopeTier,
   type FC,
   type Tier,
 } from './data/militaryStyle';
@@ -101,12 +106,15 @@ export function WorldMapLibre(): JSX.Element {
   const [ring, setRing] = useState<{ center: [number, number]; km: number } | null>(null);
   const [ringsOn, setRingsOn] = useState(false);
   const [gridOn, setGridOn] = useState(true);
+  const [cellStats, setCellStats] = useState<CellStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [failure, setFailure] = useState<string | null>(null);
   const [viewEpoch, setViewEpoch] = useState(0);
   const mountedRef = useRef("");
   const zonesRef = useRef<PmtilesZone[]>([]);
   const ringsRef = useRef(false);
+  const cellRef = useRef<CellLayer | null>(null);
+  const dexRef = useRef<CityDex | null>(null);
 
   useEffect(() => {
     ringsRef.current = ringsOn;
@@ -124,11 +132,17 @@ export function WorldMapLibre(): JSX.Element {
       minZoom: 1,
       maxZoom: 17,
       attributionControl: false,
+      renderWorldCopies: false,
+      fadeDuration: 0,
+      maxTileCacheSize: 96,
+      refreshExpiredTiles: false,
+      collectResourceTiming: false,
     });
     mapRef.current = map;
     (window as unknown as Record<string, unknown>).__ml = map;
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left');
+    installMeasure(map, () => samplerRef.current);
     map.addControl(new AttributionControl({ compact: true }));
 
     const sync = () => {
@@ -181,6 +195,7 @@ export function WorldMapLibre(): JSX.Element {
     map.on('mousemove', (e) => {
       posRef.current = { lat: e.lngLat.lat, lon: e.lngLat.lng };
       if (!raf) raf = requestAnimationFrame(resample);
+      store.setCellHover(cellRef.current?.hover(e.point.x, e.point.y) ?? null);
     });
 
     map.on('click', (e) => {
@@ -188,6 +203,15 @@ export function WorldMapLibre(): JSX.Element {
         store.addMarker(e.lngLat.lng, e.lngLat.lat);
         store.cancelPlacing();
         return;
+      }
+      if (store.cellsOn) {
+        const hit = cellRef.current?.pick(e.point.x, e.point.y);
+        if (hit) {
+          const shift = Boolean((e.originalEvent as MouseEvent | undefined)?.shiftKey);
+          const next = shift || store.cellOwners[hit.id] === store.markerSide ? null : store.markerSide;
+          store.occupyCell(hit.id, next);
+          return;
+        }
       }
       if (ringsRef.current) setRing({ center: [e.lngLat.lng, e.lngLat.lat], km: 10 });
     });
@@ -210,6 +234,8 @@ export function WorldMapLibre(): JSX.Element {
       unsub();
       for (const mk of markersRef.current.values()) mk.remove();
       markersRef.current.clear();
+      cellRef.current?.destroy();
+      cellRef.current = null;
       map.remove();
       mapRef.current = null;
     };
@@ -264,6 +290,25 @@ export function WorldMapLibre(): JSX.Element {
         });
       }
 
+      const slopeTiers: SlopeTier[] = [];
+      const addSlope = async (key: string, styleMin: number) => {
+        const res = await fetch(`/data/slope/${key}/index.json`, { cache: 'no-cache' }).catch(() => null);
+        if (!res || !res.ok) return;
+        const m = (await res.json()) as { tiles: string; minzoom: number; maxzoom: number; bbox: [number, number, number, number] };
+        slopeTiers.push({
+          id: key,
+          tiles: m.tiles,
+          minzoom: m.minzoom,
+          maxzoom: m.maxzoom,
+          bounds: m.bbox,
+          styleMin,
+        });
+      };
+      await addSlope('world', 0);
+      for (const band of bands) {
+        if (band.zone.key !== 'world') await addSlope(band.zone.key, band.from);
+      }
+
       const region = tiersZones.find((z) => z.kind !== 'world');
       let contours: FC | null = null;
       if (region) {
@@ -278,10 +323,14 @@ export function WorldMapLibre(): JSX.Element {
 
       const focus = region ?? tiersZones[tiersZones.length - 1];
       const grid = buildUtmGrid(focus.bbox, gridStepFor(Math.round(START.zoom)));
+      const dex = await loadCityDex(tiersZones.filter((z) => z.kind !== 'world').map((z) => z.key));
+      if (!alive) return;
+      dexRef.current = dex;
       const style = militaryStyle({
         base,
         tiers,
         demTiers,
+        slopeTiers,
         contours,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
       });
@@ -289,6 +338,14 @@ export function WorldMapLibre(): JSX.Element {
       gridStepRef.current = gridStepFor(Math.round(START.zoom));
       map.setStyle(style);
       map.on('sourcedata', () => map.triggerRepaint());
+
+      cellRef.current?.destroy();
+      cellRef.current = createCellLayer(map, {
+        near: (b) => dexRef.current?.near(b) ?? [],
+        owners: () => store.cellOwners,
+        onStats: setCellStats,
+      });
+      cellRef.current.setEnabled(store.cellsOn);
 
       const regionDem = demTiers.find((d) => !d.id.startsWith('world'));
       const pickDem = regionDem ?? demTiers.find((d) => d.id.startsWith('world'));
@@ -371,6 +428,14 @@ export function WorldMapLibre(): JSX.Element {
   }, [store.version]);
 
   useEffect(() => {
+    cellRef.current?.setEnabled(store.cellsOn);
+  }, [store.cellsOn]);
+
+  useEffect(() => {
+    cellRef.current?.applyOwners();
+  }, [store.cellOwners]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     const rebuild = () => {
@@ -426,6 +491,9 @@ export function WorldMapLibre(): JSX.Element {
         <button className={`btn small ${ringsOn ? 'on' : ''}`} onClick={() => setRingsOn((v) => !v)}>
           射程圈
         </button>
+        <button className={`btn small ${store.cellsOn ? 'on' : ''}`} onClick={() => store.setCellsOn(!store.cellsOn)}>
+          地块
+        </button>
         {store.basemap && (
           <span className="zone-count">
             {store.basemap.tiers.join(' + ')} · {store.basemap.sizeMB} MB
@@ -451,6 +519,24 @@ export function WorldMapLibre(): JSX.Element {
           <div className="lp-hint">
             圈间距 {ring.km} km · 最外 {ring.km * 5} km
           </div>
+        </div>
+      )}
+
+      {store.cellsOn && cellStats && (
+        <div className="ml-cells">
+          <div className="lp-title">地块</div>
+          <div className="lp-hint mono">
+            {cellStats.total} 块 · 城市 {cellStats.urban} · 最细 {(cellStats.finest / 1000).toFixed(cellStats.finest % 1000 ? 2 : 0)} km ·{' '}
+            {cellStats.ms.toFixed(0)} ms
+          </div>
+          <div className="lp-hint">
+            {store.cellHover
+              ? `${store.cellHover.label} · ${cellAreaKm2(store.cellHover.step)} km² · ${store.cellHover.urban ? '城市格' : '乡村地块'}`
+              : '放大到 z12 以上，单击染成阵营色，再点取消'}
+          </div>
+          <button className="btn small" onClick={() => store.clearCells()}>
+            清空占领（{Object.keys(store.cellOwners).length}）
+          </button>
         </div>
       )}
 
@@ -504,6 +590,7 @@ function groupOf(id: string): string | null {
   if (base.startsWith('roads_labels')) return 'label';
   if (base.startsWith('roads_')) return 'road';
   if (base.startsWith('water')) return base.includes('label') ? 'label' : null;
+  if (base.startsWith('slope')) return 'slope';
   if (base === 'buildings' || base === 'address_label') return 'building';
   if (base.startsWith('places')) return 'label';
   return null;
