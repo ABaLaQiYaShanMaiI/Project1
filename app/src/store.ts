@@ -1,14 +1,13 @@
 import { newMarker, type Marker, type Side, type UnitKind } from './core/markers';
 import { loadMarkers, saveMarkers } from './data/markerStore';
 
-export type WorldLayerKey = 'relief' | 'contour' | 'road' | 'rail' | 'water' | 'building' | 'label' | 'grid';
+export type WorldLayerKey = 'relief' | 'contour' | 'road' | 'rail' | 'building' | 'label' | 'grid';
 
 export const WORLD_LAYER_ORDER: WorldLayerKey[] = [
   'relief',
   'contour',
   'road',
   'rail',
-  'water',
   'building',
   'label',
   'grid',
@@ -19,7 +18,6 @@ export const WORLD_LAYER_LABEL: Record<WorldLayerKey, string> = {
   contour: '等高线',
   road: '交通线',
   rail: '铁路',
-  water: '水系',
   building: '建筑物',
   label: '地名标注',
   grid: '军用格网',
@@ -51,7 +49,6 @@ class Store {
     contour: true,
     road: true,
     rail: true,
-    water: true,
     building: true,
     label: true,
     grid: true,

@@ -733,6 +733,41 @@ node Tools/fetch_basemap.mjs --key=world --world    # z0-z6，约 44 MB
 Python 报 `invalid non-printable character U+FEFF`。改 Python 文件一律用 Python 读写
 （`io.open(..., encoding='utf-8-sig')` 读、`utf-8` 写）——这是 DEVLOG 踩坑 #3 的重演。
 
+### v1.26 全球矢量包落地：本地母包 + 两层叠加跑通
+
+玩家把 125.55 GB 的整星母包放在 `E:\PersonalGame\v4.pmtiles`（z0–z15，全球 bounds 完整）。
+有了本地母包，**裁剪不再需要网络**：
+
+```bash
+Tools\bin\pmtiles.exe extract "E:\PersonalGame\v4.pmtiles" \
+  "app\public\data\tiles\world.pmtiles" --maxzoom=6 --download-threads=8
+# 实测 1.2 秒 / 36 MB/s，产出 42.36 MB
+node Tools/fetch_basemap.mjs --key=world --world --source="E:\PersonalGame\v4.pmtiles"
+```
+
+`fetch_basemap.mjs` 的 `--source` 参数直接接受本地路径，跳过所有网络请求（母包校验、裁剪都不用联网）。
+
+#### 结果
+
+- `index.json` 两条：`world z0–6 (42.36 MB, kind=world)` + `fulda z0–13 (41.67 MB, kind=region)`；
+  旧条目缺 `kind` 字段，已回填 `region`（`zonesInBounds` 里 `undefined !== 'world'` 也能工作，但显式更清楚）。
+- 运行时挂上 **2 层**：`world` + `detail_fulda`，共 **137 个图层**，底图 84 MB，无报错。
+- z3 看欧洲：国界、国名、主要公路、城市全有；z6 看德国：高速路网与城市清晰；z7 起富尔达区域层接管。
+
+#### 两个当场修掉的问题
+
+| 问题 | 现象 | 修法 |
+| --- | --- | --- |
+| 等高线没有 minzoom | z6 时整个富尔达 bbox 糊成一团棕色（33 层等高线压进十几像素） | `contour` / `contour-bold` 加 `minzoom: 8`（标注本来就是 9 / 11.5） |
+| 字形只有 0–255 | 西里尔与扩展拉丁（Москва、Ř）回退到系统字体，控制台刷 404 | 补 `256-511.pbf`、`512-767.pbf` 两个字形分片（各约 100 KB） |
+
+#### 仍未做
+
+- **L1 大区包**（欧洲 z6–z8）：母包本地，随时可裁，只需一条命令；
+- `fetch_basemap.mjs` 的字形分片列表还没写进脚本（本轮是手工补的两个 pbf），下次重跑只拉 0–255；
+- 多层叠加的**性能**实测：137 层在软件渲染下偏慢，真机 GPU 未测；
+- 桥梁/隧道/渡口/机场符号（属性已在两层瓦片里，纯样式活）。
+
 ---
 
 ## 技术决策与原因

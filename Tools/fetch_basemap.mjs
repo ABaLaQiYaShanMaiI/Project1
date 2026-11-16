@@ -18,6 +18,7 @@ const ATTRIBUTION = '© OpenStreetMap contributors · Protomaps (ODbL)';
 const DEFAULT_BBOX = '8.849,50.240,10.591,51.000';
 const WORLD_BBOX = '-180,-85,180,85';
 const FONT = 'Noto Sans Regular';
+const GLYPH_RANGES = ['0-255', '256-511', '512-767'];
 
 function log(...a) {
   const t = new Date().toTimeString().slice(0, 8);
@@ -206,7 +207,7 @@ async function header(file) {
 
 async function fetchGlyphs(dir) {
   ensureDir(dir);
-  for (const r of ['0-255']) {
+  for (const r of GLYPH_RANGES) {
     const file = join(dir, `${r}.pbf`);
     if (existsSync(file)) continue;
     const url = `https://protomaps.github.io/basemaps-assets/fonts/${encodeURIComponent(FONT)}/${r}.pbf`;

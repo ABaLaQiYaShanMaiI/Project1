@@ -62,7 +62,8 @@ cd app && npm install && npm run dev
 
 ```bash
 # 1) 全球矢量包（z0–z6，约 44 MB）
-node Tools/fetch_basemap.mjs --key=world --world
+#    有本地母包时用 --source，全程离线、约 2 秒：
+node Tools/fetch_basemap.mjs --key=world --world --source="E:\PersonalGame\v4.pmtiles"
 
 # 2) 区域矢量包（示例：富尔达，z0–z13，约 42 MB）
 node Tools/fetch_basemap.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --name=富尔达缺口

@@ -54,6 +54,17 @@ const MAIN_FILL: Record<string, string> = {
   primary_link: '#d3a15c',
 };
 
+const LINK_ROADS = ['motorway_link', 'trunk_link', 'primary_link'];
+
+const MAIN_CASING: Record<string, string> = {
+  motorway: '#8d3a21',
+  motorway_link: '#8d3a21',
+  trunk: '#a8763c',
+  trunk_link: '#a8763c',
+  primary: '#b08a4a',
+  primary_link: '#b08a4a',
+};
+
 const FAINT_ROAD = '#cfc7b4';
 const FAINT_CASING = '#ded7c6';
 
@@ -182,18 +193,26 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
     paint['line-dasharray'] = country ? [3, 2] : [4, 3];
   } else if (sourceLayer === 'roads' && layer.type === 'line') {
     const rc = roadClass(id);
+    layout['line-join'] = 'round';
+    layout['line-cap'] = 'round';
     if (rc && rc.cls === 'rail') {
-      paint['line-color'] = '#3f3f38';
-      paint['line-width'] = zoomWidth(1.7);
+      paint['line-color'] = '#26261f';
+      paint['line-width'] = zoomWidth(2.3);
+      paint['line-opacity'] = 1;
       delete paint['line-dasharray'];
+      next.minzoom = 7;
     } else if (rc) {
       const key: unknown = ['coalesce', ['get', 'kind_detail'], ['get', 'kind']];
       const isMain: unknown = ['in', key, ['literal', MAIN_ROADS]];
-      const slighten: unknown = ['case', isMain, 1, 0.45];
+      const isLink: unknown = ['in', key, ['literal', LINK_ROADS]];
+      const slighten: unknown = ['case', isMain, ['case', isLink, 0.82, 1], 0.45];
       const spec = ROADS[rc.cls] ?? ROADS.other;
       if (rc.casing) {
-        paint['line-color'] = ['case', isMain, spec.casing, FAINT_CASING];
-        paint['line-width'] = zoomWidth(spec.w + 1.1, slighten);
+        const cmatch: unknown[] = ['match', key];
+        for (const [k, v] of Object.entries(MAIN_CASING)) cmatch.push(k, v);
+        cmatch.push(FAINT_CASING);
+        paint['line-color'] = rc.bridge ? PAPER : ['case', isMain, cmatch, FAINT_CASING];
+        paint['line-width'] = zoomWidth(spec.w + (rc.bridge ? 2.1 : 1.1), slighten);
         paint['line-opacity'] = ['case', isMain, 1, 0.42];
       } else {
         const match: unknown[] = ['match', key];
@@ -204,7 +223,7 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
         paint['line-opacity'] = ['case', isMain, 1, 0.62];
       }
       if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.45, 0.26];
-      if (rc.cls === 'minor_service' || rc.cls === 'other' || rc.cls === 'link') {
+      if (rc.cls === 'minor_service' || rc.cls === 'other') {
         next.minzoom = 13;
       }
     }
@@ -252,6 +271,34 @@ function tierLayers(base: StyleSpecification, tier: Tier, suffix: string): Recor
     layer.source = tier.id;
     out.push(layer);
   }
+  out.push({
+    id: `landuse_military${suffix}`,
+    type: 'fill',
+    source: tier.id,
+    'source-layer': 'landuse',
+    filter: ['==', ['get', 'kind'], 'military'],
+    minzoom: 8,
+    maxzoom: tier.styleMax,
+    paint: {
+      'fill-color': '#c8b39c',
+      'fill-opacity': 0.55,
+      'fill-outline-color': '#8a705a',
+    },
+  });
+  out.push({
+    id: `aerodrome_mark${suffix}`,
+    type: 'line',
+    source: tier.id,
+    'source-layer': 'landuse',
+    filter: ['in', ['get', 'kind'], ['literal', ['aerodrome', 'airfield']]],
+    minzoom: 9,
+    maxzoom: tier.styleMax,
+    paint: {
+      'line-color': '#6f6a86',
+      'line-width': 1.3,
+      'line-dasharray': [2, 2],
+    },
+  });
   return out;
 }
 
@@ -278,8 +325,8 @@ function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       maxzoom: tier.styleMax,
       paint: {
         'line-color': '#f7f4ea',
-        'line-width': zoomWidth(0.95),
-        'line-dasharray': [1.6, 2.4],
+        'line-width': zoomWidth(2.3, ['case', ['==', ['get', 'kind_detail'], 'narrow_gauge'], 0.5, 1]),
+        'line-dasharray': [1.1, 2.1],
       },
     },
   ];
@@ -345,6 +392,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         type: 'line',
         source: 'contours',
         filter: ['==', ['get', 'b'], 0],
+        minzoom: 8,
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
           'line-color': '#9a6b3c',
@@ -357,6 +405,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         type: 'line',
         source: 'contours',
         filter: ['==', ['get', 'b'], 1],
+        minzoom: 8,
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
           'line-color': '#84552a',
@@ -466,7 +515,15 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     );
   }
 
-  style.layers = out as unknown as StyleSpecification['layers'];
+  const seen = new Set<string>();
+  const deduped = out.filter((layer) => {
+    const id = String(layer.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+
+  style.layers = deduped as unknown as StyleSpecification['layers'];
   return style;
 }
 

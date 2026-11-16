@@ -503,7 +503,7 @@ function groupOf(id: string): string | null {
   if (base === 'roads_rail') return 'rail';
   if (base.startsWith('roads_labels')) return 'label';
   if (base.startsWith('roads_')) return 'road';
-  if (base.startsWith('water')) return base.includes('label') ? 'label' : 'water';
+  if (base.startsWith('water')) return base.includes('label') ? 'label' : null;
   if (base === 'buildings' || base === 'address_label') return 'building';
   if (base.startsWith('places')) return 'label';
   return null;
