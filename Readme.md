@@ -39,15 +39,18 @@ cd app && npm install && npm run dev
 | 图层 | 数据 | 说明 |
 | --- | --- | --- |
 | 全球矢量 | `tiles/world.pmtiles` | z0–z6，全世界都有图 |
-| 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z≥7 接管 |
+| 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z9–13 接管 |
+| 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |
 | 区域晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲 |
 | 等高线 | `contours_fulda.json` | 50 m 等高距 / 250 m 计曲线 + 高程标注 |
-| 交通线 | 底图 `roads` | motorway/trunk/primary 强调；次级淡化；`minzoom 13` 起才画支路 |
-| 铁路 | 底图 `roads:kind=rail` | 深灰实线 + 白色虚线 |
+| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），z11 起出现；次级 z12（城区大路）；支路 z13 |
+| 铁路 | `rails_fulda.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，最粗、压最上层；z5–11 用烘焙层（底图 z10 以下没有 rail），z11 起用瓦片 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
-| 地块 | `data/cities.json` + 运行时方格 | UTM 公里方格：乡村一格 8 km，城市按规模裂成 1–4 km；单击染成阵营色 |
+| 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块，绿=植被、米=农田、灰=城区 |
+| 城区战损 | 运行时图案 | 1–3 级战损：按街区哈希挑一部分地块叠 rubble 斜纹 + 红虚线；顶部「战损」开关单击标记 |
+| 城区影响 | `data/cities.json` | 光标进城区显示机动/防御/侦察/炮兵/补给修饰，按距离连续衰减，无格子 |
 
 > 若 `tiles/world.pmtiles` 尚未烘焙，世界视图只在富尔达 bbox 内有图，其余靠 DEM 晕渲；
 > 左栏「底图」面板会显示当前装载了哪些层。
@@ -55,8 +58,9 @@ cd app && npm install && npm run dev
 ## 操作
 
 - 拖动平移 / 滚轮缩放 / 双击放大；
-- 顶部工具条：**格网**、**射程圈**（选中后单击放中心，左下滑块调圈距）、**地块**、当前 FPS；
-- **地块**：z12 以上显示，单击 = 用兵牌面板选的阵营占领，再点取消，Shift+单击清除；左上角面板显示格数 / 最细边长 / 生成耗时；
+- 顶部工具条：**格网**、**射程圈**（选中后单击放中心，左下滑块调圈距）、当前 FPS；
+- **城区影响**：光标进入城区，右下角出现面板（城名 / 强度 / 半径 / 五项修饰 / 战损级别）；离开即消失；
+- **战损**：顶部「战损」开关，单击城区 +1 级（最高 3 级），Shift+单击清零；存 localStorage；
 - 左下读数：**DD 经纬 / UTM（带号 + 东向 + 北向）/ 高程 / 坡度 / 坡向**；
 - 左侧「图层」逐项开关；「兵牌」可在地图放标记（拖动移动、右键删除）。
 
@@ -79,7 +83,13 @@ python Tools/bake_dem.py --bbox=8.849,50.240,10.591,51.000 --key=fulda --zmin=9 
 # 5) 等高线矢量（需要该区域 DEM 已烘好）
 python Tools/bake_contours.py --key=fulda --bbox=8.849,50.240,10.591,51.000
 
-# 6) 城镇索引（地块系统的唯一数据：全世界 5,615 座城 / 73 KB）
+# 6) 低倍铁路层（底图 z10 以下没有 rail，必须单独烘）
+node Tools/bake_rail.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=11 --out=app/public/data/rails_fulda.json
+
+# 7) 城区核心包（z14–15，高倍真实建筑；每城 3 MB 级）
+Tools\bin\pmtiles.exe extract "E:\PersonalGame\v4.pmtiles" "app\public\data\tiles\fulda_core.pmtiles" --bbox=9.615,50.492,9.735,50.612 --minzoom=14 --maxzoom=15
+
+# 8) 城镇索引（城区影响场的唯一数据：全世界 5,615 座城 / 145 KB）
 node Tools/bake_cities.mjs
 node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 --kinds=city,town,village --out=app/public/data/cities_fulda.json
 ```
@@ -98,11 +108,13 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 | `app/src/data/pmtilesBasemap.ts` | Pmtiles 协议、`index.json`、`zonesAt()` / `tierBands()` |
 | `app/src/data/terrain.ts` | DEM 采样（高程 / 坡度 / 坡向） |
 | `app/src/core/geo.ts` | UTM 正算、格网生成、射程圈 |
-| `app/src/core/cells.ts` | 地块规则：UTM 方格四叉、城市覆盖率、420 格预算 |
-| `app/src/data/cities.ts` | 城镇索引（base64 二进制 + 0.5° 桶索引） |
-| `app/src/map/cellLayer.ts` | 地块图层：GeoJSON source、feature-state 归属、拾取与悬停 |
+| `app/src/core/cityEffects.ts` | 城区影响：半径、衰减、规模系数、五项修饰 |
+| `app/src/map/cityDamage.ts` | 城区战损：canvas 斜纹图案、按街区哈希、idle 刷新 |
+| `app/src/data/damageStore.ts` | 战损等级存档（`city.damage.v1`） |
+| `app/src/data/cities.ts` | 城镇索引（base64 二进制 + 0.5° 桶索引，含名字） |
 | `Tools/bake_cities.mjs` | 从 PMTiles 的 `places` 点烘城镇索引 |
 | `Tools/mvt.mjs` | 零依赖 MVT 解码（烘焙期用，zigzag 几何） |
+| `Tools/bake_rail.mjs` | 从区域包抽低倍铁路线（RDP 简化 + 去重） |
 | `Tools/fetch_basemap.mjs` | 取 CLI → 裁 bbox 或全球 → 出 style / 字形 / index |
 | `Tools/bake_dem.py` | DEM 瓦片（terrarium） |
 | `Tools/bake_contours.py` | 等高线矢量（marching squares + 折线缝合 + 标注锚点） |
@@ -120,7 +132,8 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 
 ## 下一步
 
-1. 地块期 2：兵牌进出驱动归属，邻接由 `cellAt` 探点现算（不存邻接表）。
-2. 补齐 L1 大区包（欧洲各走廊），验证多层叠加的实际观感。
-3. 国名 / 海洋名标签（`places` 的 country / region 档位）。
-4. 全球晕渲只到 z5，z8 以上偏糊；按区域补 z9–z11。
+1. **全球低倍铁路层**（z3–z10）：底图 z10 以下没有 rail 几何，需单独一层（Natural Earth 或母包 z12 抽取）。
+2. 城区影响接进移动/交战解算（单位数值模型一旦落地）。
+3. 补齐 L1 大区包（欧洲各走廊），验证多层叠加的实际观感。
+4. 国名 / 海洋名标签（`places` 的 country / region 档位）。
+5. 全球晕渲只到 z5，z8 以上偏糊；按区域补 z9–z11。

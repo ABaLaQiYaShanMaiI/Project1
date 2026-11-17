@@ -1,4 +1,9 @@
-import type { CityDisc } from '../core/cells';
+export interface CityDisc {
+  lon: number;
+  lat: number;
+  r: number;
+  name: string;
+}
 
 export interface CitiesDoc {
   v: number;
@@ -6,6 +11,7 @@ export interface CitiesDoc {
   radiusScaleM: number;
   stride: number;
   b64: string;
+  names?: string[];
 }
 
 const BUCKET = 0.5;
@@ -40,20 +46,20 @@ export class CityDex {
     return out;
   }
 
-  nearest(lon: number, lat: number, maxR = 0.6): CityDisc | null {
-    const cities = this.near([lon - maxR, lat - maxR, lon + maxR, lat + maxR]);
+  nearest(lon: number, lat: number, maxDeg = 0.8): { city: CityDisc; distM: number } | null {
+    const cities = this.near([lon - maxDeg, lat - maxDeg, lon + maxDeg, lat + maxDeg]);
     let best: CityDisc | null = null;
     let bestD = Infinity;
     for (const c of cities) {
-      const dx = (lon - c.lon) * Math.cos((lat * Math.PI) / 180);
-      const dy = lat - c.lat;
-      const d = dx * dx + dy * dy;
+      const dx = (lon - c.lon) * 111320 * Math.cos((lat * Math.PI) / 180);
+      const dy = (lat - c.lat) * 111320;
+      const d = Math.sqrt(dx * dx + dy * dy);
       if (d < bestD) {
         bestD = d;
         best = c;
       }
     }
-    return best;
+    return best ? { city: best, distM: bestD } : null;
   }
 }
 
@@ -61,12 +67,15 @@ export function decodeCities(doc: CitiesDoc): CityDisc[] {
   const bin = Uint8Array.from(atob(doc.b64), (ch) => ch.charCodeAt(0));
   const dv = new DataView(bin.buffer, bin.byteOffset, bin.byteLength);
   const stride = doc.stride || 10;
+  const names = doc.names ?? [];
   const out: CityDisc[] = [];
-  for (let i = 0; i + stride <= bin.length; i += stride) {
+  let i = 0;
+  for (let o = 0; o + stride <= bin.length; o += stride, i++) {
     out.push({
-      lon: dv.getFloat32(i, true),
-      lat: dv.getFloat32(i + 4, true),
-      r: dv.getUint8(i + 8) * doc.radiusScaleM,
+      lon: dv.getFloat32(o, true),
+      lat: dv.getFloat32(o + 4, true),
+      r: dv.getUint8(o + 8) * doc.radiusScaleM,
+      name: names[i] ?? '',
     });
   }
   return out;

@@ -50,30 +50,41 @@ export interface StyleInputs {
   demTiers?: DemTier[];
   slopeTiers?: SlopeTier[];
   contours?: FC | null;
+  railsLow?: FC | null;
   grid?: FC | null;
 }
 
 const MAIN_ROADS = ['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link'];
+const ARTERIAL_ROADS = ['secondary', 'secondary_link', 'tertiary', 'tertiary_link'];
 
-const MAIN_FILL: Record<string, string> = {
-  motorway: '#c9552f',
-  motorway_link: '#c9552f',
-  trunk: '#d0803c',
-  trunk_link: '#d0803c',
-  primary: '#d3a15c',
-  primary_link: '#d3a15c',
+const MAIN_ROAD_COLORS: Record<string, [string, string]> = {
+  motorway: ['#b4553a', '#8e4530'],
+  motorway_link: ['#b4553a', '#8e4530'],
+  trunk: ['#bf7a45', '#9c6035'],
+  trunk_link: ['#bf7a45', '#9c6035'],
+  primary: ['#c49a68', '#a17c50'],
+  primary_link: ['#c49a68', '#a17c50'],
 };
-
-const LINK_ROADS = ['motorway_link', 'trunk_link', 'primary_link'];
-
-const MAIN_CASING: Record<string, string> = {
-  motorway: '#8d3a21',
-  motorway_link: '#8d3a21',
-  trunk: '#a8763c',
-  trunk_link: '#a8763c',
-  primary: '#b08a4a',
-  primary_link: '#b08a4a',
-};
+const RAIL_INK = '#1f1f19';
+const RAIL_HALO = '#f2ecdf';
+const MAIN_ROAD_W = 1.2;
+const MAIN_MINZOOM = 11;
+const MAIN_MINZOOM_MINOR = 12;
+const URBAN_GREY = '#b9b3a7';
+const URBAN_KINDS = [
+  'residential',
+  'commercial',
+  'industrial',
+  'retail',
+  'railway',
+  'hospital',
+  'school',
+  'kindergarten',
+  'university',
+  'college',
+];
+const ARTERIAL_FILL = '#f0e8d8';
+const ARTERIAL_CASING = '#cfc6b2';
 
 const FAINT_ROAD = '#cfc7b4';
 const FAINT_CASING = '#ded7c6';
@@ -84,7 +95,7 @@ const COVER: Record<string, string> = {
   forest: '#bfcdab',
   scrub: '#ccd4b2',
   barren: '#e4dcc4',
-  urban_area: '#ded6c6',
+  urban_area: '#b9b3a7',
   glacier: '#f4f2ec',
   snow: '#f6f4ee',
 };
@@ -92,9 +103,13 @@ const COVER: Record<string, string> = {
 const LANDUSE: Record<string, string> = {
   park: '#cfdcbd',
   urban_green: '#d2ddc0',
-  hospital: '#e6dcd6',
-  industrial: '#dcd5da',
-  school: '#e5dbd2',
+  hospital: '#c9c3b8',
+  industrial: '#b0aaa0',
+  school: '#c5bfb4',
+  kindergarten: '#c5bfb4',
+  university: '#c5bfb4',
+  college: '#c5bfb4',
+  retail: '#bdb7ac',
   beach: '#ece2c8',
   zoo: '#d7ddc3',
   aerodrome: '#d9d4e0',
@@ -102,9 +117,9 @@ const LANDUSE: Record<string, string> = {
   runway: '#cfcadb',
   pedestrian: '#e6ddcd',
   pier: '#ded6c6',
-  residential: '#e2dbcb',
-  commercial: '#e0d7cd',
-  railway: '#d9d2c6',
+  residential: '#c2bcb1',
+  commercial: '#b9b3a8',
+  railway: '#b5afa4',
   cemetery: '#d3ddc6',
   military: '#d6cdc6',
   native_reserve: '#cfdcc0',
@@ -121,8 +136,8 @@ interface RoadSpec {
 }
 
 const ROADS: Record<string, RoadSpec> = {
-  highway: { fill: '#c9552f', casing: '#8d3a21', w: 3.1 },
-  major: { fill: '#cf9a5e', casing: '#a8763c', w: 1.9 },
+  highway: { fill: '#b4553a', casing: '#8e4530', w: MAIN_ROAD_W },
+  major: { fill: '#bf7a45', casing: '#9c6035', w: MAIN_ROAD_W },
   minor: { fill: '#f4eee1', casing: '#c4bba4', w: 1.3 },
   minor_service: { fill: '#e7e0d0', casing: '#c9c0a8', w: 0.9 },
   link: { fill: '#e7e0d0', casing: '#c9c0a8', w: 1.0 },
@@ -166,7 +181,8 @@ function zoomWidth(base: number, factor?: unknown): unknown {
 }
 
 function restyle(layer: Record<string, unknown>): Record<string, unknown> {
-  const id = String(layer.id);
+  const rawId = String(layer.id);
+  const id = rawId.includes('__') ? rawId.slice(0, rawId.indexOf('__')) : rawId;
   const next = { ...layer } as Record<string, unknown>;
   const paint = { ...(layer.paint as Record<string, unknown> | undefined) } as Record<string, unknown>;
   const layout = { ...(layer.layout as Record<string, unknown> | undefined) } as Record<string, unknown>;
@@ -181,19 +197,19 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
     for (const [k, v] of Object.entries(COVER)) match.push(k, v);
     match.push('#dde0cd');
     paint['fill-color'] = match;
-    paint['fill-opacity'] = 0.92;
+    paint['fill-opacity'] = 0.95;
   } else if (sourceLayer === 'landuse') {
     const kind = id.replace('landuse_', '');
     paint['fill-color'] = LANDUSE[kind] ?? '#e2dbcb';
-    paint['fill-opacity'] = ['interpolate', ['linear'], ['zoom'], 6, 0.55, 10, 0.85];
+    paint['fill-opacity'] = ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 0.9, 13, 0.96];
   } else if (sourceLayer === 'water' && layer.type === 'fill') {
     paint['fill-color'] = '#a3bccb';
     paint['fill-outline-color'] = '#8aa7b8';
   } else if (sourceLayer === 'water') {
     paint['line-color'] = '#8fb2c4';
   } else if (id === 'buildings') {
-    paint['fill-color'] = '#cbc2b1';
-    paint['fill-outline-color'] = ['interpolate', ['linear'], ['zoom'], 13, 'rgba(0,0,0,0)', 15, 'rgba(120,108,88,0.55)'];
+    paint['fill-color'] = '#9f998f';
+    paint['fill-outline-color'] = ['interpolate', ['linear'], ['zoom'], 13, 'rgba(0,0,0,0)', 15, 'rgba(120,110,95,0.4)'];
   } else if (sourceLayer === 'boundaries') {
     const country = id === 'boundaries_country';
     paint['line-color'] = country ? '#7c6c55' : '#a2957f';
@@ -206,44 +222,52 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
     layout['line-join'] = 'round';
     layout['line-cap'] = 'round';
     if (rc && rc.cls === 'rail') {
-      paint['line-color'] = '#26261f';
-      paint['line-width'] = zoomWidth(2.3);
+      paint['line-color'] = RAIL_INK;
+      paint['line-width'] = railWidth(3.4, railNarrow());
       paint['line-opacity'] = 1;
       delete paint['line-dasharray'];
-      next.minzoom = 7;
+      next.minzoom = MAIN_MINZOOM;
     } else if (rc) {
       const key: unknown = ['coalesce', ['get', 'kind_detail'], ['get', 'kind']];
       const isMain: unknown = ['in', key, ['literal', MAIN_ROADS]];
-      const isLink: unknown = ['in', key, ['literal', LINK_ROADS]];
-      const slighten: unknown = ['case', isMain, ['case', isLink, 0.82, 1], 0.45];
+      const isArterial: unknown = ['in', key, ['literal', ARTERIAL_ROADS]];
       const spec = ROADS[rc.cls] ?? ROADS.other;
-      const linkWidth =
-        rc.cls === 'link'
-          ? ROADS.highway.w
-          : spec.w;
-      const widthFactor: unknown =
-        rc.cls === 'link'
-          ? ['match', key, 'motorway_link', 0.86, 'trunk_link', 0.78, 'primary_link', 0.7, 0.34]
-          : slighten;
-      if (rc.casing) {
-        const cmatch: unknown[] = ['match', key];
-        for (const [k, v] of Object.entries(MAIN_CASING)) cmatch.push(k, v);
-        cmatch.push(FAINT_CASING);
-        paint['line-color'] = rc.bridge ? PAPER : ['case', isMain, cmatch, FAINT_CASING];
-        paint['line-width'] = zoomWidth(linkWidth + (rc.bridge ? 2.1 : 1.1), widthFactor);
-        paint['line-opacity'] = ['case', isMain, 1, 0.42];
+      const isStrip = rc.cls === 'runway' || rc.cls === 'taxiway' || rc.cls === 'pier';
+      const widthFactor: unknown = isStrip
+        ? 1
+        : rc.cls === 'link'
+          ? 0.62
+          : ['case', isMain, 1, isArterial, 0.62, 0.4];
+      if (isStrip) {
+        paint['line-color'] = spec.fill;
+        paint['line-width'] = zoomWidth(spec.w);
+        paint['line-opacity'] = 0.8;
+        if (rc.cls !== 'pier') next.minzoom = 13;
       } else {
-        const match: unknown[] = ['match', key];
-        for (const [k, v] of Object.entries(MAIN_FILL)) match.push(k, v);
-        match.push(FAINT_ROAD);
-        paint['line-color'] = ['case', isMain, match, FAINT_ROAD];
-        paint['line-width'] = zoomWidth(linkWidth, widthFactor);
-        paint['line-opacity'] = ['case', isMain, 1, 0.62];
+        const cmatch: unknown[] = ['match', key];
+        const fmatch: unknown[] = ['match', key];
+        for (const [kind, [fill, casing]] of Object.entries(MAIN_ROAD_COLORS)) {
+          fmatch.push(kind, fill);
+          cmatch.push(kind, casing);
+        }
+        fmatch.push(FAINT_ROAD);
+        cmatch.push(FAINT_CASING);
+        if (rc.casing) {
+          paint['line-color'] = rc.bridge
+            ? PAPER
+            : ['case', isMain, cmatch, isArterial, ARTERIAL_CASING, FAINT_CASING];
+          paint['line-width'] = zoomWidth(rc.bridge ? 2 : 1.7, widthFactor);
+          paint['line-opacity'] = ['case', isMain, 0.9, isArterial, 0.5, 0.38];
+        } else {
+          paint['line-color'] = ['case', isMain, fmatch, isArterial, ARTERIAL_FILL, FAINT_ROAD];
+          paint['line-width'] = zoomWidth(MAIN_ROAD_W, widthFactor);
+          paint['line-opacity'] = ['case', isMain, 0.9, isArterial, 0.8, 0.55];
+        }
       }
-      if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.45, 0.26];
-      if (rc.cls === 'minor_service' || rc.cls === 'other') {
-        next.minzoom = 13;
-      }
+      if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.4, 0.22];
+      if (rc.cls === 'minor' && !isStrip) next.minzoom = MAIN_MINZOOM_MINOR;
+      else if (!isStrip && rc.cls !== 'minor_service' && rc.cls !== 'other') next.minzoom = MAIN_MINZOOM;
+      if (rc.cls === 'minor_service' || rc.cls === 'other') next.minzoom = 13;
     }
   } else if (sourceLayer === 'places') {
     const size = id === 'places_country' ? 13 : id === 'places_region' ? 11.5 : id === 'places_locality' ? 11.5 : 10.5;
@@ -290,6 +314,35 @@ function tierLayers(base: StyleSpecification, tier: Tier, suffix: string): Recor
     out.push(layer);
   }
   out.push({
+    id: `buildings_glow${suffix}`,
+    type: 'line',
+    source: tier.id,
+    'source-layer': 'buildings',
+    minzoom: 14,
+    maxzoom: tier.styleMax,
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: {
+      'line-color': '#b6b0a4',
+      'line-width': ['interpolate', ['linear'], ['zoom'], 14, 2, 16, 3.2],
+      'line-opacity': 0.85,
+    },
+  });
+  out.push({
+    id: `landuse_urban_glow${suffix}`,
+    type: 'line',
+    source: tier.id,
+    'source-layer': 'landuse',
+    filter: ['in', ['get', 'kind'], ['literal', URBAN_KINDS]],
+    minzoom: 10,
+    maxzoom: tier.styleMax,
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: {
+      'line-color': URBAN_GREY,
+      'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 13, 3.5, 16, 5],
+      'line-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.5, 13, 0.62],
+    },
+  });
+  out.push({
     id: `landuse_military${suffix}`,
     type: 'fill',
     source: tier.id,
@@ -320,6 +373,24 @@ function tierLayers(base: StyleSpecification, tier: Tier, suffix: string): Recor
   return out;
 }
 
+
+function railWidth(w: number, factor?: unknown): unknown {
+  const stops: Array<[number, number]> = [
+    [7, w * 0.42],
+    [10, w * 0.7],
+    [13, w],
+    [16, w * 1.25],
+    [18, w * 1.45],
+  ];
+  const out: unknown[] = ['interpolate', ['linear'], ['zoom']];
+  for (const [z, v] of stops) out.push(z, factor ? ['*', Number(v.toFixed(3)), factor] : Number(v.toFixed(3)));
+  return out;
+}
+
+function railNarrow(): unknown {
+  return ['case', ['==', ['get', 'kind_detail'], 'narrow_gauge'], 0.6, 1];
+}
+
 function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   const rail = restyle({
     id: `roads_rail${suffix}`,
@@ -332,6 +403,20 @@ function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   });
   clampZoom(rail, tier);
   return [
+    {
+      id: `rail-halo${suffix}`,
+      type: 'line',
+      source: tier.id,
+      'source-layer': 'roads',
+      filter: ['==', ['get', 'kind'], 'rail'],
+      minzoom: Math.max(tier.styleMin, MAIN_MINZOOM),
+      maxzoom: tier.styleMax,
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: {
+        'line-color': RAIL_HALO,
+        'line-width': railWidth(4.9, railNarrow()),
+      },
+    },
     rail,
     {
       id: `rail-hatch${suffix}`,
@@ -339,11 +424,12 @@ function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       source: tier.id,
       'source-layer': 'roads',
       filter: ['==', ['get', 'kind'], 'rail'],
-      minzoom: tier.styleMin,
+      minzoom: Math.max(tier.styleMin, MAIN_MINZOOM),
       maxzoom: tier.styleMax,
+      layout: { 'line-join': 'round', 'line-cap': 'butt' },
       paint: {
         'line-color': '#f7f4ea',
-        'line-width': zoomWidth(2.3, ['case', ['==', ['get', 'kind_detail'], 'narrow_gauge'], 0.5, 1]),
+        'line-width': railWidth(1.0, railNarrow()),
         'line-dasharray': [1.1, 2.1],
       },
     },
@@ -414,6 +500,10 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       maxzoom: tier.maxzoom,
       attribution: '© OpenStreetMap contributors · Protomaps (ODbL)',
     };
+  }
+
+  if (inp.railsLow) {
+    sources['rails-low'] = { type: 'geojson', data: inp.railsLow };
   }
 
   if (inp.contours) {
@@ -491,23 +581,57 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   }
 
   let reliefPlaced = false;
+  const last = inp.tiers.length - 1;
   inp.tiers.forEach((tier, i) => {
     const suffix = i === 0 ? '' : `__${tier.id}`;
     let inserted = false;
     for (const layer of tierLayers(inp.base, tier, suffix)) {
-      out.push(layer);
-      if (!reliefPlaced && String(layer['source-layer']) === 'landcover') {
-        out.push(...reliefLayers);
-        reliefPlaced = true;
-      }
-      if (!inserted && contourLayers.length && String(layer['source-layer']) === 'roads') {
+      const sl = String(layer['source-layer']);
+      if (contourLayers.length && i === last && !inserted && sl === 'roads') {
         out.push(...contourLayers);
         inserted = true;
       }
+      out.push(layer);
+      if (!reliefPlaced && sl === 'landcover') {
+        out.push(...reliefLayers);
+        reliefPlaced = true;
+      }
     }
-    if (!inserted && contourLayers.length && i === inp.tiers.length - 1) out.push(...contourLayers);
+    if (contourLayers.length && i === last && !inserted) out.push(...contourLayers);
     out.push(...railsOf(tier, suffix));
   });
+
+  if (inp.railsLow) {
+    out.push(
+      {
+        id: 'rail-low-halo',
+        type: 'line',
+        source: 'rails-low',
+        minzoom: 5,
+        maxzoom: 11,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(5.2) },
+      },
+      {
+        id: 'rail-low',
+        type: 'line',
+        source: 'rails-low',
+        minzoom: 5,
+        maxzoom: 11,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': RAIL_INK, 'line-width': railWidth(3.4), 'line-opacity': 1 },
+      },
+      {
+        id: 'rail-low-hatch',
+        type: 'line',
+        source: 'rails-low',
+        minzoom: 5,
+        maxzoom: 11,
+        layout: { 'line-join': 'round', 'line-cap': 'butt' },
+        paint: { 'line-color': '#f7f4ea', 'line-width': railWidth(1.05), 'line-dasharray': [1.1, 2.1] },
+      },
+    );
+  }
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
   if (slopeLayers.length) out.push(...slopeLayers);

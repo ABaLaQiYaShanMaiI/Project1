@@ -15,10 +15,11 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { useStore, store } from './hooks';
 import { SIDE_COLOR, type Marker } from './core/markers';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
-import { cellAreaKm2 } from './core/cells';
+import { MOD_KEYS, MOD_LABEL, cityMods, fmtMod, urbanWeight, type CityZone } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
 import { loadCityDex, type CityDex } from './data/cities';
-import { createCellLayer, type CellLayer, type CellStats } from './map/cellLayer';
+import { cityKey } from './data/damageStore';
+import { createCityDamage, type DamageDisc, type DamageLayer } from './map/cityDamage';
 import { installMeasure } from './map/measureTool';
 import {
   contourGeoJson,
@@ -92,6 +93,33 @@ function tierOf(zone: PmtilesZone, _index: number, from: number): Tier {
   };
 }
 
+
+function cityZoneAt(dex: CityDex | null, lon: number, lat: number): CityZone | null {
+  if (!dex) return null;
+  const hit = dex.nearest(lon, lat);
+  if (!hit) return null;
+  const weight = urbanWeight(hit.distM, hit.city.r);
+  if (weight <= 0.02) return null;
+  return {
+    name: hit.city.name,
+    lon: hit.city.lon,
+    lat: hit.city.lat,
+    r: hit.city.r,
+    weight,
+    mods: cityMods(weight, hit.city.r),
+  };
+}
+
+function damageDiscs(map: Record<string, [number, number]>): DamageDisc[] {
+  const out: DamageDisc[] = [];
+  for (const [key, [r, lv]] of Object.entries(map)) {
+    const [lon, lat] = key.split(',').map(Number);
+    if (!Number.isFinite(lon) || !Number.isFinite(lat) || !r || !lv) continue;
+    out.push({ lon, lat, r, lv });
+  }
+  return out;
+}
+
 export function WorldMapLibre(): JSX.Element {
   useStore();
   const boxRef = useRef<HTMLDivElement>(null);
@@ -106,20 +134,25 @@ export function WorldMapLibre(): JSX.Element {
   const [ring, setRing] = useState<{ center: [number, number]; km: number } | null>(null);
   const [ringsOn, setRingsOn] = useState(false);
   const [gridOn, setGridOn] = useState(true);
-  const [cellStats, setCellStats] = useState<CellStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [failure, setFailure] = useState<string | null>(null);
   const [viewEpoch, setViewEpoch] = useState(0);
   const mountedRef = useRef("");
   const zonesRef = useRef<PmtilesZone[]>([]);
   const ringsRef = useRef(false);
-  const cellRef = useRef<CellLayer | null>(null);
   const dexRef = useRef<CityDex | null>(null);
+  const damageRef = useRef<DamageLayer | null>(null);
+  const damageModeRef = useRef(false);
+  const [damageMode, setDamageMode] = useState(false);
 
   useEffect(() => {
     ringsRef.current = ringsOn;
     if (!ringsOn) setRing(null);
   }, [ringsOn]);
+
+  useEffect(() => {
+    damageModeRef.current = damageMode;
+  }, [damageMode]);
 
   useEffect(() => {
     const el = boxRef.current;
@@ -195,7 +228,8 @@ export function WorldMapLibre(): JSX.Element {
     map.on('mousemove', (e) => {
       posRef.current = { lat: e.lngLat.lat, lon: e.lngLat.lng };
       if (!raf) raf = requestAnimationFrame(resample);
-      store.setCellHover(cellRef.current?.hover(e.point.x, e.point.y) ?? null);
+      const zone = cityZoneAt(dexRef.current, e.lngLat.lng, e.lngLat.lat);
+      store.setCityZone(zone);
     });
 
     map.on('click', (e) => {
@@ -204,12 +238,13 @@ export function WorldMapLibre(): JSX.Element {
         store.cancelPlacing();
         return;
       }
-      if (store.cellsOn) {
-        const hit = cellRef.current?.pick(e.point.x, e.point.y);
+      if (damageModeRef.current && dexRef.current) {
+        const hit = dexRef.current.nearest(e.lngLat.lng, e.lngLat.lat, 0.15);
         if (hit) {
+          const key = cityKey(hit.city.lon, hit.city.lat);
+          const cur = store.damage[key]?.[1] ?? 0;
           const shift = Boolean((e.originalEvent as MouseEvent | undefined)?.shiftKey);
-          const next = shift || store.cellOwners[hit.id] === store.markerSide ? null : store.markerSide;
-          store.occupyCell(hit.id, next);
+          store.setDamage(key, hit.city.r, shift ? 0 : Math.min(3, cur + 1));
           return;
         }
       }
@@ -234,8 +269,6 @@ export function WorldMapLibre(): JSX.Element {
       unsub();
       for (const mk of markersRef.current.values()) mk.remove();
       markersRef.current.clear();
-      cellRef.current?.destroy();
-      cellRef.current = null;
       map.remove();
       mapRef.current = null;
     };
@@ -309,19 +342,38 @@ export function WorldMapLibre(): JSX.Element {
         if (band.zone.key !== 'world') await addSlope(band.zone.key, band.from);
       }
 
-      const region = tiersZones.find((z) => z.kind !== 'world');
+      const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       let contours: FC | null = null;
-      if (region) {
-        const res = await fetch(`/data/contours_${region.key}.json`, { cache: 'no-cache' }).catch(() => null);
-        if (res && res.ok) {
-          const doc = (await res.json()) as ContourDoc;
-          const mPerDegLat = doc.mPerDegLat ?? 110540;
-          const mPerDegLon = doc.mPerDegLon ?? 111320 * Math.cos((doc.origin[1] * Math.PI) / 180);
-          contours = contourGeoJson(doc, mPerDegLon, mPerDegLat);
-        }
+      for (const r of regions) {
+        const res = await fetch(`/data/contours_${r.key}.json`, { cache: 'no-cache' }).catch(() => null);
+        if (!res || !res.ok) continue;
+        const doc = (await res.json()) as ContourDoc;
+        const mPerDegLat = doc.mPerDegLat ?? 110540;
+        const mPerDegLon = doc.mPerDegLon ?? 111320 * Math.cos((doc.origin[1] * Math.PI) / 180);
+        contours = contourGeoJson(doc, mPerDegLon, mPerDegLat);
+        break;
       }
 
-      const focus = region ?? tiersZones[tiersZones.length - 1];
+      let railsLow: FC | null = null;
+      for (const r of regions) {
+        const res = await fetch(`/data/rails_${r.key}.json`, { cache: 'no-cache' }).catch(() => null);
+        if (!res || !res.ok) continue;
+        const doc = (await res.json()) as { lines?: [number, number][][] };
+        if (!Array.isArray(doc.lines) || !doc.lines.length) continue;
+        railsLow = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {},
+              geometry: { type: 'MultiLineString', coordinates: doc.lines },
+            },
+          ],
+        } as unknown as FC;
+        break;
+      }
+
+      const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
       const grid = buildUtmGrid(focus.bbox, gridStepFor(Math.round(START.zoom)));
       const dex = await loadCityDex(tiersZones.filter((z) => z.kind !== 'world').map((z) => z.key));
       if (!alive) return;
@@ -332,6 +384,7 @@ export function WorldMapLibre(): JSX.Element {
         demTiers,
         slopeTiers,
         contours,
+        railsLow,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
       });
       if (!alive) return;
@@ -339,13 +392,9 @@ export function WorldMapLibre(): JSX.Element {
       map.setStyle(style);
       map.on('sourcedata', () => map.triggerRepaint());
 
-      cellRef.current?.destroy();
-      cellRef.current = createCellLayer(map, {
-        near: (b) => dexRef.current?.near(b) ?? [],
-        owners: () => store.cellOwners,
-        onStats: setCellStats,
-      });
-      cellRef.current.setEnabled(store.cellsOn);
+      damageRef.current?.destroy();
+      damageRef.current = createCityDamage(map, () => [tiers[tiers.length - 1].id]);
+      damageRef.current.refresh(damageDiscs(store.damage));
 
       const regionDem = demTiers.find((d) => !d.id.startsWith('world'));
       const pickDem = regionDem ?? demTiers.find((d) => d.id.startsWith('world'));
@@ -428,12 +477,8 @@ export function WorldMapLibre(): JSX.Element {
   }, [store.version]);
 
   useEffect(() => {
-    cellRef.current?.setEnabled(store.cellsOn);
-  }, [store.cellsOn]);
-
-  useEffect(() => {
-    cellRef.current?.applyOwners();
-  }, [store.cellOwners]);
+    damageRef.current?.refresh(damageDiscs(store.damage));
+  }, [store.damage]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -491,8 +536,8 @@ export function WorldMapLibre(): JSX.Element {
         <button className={`btn small ${ringsOn ? 'on' : ''}`} onClick={() => setRingsOn((v) => !v)}>
           射程圈
         </button>
-        <button className={`btn small ${store.cellsOn ? 'on' : ''}`} onClick={() => store.setCellsOn(!store.cellsOn)}>
-          地块
+        <button className={`btn small ${damageMode ? 'on' : ''}`} onClick={() => setDamageMode((v) => !v)}>
+          战损
         </button>
         {store.basemap && (
           <span className="zone-count">
@@ -522,21 +567,23 @@ export function WorldMapLibre(): JSX.Element {
         </div>
       )}
 
-      {store.cellsOn && cellStats && (
-        <div className="ml-cells">
-          <div className="lp-title">地块</div>
-          <div className="lp-hint mono">
-            {cellStats.total} 块 · 城市 {cellStats.urban} · 最细 {(cellStats.finest / 1000).toFixed(cellStats.finest % 1000 ? 2 : 0)} km ·{' '}
-            {cellStats.ms.toFixed(0)} ms
+      {store.cityZone && (
+        <div className="ml-city">
+          <div className="lp-title">城区影响 · {store.cityZone.name || '城区'}</div>
+          <div className="city-sub mono">
+            强度 {Math.round(store.cityZone.weight * 100)}% · 半径 {(store.cityZone.r / 1000).toFixed(1)} km
           </div>
-          <div className="lp-hint">
-            {store.cellHover
-              ? `${store.cellHover.label} · ${cellAreaKm2(store.cellHover.step)} km² · ${store.cellHover.urban ? '城市格' : '乡村地块'}`
-              : '放大到 z12 以上，单击染成阵营色，再点取消'}
+          {store.damage[cityKey(store.cityZone.lon, store.cityZone.lat)]?.[1] ? (
+            <div className="city-dmg mono">战损 {store.damage[cityKey(store.cityZone.lon, store.cityZone.lat)][1]} 级</div>
+          ) : null}
+          <div className="city-mods">
+            {MOD_KEYS.map((k) => (
+              <div key={k} className={`city-mod ${store.cityZone && store.cityZone.mods[k] > 0 ? 'up' : 'down'}`}>
+                <span>{MOD_LABEL[k]}</span>
+                <b>{fmtMod(store.cityZone ? store.cityZone.mods[k] : 0)}</b>
+              </div>
+            ))}
           </div>
-          <button className="btn small" onClick={() => store.clearCells()}>
-            清空占领（{Object.keys(store.cellOwners).length}）
-          </button>
         </div>
       )}
 
@@ -565,7 +612,11 @@ export function WorldMapLibre(): JSX.Element {
       </div>
 
       <div className="map-hint">
-        {store.placing ? '单击地图放置兵牌；右键兵牌删除' : '拖动平移 · 滚轮缩放 · 双击放大'}
+        {store.placing
+          ? '单击地图放置兵牌；右键兵牌删除'
+          : damageMode
+            ? '单击城区标记战损（+1，最高 3 级）· Shift+单击清除'
+            : '拖动平移 · 滚轮缩放 · 双击放大'}
       </div>
     </div>
   );
@@ -587,6 +638,7 @@ function groupOf(id: string): string | null {
   if (fixed) return fixed;
   if (base.includes('-relief') || base === 'relief') return 'relief';
   if (base === 'roads_rail') return 'rail';
+  if (base.startsWith('rail-')) return 'rail';
   if (base.startsWith('roads_labels')) return 'label';
   if (base.startsWith('roads_')) return 'road';
   if (base.startsWith('water')) return base.includes('label') ? 'label' : null;

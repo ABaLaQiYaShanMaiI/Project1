@@ -316,21 +316,60 @@ button {
   backdrop-filter: blur(6px);
 }
 
-.ml-cells {
+.ml-city {
   position: absolute;
-  left: 12px;
-  top: 56px;
-  width: 230px;
+  right: 12px;
+  bottom: 40px;
+  width: 208px;
   padding: 9px 10px;
-  background: rgba(14, 17, 22, 0.86);
+  background: rgba(14, 17, 22, 0.88);
   border: 1px solid var(--line-strong);
   border-radius: 8px;
   backdrop-filter: blur(6px);
+  pointer-events: none;
 }
 
-.ml-cells .btn {
-  margin-top: 6px;
-  width: 100%;
+.city-sub {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+
+.city-dmg {
+  font-size: 10px;
+  color: #e0907a;
+  margin-bottom: 5px;
+}
+
+.city-mods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px 4px;
+}
+
+.city-mod {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.city-mod b {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.city-mod.up b {
+  color: #8fc98a;
+}
+
+.city-mod.down b {
+  color: #e0907a;
 }
 
 .ml-layers input[type='range'] {

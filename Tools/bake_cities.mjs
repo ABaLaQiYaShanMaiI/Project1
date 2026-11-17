@@ -94,6 +94,7 @@ const doc = {
   radiusScaleM: RSCALE,
   stride: 10,
   b64: buf.toString('base64'),
+  names: list.map((c) => c.name || ''),
 };
 writeFileSync(OUT, JSON.stringify(doc), 'utf8');
 const secs = ((Date.now() - t0) / 1000).toFixed(1);

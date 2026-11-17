@@ -1,6 +1,6 @@
 import { newMarker, type Marker, type Side, type UnitKind } from './core/markers';
-import type { CellInfo } from './core/cells';
-import { loadCellOwners, saveCellOwners, type CellOwners } from './data/cellStore';
+import type { CityZone } from './core/cityEffects';
+import { loadDamage, saveDamage, type DamageMap } from './data/damageStore';
 import { loadMarkers, saveMarkers } from './data/markerStore';
 
 export type WorldLayerKey = 'relief' | 'contour' | 'slope' | 'road' | 'rail' | 'building' | 'label' | 'grid';
@@ -48,9 +48,8 @@ class Store {
   markerKind: UnitKind = 'infantry';
   placing = false;
 
-  cellsOn = true;
-  cellOwners: CellOwners = loadCellOwners();
-  cellHover: CellInfo | null = null;
+  cityZone: CityZone | null = null;
+  damage: DamageMap = loadDamage();
 
   layers: Record<WorldLayerKey, boolean> = {
     relief: true,
@@ -90,31 +89,20 @@ class Store {
     this.perf = { fps };
   }
 
-  setCellsOn(on: boolean): void {
-    if (this.cellsOn === on) return;
-    this.cellsOn = on;
+  setCityZone(zone: CityZone | null): void {
+    const a = this.cityZone;
+    if (!a && !zone) return;
+    if (a && zone && a.name === zone.name && Math.round(a.weight * 20) === Math.round(zone.weight * 20)) return;
+    this.cityZone = zone;
     this.emit();
   }
 
-  occupyCell(id: string, side: Side | null): void {
-    const next: CellOwners = { ...this.cellOwners };
-    if (side) next[id] = side;
-    else delete next[id];
-    this.cellOwners = next;
-    saveCellOwners(next);
-    this.emit();
-  }
-
-  clearCells(): void {
-    if (!Object.keys(this.cellOwners).length) return;
-    this.cellOwners = {};
-    saveCellOwners(this.cellOwners);
-    this.emit();
-  }
-
-  setCellHover(info: CellInfo | null): void {
-    if (this.cellHover?.id === info?.id) return;
-    this.cellHover = info;
+  setDamage(key: string, r: number, lv: number): void {
+    const next: DamageMap = { ...this.damage };
+    if (lv <= 0) delete next[key];
+    else next[key] = [r, Math.min(3, lv)];
+    this.damage = next;
+    saveDamage(next);
     this.emit();
   }
 
