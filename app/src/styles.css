@@ -173,6 +173,31 @@ button {
   margin-bottom: 7px;
 }
 
+.lg {
+  margin-bottom: 6px;
+}
+
+.lg-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+  font-size: 11.5px;
+  letter-spacing: 0.5px;
+  color: #c9d2dc;
+  cursor: pointer;
+}
+
+.lg-head input {
+  accent-color: var(--accent);
+}
+
+.lg-items {
+  margin-left: 10px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
 .lp-item {
   display: flex;
   align-items: center;

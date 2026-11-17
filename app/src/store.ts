@@ -3,28 +3,99 @@ import type { CityZone } from './core/cityEffects';
 import { loadDamage, saveDamage, type DamageMap } from './data/damageStore';
 import { loadMarkers, saveMarkers } from './data/markerStore';
 
-export type WorldLayerKey = 'relief' | 'contour' | 'slope' | 'road' | 'rail' | 'building' | 'label' | 'grid';
+export interface LayerItem {
+  key: string;
+  label: string;
+}
 
-export const WORLD_LAYER_ORDER: WorldLayerKey[] = [
-  'relief',
-  'contour',
-  'slope',
-  'road',
-  'rail',
-  'building',
-  'label',
-  'grid',
+export interface LayerGroup {
+  key: string;
+  label: string;
+  items: LayerItem[];
+}
+
+export const LAYER_TREE: LayerGroup[] = [
+  {
+    key: 'terrain',
+    label: '地形',
+    items: [
+      { key: 'relief', label: '晕渲' },
+      { key: 'contour', label: '等高线' },
+      { key: 'slope', label: '坡度通行' },
+    ],
+  },
+  {
+    key: 'water',
+    label: '水系',
+    items: [{ key: 'water', label: '水域 · 河流' }],
+  },
+  {
+    key: 'transport',
+    label: '交通',
+    items: [
+      { key: 'rail', label: '铁路' },
+      { key: 'road', label: '主干公路' },
+      { key: 'minor', label: '次要道路' },
+      { key: 'airport', label: '机场 · 跑道' },
+    ],
+  },
+  {
+    key: 'settle',
+    label: '居民地',
+    items: [
+      { key: 'urban', label: '城区灰块' },
+      { key: 'building', label: '建筑物' },
+      { key: 'label', label: '地名标注' },
+    ],
+  },
+  {
+    key: 'admin',
+    label: '行政',
+    items: [{ key: 'boundary', label: '行政边界' }],
+  },
+  {
+    key: 'land',
+    label: '地表',
+    items: [{ key: 'landcover', label: '林地 · 农田 · 绿地' }],
+  },
+  {
+    key: 'military',
+    label: '军事',
+    items: [
+      { key: 'military', label: '军事用地' },
+      { key: 'damage', label: '城区战损' },
+    ],
+  },
+  {
+    key: 'tools',
+    label: '判读',
+    items: [
+      { key: 'grid', label: '军用格网' },
+      { key: 'rings', label: '射程圈' },
+    ],
+  },
 ];
 
-export const WORLD_LAYER_LABEL: Record<WorldLayerKey, string> = {
-  relief: '地形晕渲',
-  contour: '等高线',
-  slope: '坡度通行',
-  road: '交通线',
-  rail: '铁路',
-  building: '建筑物',
-  label: '地名标注',
-  grid: '军用格网',
+export const ALL_LAYERS = LAYER_TREE.flatMap((g) => g.items.map((i) => i.key));
+
+const LAYER_DEFAULT: Record<string, boolean> = {
+  relief: true,
+  contour: true,
+  slope: false,
+  water: true,
+  rail: true,
+  road: true,
+  minor: true,
+  airport: true,
+  urban: true,
+  building: true,
+  label: true,
+  boundary: true,
+  landcover: true,
+  military: true,
+  damage: true,
+  grid: true,
+  rings: false,
 };
 
 export interface BasemapInfo {
@@ -51,16 +122,7 @@ class Store {
   cityZone: CityZone | null = null;
   damage: DamageMap = loadDamage();
 
-  layers: Record<WorldLayerKey, boolean> = {
-    relief: true,
-    contour: true,
-    slope: false,
-    road: true,
-    rail: true,
-    building: true,
-    label: true,
-    grid: true,
-  };
+  layers: Record<string, boolean> = { ...LAYER_DEFAULT };
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };
@@ -106,9 +168,24 @@ class Store {
     this.emit();
   }
 
-  setLayer(key: WorldLayerKey, on: boolean): void {
+  setLayer(key: string, on: boolean): void {
     if (this.layers[key] === on) return;
-    this.layers[key] = on;
+    this.layers = { ...this.layers, [key]: on };
+    this.emit();
+  }
+
+  groupOn(group: string): boolean {
+    const g = LAYER_TREE.find((x) => x.key === group);
+    if (!g) return false;
+    return g.items.every((i) => this.layers[i.key]);
+  }
+
+  setGroup(group: string, on: boolean): void {
+    const g = LAYER_TREE.find((x) => x.key === group);
+    if (!g) return;
+    const next = { ...this.layers };
+    for (const i of g.items) next[i.key] = on;
+    this.layers = next;
     this.emit();
   }
 

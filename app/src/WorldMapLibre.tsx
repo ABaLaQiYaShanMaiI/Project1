@@ -132,8 +132,6 @@ export function WorldMapLibre(): JSX.Element {
 
   const [readout, setReadout] = useState<Readout | null>(null);
   const [ring, setRing] = useState<{ center: [number, number]; km: number } | null>(null);
-  const [ringsOn, setRingsOn] = useState(false);
-  const [gridOn, setGridOn] = useState(true);
   const [loading, setLoading] = useState(true);
   const [failure, setFailure] = useState<string | null>(null);
   const [viewEpoch, setViewEpoch] = useState(0);
@@ -145,6 +143,7 @@ export function WorldMapLibre(): JSX.Element {
   const damageModeRef = useRef(false);
   const [damageMode, setDamageMode] = useState(false);
 
+  const ringsOn = Boolean(store.layers.rings);
   useEffect(() => {
     ringsRef.current = ringsOn;
     if (!ringsOn) setRing(null);
@@ -395,6 +394,7 @@ export function WorldMapLibre(): JSX.Element {
       damageRef.current?.destroy();
       damageRef.current = createCityDamage(map, () => [tiers[tiers.length - 1].id]);
       damageRef.current.refresh(damageDiscs(store.damage));
+      damageRef.current.setVisible(Boolean(store.layers.damage));
 
       const regionDem = demTiers.find((d) => !d.id.startsWith('world'));
       const pickDem = regionDem ?? demTiers.find((d) => d.id.startsWith('world'));
@@ -481,6 +481,10 @@ export function WorldMapLibre(): JSX.Element {
   }, [store.damage]);
 
   useEffect(() => {
+    damageRef.current?.setVisible(Boolean(store.layers.damage));
+  }, [store.layers.damage]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     const rebuild = () => {
@@ -530,12 +534,6 @@ export function WorldMapLibre(): JSX.Element {
       <div className="ml-map" ref={boxRef} />
 
       <div className="world-tools">
-        <button className={`btn small ${gridOn ? 'on' : ''}`} onClick={() => setGridOn((v) => !v)}>
-          格网
-        </button>
-        <button className={`btn small ${ringsOn ? 'on' : ''}`} onClick={() => setRingsOn((v) => !v)}>
-          射程圈
-        </button>
         <button className={`btn small ${damageMode ? 'on' : ''}`} onClick={() => setDamageMode((v) => !v)}>
           战损
         </button>
@@ -637,14 +635,23 @@ function groupOf(id: string): string | null {
   const fixed = NEW_IDS[base];
   if (fixed) return fixed;
   if (base.includes('-relief') || base === 'relief') return 'relief';
-  if (base === 'roads_rail') return 'rail';
-  if (base.startsWith('rail-')) return 'rail';
-  if (base.startsWith('roads_labels')) return 'label';
+  if (base === 'roads_rail' || base.startsWith('rail-')) return 'rail';
+  if (base.startsWith('roads_labels') || base === 'address_label') return 'label';
+  if (base.startsWith('roads_runway') || base.startsWith('roads_taxiway')) return 'airport';
+  if (base.startsWith('roads_minor') || base.startsWith('roads_other')) return 'minor';
   if (base.startsWith('roads_')) return 'road';
-  if (base.startsWith('water')) return base.includes('label') ? 'label' : null;
+  if (base.startsWith('water')) return base.includes('label') ? 'label' : 'water';
   if (base.startsWith('slope')) return 'slope';
-  if (base === 'buildings' || base === 'address_label') return 'building';
+  if (base === 'buildings' || base === 'address_label' || base.startsWith('buildings_glow')) return 'building';
   if (base.startsWith('places')) return 'label';
+  if (base.startsWith('boundary')) return 'boundary';
+  if (base === 'landcover_urban') return 'urban';
+  if (base === 'landcover') return 'landcover';
+  if (base === 'landuse_urban_glow' || base === 'landuse_residential') return 'urban';
+  if (base === 'landuse_military') return 'military';
+  if (base === 'landuse_aerodrome' || base === 'landuse_runway' || base === 'aerodrome_mark') return 'airport';
+  if (base === 'landuse_hospital' || base === 'landuse_school' || base === 'landuse_industrial') return 'urban';
+  if (base.startsWith('landuse_')) return 'landcover';
   return null;
 }
 

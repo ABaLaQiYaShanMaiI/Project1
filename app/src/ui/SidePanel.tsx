@@ -1,6 +1,6 @@
 import { useStore, store } from '../hooks';
 import { SIDE_LABEL, UNIT_LABEL, type Side, type UnitKind } from '../core/markers';
-import { WORLD_LAYER_LABEL, WORLD_LAYER_ORDER } from '../store';
+import { LAYER_TREE } from '../store';
 
 const UNIT_KINDS: UnitKind[] = ['infantry', 'armor', 'artillery', 'recon', 'hq'];
 const SIDES: Side[] = ['nato', 'wp'];
@@ -13,15 +13,29 @@ export function SidePanel(): JSX.Element {
     <aside className="side">
       <div className="layer-panel">
         <div className="lp-title">图层</div>
-        {WORLD_LAYER_ORDER.map((key) => (
-          <label key={key} className="lp-item">
-            <input
-              type="checkbox"
-              checked={store.layers[key]}
-              onChange={(e) => store.setLayer(key, e.target.checked)}
-            />
-            <span>{WORLD_LAYER_LABEL[key]}</span>
-          </label>
+        {LAYER_TREE.map((group) => (
+          <div key={group.key} className="lg">
+            <label className="lg-head">
+              <input
+                type="checkbox"
+                checked={store.groupOn(group.key)}
+                onChange={(e) => store.setGroup(group.key, e.target.checked)}
+              />
+              <span>{group.label}</span>
+            </label>
+            <div className="lg-items">
+              {group.items.map((item) => (
+                <label key={item.key} className="lp-item">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(store.layers[item.key])}
+                    onChange={(e) => store.setLayer(item.key, e.target.checked)}
+                  />
+                  <span>{item.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 

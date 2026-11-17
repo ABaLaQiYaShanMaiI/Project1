@@ -68,7 +68,7 @@ const MAIN_ROAD_COLORS: Record<string, [string, string]> = {
 const RAIL_INK = '#1f1f19';
 const RAIL_HALO = '#f2ecdf';
 const MAIN_ROAD_W = 1.2;
-const MAIN_MINZOOM = 11;
+const MAIN_MINZOOM = 10;
 const MAIN_MINZOOM_MINOR = 12;
 const URBAN_GREY = '#b9b3a7';
 const URBAN_KINDS = [
@@ -203,10 +203,22 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
     paint['fill-color'] = LANDUSE[kind] ?? '#e2dbcb';
     paint['fill-opacity'] = ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 0.9, 13, 0.96];
   } else if (sourceLayer === 'water' && layer.type === 'fill') {
-    paint['fill-color'] = '#a3bccb';
-    paint['fill-outline-color'] = '#8aa7b8';
+    paint['fill-color'] = '#9cc0d2';
+    paint['fill-outline-color'] = '#7fa6bb';
   } else if (sourceLayer === 'water') {
-    paint['line-color'] = '#8fb2c4';
+    paint['line-color'] = '#7fa8bd';
+    paint['line-width'] = [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      6,
+      ['case', ['==', ['get', 'kind_detail'], 'river'], 0.8, 0.4],
+      10,
+      ['case', ['==', ['get', 'kind_detail'], 'river'], 1.5, 0.7],
+      14,
+      ['case', ['==', ['get', 'kind_detail'], 'river'], 2.6, 1.2],
+    ];
+    paint['line-opacity'] = 0.9;
   } else if (id === 'buildings') {
     paint['fill-color'] = '#9f998f';
     paint['fill-outline-color'] = ['interpolate', ['linear'], ['zoom'], 13, 'rgba(0,0,0,0)', 15, 'rgba(120,110,95,0.4)'];
@@ -226,7 +238,7 @@ function restyle(layer: Record<string, unknown>): Record<string, unknown> {
       paint['line-width'] = railWidth(3.4, railNarrow());
       paint['line-opacity'] = 1;
       delete paint['line-dasharray'];
-      next.minzoom = MAIN_MINZOOM;
+      next.minzoom = 11;
     } else if (rc) {
       const key: unknown = ['coalesce', ['get', 'kind_detail'], ['get', 'kind']];
       const isMain: unknown = ['in', key, ['literal', MAIN_ROADS]];
@@ -308,11 +320,43 @@ function tierLayers(base: StyleSpecification, tier: Tier, suffix: string): Recor
   for (const raw of base.layers as unknown as Record<string, unknown>[]) {
     if (raw.type === 'background') continue;
     if (raw.id === 'roads_rail') continue;
+    if (raw.id === 'boundaries' || raw.id === 'boundaries_country') continue;
     const layer = restyle({ ...raw, id: `${String(raw.id)}${suffix}` });
     if (!clampZoom(layer, tier)) continue;
     layer.source = tier.id;
     out.push(layer);
   }
+  const urbanFills: Array<Record<string, unknown>> = [
+    {
+      id: `landcover_urban${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landcover',
+      filter: ['==', ['get', 'kind'], 'urban_area'],
+      minzoom: 3,
+      maxzoom: tier.styleMax,
+      paint: { 'fill-color': URBAN_GREY, 'fill-opacity': 0.9 },
+    },
+    {
+      id: `landuse_residential${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landuse',
+      filter: ['in', ['get', 'kind'], ['literal', ['residential', 'commercial', 'retail', 'railway']]],
+      minzoom: 8,
+      maxzoom: tier.styleMax,
+      paint: {
+        'fill-color': ['match', ['get', 'kind'], 'residential', '#c2bcb1', 'commercial', '#b9b3a8', 'retail', '#bdb7ac', '#b5afa4'],
+        'fill-opacity': 0.92,
+      },
+    },
+  ];
+  const lastGround = out.reduce((idx, l, i) => {
+    const sl = String(l['source-layer'] ?? '');
+    return sl === 'landcover' || sl === 'landuse' ? i : idx;
+  }, -1);
+  out.splice(lastGround + 1, 0, ...urbanFills);
+
   out.push({
     id: `buildings_glow${suffix}`,
     type: 'line',
@@ -389,6 +433,66 @@ function railWidth(w: number, factor?: unknown): unknown {
 
 function railNarrow(): unknown {
   return ['case', ['==', ['get', 'kind_detail'], 'narrow_gauge'], 0.6, 1];
+}
+
+const BOUNDARY_LEVELS: Array<{ id: string; filter: unknown; color: string; dash: number[]; w: number[]; minzoom: number }> = [
+  {
+    id: 'boundary_country',
+    filter: ['<=', ['get', 'kind_detail'], 2],
+    color: '#5f6670',
+    dash: [6, 3],
+    w: [2, 0.7, 6, 0.9, 10, 1.4, 16, 2],
+    minzoom: 2,
+  },
+  {
+    id: 'boundary_region',
+    filter: ['all', ['>', ['get', 'kind_detail'], 2], ['<=', ['get', 'kind_detail'], 8]],
+    color: '#6d7a88',
+    dash: [4, 3],
+    w: [4, 0.4, 8, 0.85, 12, 1.2],
+    minzoom: 5,
+  },
+  {
+    id: 'boundary_county',
+    filter: ['all', ['>', ['get', 'kind_detail'], 8], ['<=', ['get', 'kind_detail'], 12]],
+    color: '#8b96a2',
+    dash: [3, 2],
+    w: [8, 0.4, 10, 0.7, 14, 1.1],
+    minzoom: 8,
+  },
+  {
+    id: 'boundary_muni',
+    filter: ['>', ['get', 'kind_detail'], 12],
+    color: '#aeb5bd',
+    dash: [1, 2],
+    w: [11, 0.4, 13, 0.7, 16, 1],
+    minzoom: 11,
+  },
+];
+
+function boundaryLayers(tier: Tier, suffix: string): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  for (const lv of BOUNDARY_LEVELS) {
+    const stops: unknown[] = ['interpolate', ['linear'], ['zoom']];
+    for (let i = 0; i < lv.w.length; i += 2) stops.push(lv.w[i], lv.w[i + 1]);
+    out.push({
+      id: `${lv.id}${suffix}`,
+      type: 'line',
+      source: tier.id,
+      'source-layer': 'boundaries',
+      filter: lv.filter as never,
+      minzoom: Math.max(lv.minzoom, tier.styleMin),
+      maxzoom: tier.styleMax,
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': lv.color,
+        'line-width': stops,
+        'line-dasharray': lv.dash,
+        'line-opacity': 0.8,
+      },
+    });
+  }
+  return out;
 }
 
 function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
@@ -482,11 +586,11 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       minzoom: dem.styleMin,
       maxzoom: dem.styleMax,
       paint: {
-        'hillshade-exaggeration': 0.55,
+        'hillshade-exaggeration': ['interpolate', ['linear'], ['zoom'], 4, 1.05, 8, 0.85, 12, 0.6, 16, 0.52],
         'hillshade-illumination-direction': 315,
-        'hillshade-shadow-color': '#6b5738',
+        'hillshade-shadow-color': '#7a6444',
         'hillshade-highlight-color': '#fffdf6',
-        'hillshade-accent-color': '#b09a76',
+        'hillshade-accent-color': '#a88f6b',
       },
     });
   }
@@ -520,11 +624,11 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         type: 'line',
         source: 'contours',
         filter: ['==', ['get', 'b'], 0],
-        minzoom: 8,
+        minzoom: 12,
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': '#9a6b3c',
-          'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.2, 8, 0.38, 11, 0.55, 14, 0.64],
+          'line-color': '#b0916c',
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.15, 8, 0.26, 11, 0.45, 14, 0.62],
           'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.4, 9, 0.65, 13, 1.0],
         },
       },
@@ -533,11 +637,11 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         type: 'line',
         source: 'contours',
         filter: ['==', ['get', 'b'], 1],
-        minzoom: 8,
+        minzoom: 10.5,
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-color': '#84552a',
-          'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.35, 8, 0.6, 11, 0.85, 14, 0.95],
+          'line-color': '#7a5427',
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 5, 0.25, 8, 0.42, 11, 0.62, 14, 0.8],
           'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.7, 9, 1.0, 13, 1.5],
         },
       },
@@ -546,7 +650,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         type: 'symbol',
         source: 'contours',
         filter: ['==', ['get', 'b'], 1],
-        minzoom: 9,
+        minzoom: 11,
         layout: {
           'text-field': ['to-string', ['get', 'v']],
           'text-font': ['Noto Sans Regular'],
@@ -598,6 +702,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       }
     }
     if (contourLayers.length && i === last && !inserted) out.push(...contourLayers);
+    out.push(...boundaryLayers(tier, suffix));
     out.push(...railsOf(tier, suffix));
   });
 

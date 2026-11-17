@@ -9,6 +9,7 @@ export interface DamageDisc {
 
 export interface DamageLayer {
   refresh: (discs: DamageDisc[]) => void;
+  setVisible: (on: boolean) => void;
   destroy: () => void;
 }
 
@@ -69,6 +70,7 @@ function inside(discs: DamageDisc[], lon: number, lat: number, pad = 1): DamageD
 
 export function createCityDamage(map: MlMap, tiers: () => string[]): DamageLayer {
   let last: DamageDisc[] = [];
+  let visible = true;
 
   const ensure = () => {
     const style = map.getStyle();
@@ -108,6 +110,7 @@ export function createCityDamage(map: MlMap, tiers: () => string[]): DamageLayer
   const refresh = (discs: DamageDisc[]) => {
     last = discs;
     ensure();
+    if (!visible) return;
     const src = map.getSource(SRC) as GeoJSONSource | undefined;
     if (!src) return;
     if (!discs.length) {
@@ -169,6 +172,14 @@ export function createCityDamage(map: MlMap, tiers: () => string[]): DamageLayer
   };
 
   let dirty = false;
+  const setVisible = (on: boolean) => {
+    visible = on;
+    for (const id of LAYER_IDS) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+    }
+    if (on && last.length) refresh(last);
+  };
+
   const onMoveEnd = () => {
     dirty = true;
   };
@@ -187,5 +198,5 @@ export function createCityDamage(map: MlMap, tiers: () => string[]): DamageLayer
     if (map.getSource(SRC)) map.removeSource(SRC);
   };
 
-  return { refresh, destroy };
+  return { refresh, setVisible, destroy };
 }
