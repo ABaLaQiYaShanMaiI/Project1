@@ -1,12 +1,6 @@
-import type { Marker, Side, UnitKind } from '../core/markers';
+import type { Marker } from '../core/markers';
 
 const KEY = 'wargame.markers.v1';
-
-export interface MarkerDraft {
-  markers: Marker[];
-  side: Side;
-  kind: UnitKind;
-}
 
 export function loadMarkers(): Marker[] {
   try {

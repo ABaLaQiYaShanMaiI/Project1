@@ -38,11 +38,3 @@ export function newMarker(kind: UnitKind, side: Side, lon: number, lat: number, 
     lat,
   };
 }
-
-export function clampLon(lon: number): number {
-  return Math.max(-180, Math.min(180, lon));
-}
-
-export function clampLat(lat: number): number {
-  return Math.max(-85, Math.min(85, lat));
-}

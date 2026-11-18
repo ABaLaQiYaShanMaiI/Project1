@@ -18,8 +18,14 @@ if errorlevel 1 (
 if not exist "app\dist\index.html" (
   echo   First run: building front-end, please wait...
   pushd app
-  call npm install
-  call npm run build
+  where pnpm >nul 2>nul
+  if errorlevel 1 (
+    call npm install
+    call npm run build
+  ) else (
+    call pnpm install
+    call pnpm build
+  )
   popd
   echo.
 )

@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
-const ROOTS = ['app/src', 'tools'];
+const ROOTS = ['app/src', 'Tools'];
 const EXTS = new Set(['.ts', '.tsx', '.js', '.mjs', '.css']);
 const CHECK = process.argv.includes('--check');
 
@@ -16,11 +16,22 @@ function walk(dir, out = []) {
   for (const e of ents) {
     if (e === 'node_modules' || e === 'dist' || e.startsWith('.')) continue;
     const p = join(dir, e);
-    const st = statSync(p);
+    let st;
+    try {
+      st = statSync(p);
+    } catch {
+      continue;
+    }
     if (st.isDirectory()) walk(p, out);
     else if (EXTS.has(extname(p)) && !p.endsWith('strip_comments.mjs')) out.push(p);
   }
   return out;
+}
+
+function regexAllowed(out) {
+  const prev = out.replace(/\s+$/, '').slice(-1);
+  if (!prev) return true;
+  return '([{=,:;!&|?+-*%^~<>'.includes(prev);
 }
 
 function strip(src, isCss) {
@@ -28,6 +39,7 @@ function strip(src, isCss) {
   let i = 0;
   const n = src.length;
   let mode = 'code';
+  let inClass = false;
   while (i < n) {
     const c = src[i];
     const c2 = src[i + 1];
@@ -40,6 +52,13 @@ function strip(src, isCss) {
       if (c === '/' && c2 === '*') {
         mode = 'block';
         i += 2;
+        continue;
+      }
+      if (!isCss && c === '/' && regexAllowed(out)) {
+        mode = 're';
+        inClass = false;
+        out += c;
+        i++;
         continue;
       }
       if (c === "'") mode = 'sq';
@@ -62,6 +81,31 @@ function strip(src, isCss) {
         mode = 'code';
         i += 2;
       } else i++;
+      continue;
+    }
+    if (mode === 're') {
+      if (c === '\\') {
+        out += c;
+        if (i + 1 < n) out += src[i + 1];
+        i += 2;
+        continue;
+      }
+      if (c === '\n') {
+        mode = 'code';
+        out += c;
+        i++;
+        continue;
+      }
+      if (c === '[') inClass = true;
+      else if (c === ']') inClass = false;
+      else if (c === '/' && !inClass) {
+        mode = 'code';
+        out += c;
+        i++;
+        continue;
+      }
+      out += c;
+      i++;
       continue;
     }
     out += c;

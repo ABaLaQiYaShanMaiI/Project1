@@ -21,7 +21,8 @@
 App.tsx ── TopBar / SidePanel
         └─ WorldMapLibre（懒加载，含 maplibre-gl + pmtiles）
               ├─ data/pmtilesBasemap.ts   index.json → zonesAt → tierBands
-              ├─ data/militaryStyle.ts    按 tier 生成整套图层
+              ├─ data/style/*             样式分件（tokens / restyle / tier / rail / boundary / contour / overlay）
+              ├─ data/militaryStyle.ts    按 tier 装配整套图层（只管顺序与去重）
               ├─ data/terrain.ts          DEM 采样（高程/坡度/坡向）
               ├─ core/cityEffects.ts      城区影响（连续衰减的 buff/debuff）
               └─ core/geo.ts              UTM 正算、格网、射程圈
@@ -49,7 +50,7 @@ App.tsx ── TopBar / SidePanel
 
 ### v0.1–v0.4（六角格时期，已废弃）
 需求文档阶段：六角格战术—战役级兵棋、父子编制展开/收缩、指挥链路、交火摇骰、
-自然时间流逝 + 倍速暂停、战报史料系统。产出 `Docx/兵棋项目_需求规格总表_v0.4.xlsx`。
+自然时间流逝 + 倍速暂停、战报史料系统。产出 `Docx/战术地图军棋_需求规格总表_v0.4.xlsx`。
 
 ### v0.5 去网格化
 - 决策：放弃六角格，改连续坐标（米制）。原因：需要真实地图与任意位置布兵。
@@ -1120,6 +1121,61 @@ tier 系统自动接管 z14+（`index.json` 里加一条 `kind: region, maxzoom:
 
 美术 pass 2：纹理（林地/沼泽点纹）与设施符号（机场/车站/桥隧/渡口），以及标签的字重分级。
 
+### v1.33 结构整理（零行为变更）
+
+只做代码整理，不动设计、不动画面。验收标准是**同一份输入喂新旧实现，输出逐字节相同**。
+
+#### 一、样式分件
+
+`data/militaryStyle.ts` 824 行 → 131 行，其余按职责落到 `data/style/`：
+
+| 文件 | 职责 | 行数 |
+| --- | --- | --- |
+| `tokens.ts` | 跨文件共用色值与 `URBAN_KINDS` | 22 |
+| `types.ts` | `Tier` / `DemTier` / `SlopeTier` / `StyleInputs` / `FC` | 51 |
+| `widths.ts` | 线宽随缩放插值（`zoomWidth` / `railWidth` / `railNarrow`） | 32 |
+| `restyle.ts` | 底图图层改写 + 公路分级 | 225 |
+| `tier.ts` | 按 tier 复制图层、城区补层、缩放钳制 | 117 |
+| `boundary.ts` | 行政边界四级 | 61 |
+| `rail.ts` | 铁路三层 + 低倍烘焙铁路层 | 82 |
+| `contour.ts` | 等高线四层 + 数据解码 | 96 |
+| `overlay.ts` | 军用格网、射程圈图层 | 46 |
+| `militaryStyle.ts` | 只留装配：源、先后顺序、去重 | 131 |
+
+等价性证据：取真实 `tiles/base.style.json`，配双 tier、双 DEM、双坡度、等高线/铁路/格网夹具，
+对「有等高线」「无等高线」两条路径分别跑旧实现（git HEAD）与新实现，`JSON.stringify` 后
+SHA-256 完全一致（160 个图层）。图层顺序是这套代码里最容易搬错的资产，拆完必须比对，
+不能只看 tsc 通过。
+
+#### 二、死代码与类型检查
+
+`tsconfig.json` 打开 `noUnusedLocals` / `noUnusedParameters`，删掉 7 个零引用导出：
+`clampLon` / `clampLat`（markers）、`dmsOf` / `utmToLonLat`（geo）、`ALL_LAYERS`（store）、
+`MarkerDraft`（markerStore）、`CITY_R_MIN`（cityEffects）。删完 `tsc` 零错误、零调用点改动，
+反证它们确实是死码——之前一直关着这两项检查，等于放弃编译器这道防线。
+
+#### 三、工具链
+
+- `serve.mjs` / `range_serve.mjs`：根目录前缀校验补路径分隔符，`dist-evil/` 这类同前缀兄弟目录不再能穿过；
+- 启动后开浏览器由 `exec` 改 `spawn('cmd', ['/c','start','',url])`，URL 不再经 shell 解析；
+- `dev_probe` / `dev_shot` / `dev_mapshot` 三份重复的 CDP 脚手架抽成 `Tools/dev_cdp.mjs`；
+- 删除一次性补丁 `_glyph_patch.py`（功能早已进 `fetch_basemap.mjs` 的 `GLYPH_RANGES`）。
+
+#### 四、文档对账
+
+- §1 自检补 Python 分支：`strip_comments.py --check`。此前 `.mjs` 只扫 ts/tsx/js/mjs/css，
+  「Python 禁 `#` 与 docstring」一直靠人肉遵守；
+- 架构边界补 `app/src/map/`（只碰 MapLibre 实例，不持业务状态、不 import React），`data/style/` 归 data 层；
+- Readme 管线补 `bake_slope.py` 一步 + 「产物 / 命令 / 是否入库」对账表，`slope/` 入库这件事不再只藏在代码里；
+- 启动与构建统一 pnpm；`pnpm-workspace.yaml` 的占位值改成 `allowBuilds: { esbuild: true }`，
+  pnpm 11 不再因为「忽略构建脚本」把 install 的退出码顶成 1。
+
+#### 踩坑
+
+1. **搬样式代码最危险的资产是顺序，不是内容**：等高线插在「最后一个 tier 的第一个 `roads` 源图层之前」，
+   用 `inserted` 标志控制只插一次；若把这个标志挪到循环外或挪进辅助函数，图层顺序立刻变而 tsc 照过。
+2. **不要用「编译通过」证明重构无害**：这次真正的护栏是新旧输出做哈希比对；类型系统只看形状，不看顺序。
+
 ## 技术决策与原因
 
 | 决策 | 原因 |
@@ -1147,6 +1203,9 @@ tier 系统自动接管 z14+（`index.json` 里加一条 `kind: region, maxzoom:
 8. **城镇被"带状郊区"拉长到 12km**：改成"容纳 80% 面积的半径"限幅。
 9. **城镇同心圆装不下房子**：外缘改为从真实地块顶点量取，分区不再套圆。
 10. **六角格时期的地图数据全部作废**：`map_test.json`、hex 模块已删除。
+11. **换盘符后 `node_modules` 全废**：pnpm 的 junction 记的是绝对路径，项目从 `E:\` 挪到 `G:\` 后
+    `node_modules/typescript` 指向不存在的目录，`tsc` 直接 `Cannot find module`，看起来像"Node 没装"。
+    重跑 `pnpm install` 即可（只重建依赖，不动源码），不要先怀疑环境。
 
 ---
 

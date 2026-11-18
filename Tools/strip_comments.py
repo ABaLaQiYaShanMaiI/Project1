@@ -44,8 +44,20 @@ def strip_py(src):
 
 
 def has_comments(src):
-    tree_src = strip_py(src)
-    return tree_src != src
+    tree = ast.parse(src)
+    nodes = [tree]
+    for n in ast.walk(tree):
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            nodes.append(n)
+    for node in nodes:
+        body = getattr(node, "body", [])
+        if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+            if isinstance(body[0].value.value, str):
+                return True
+    for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+        if tok.type == tokenize.COMMENT:
+            return True
+    return False
 
 
 dirty = 0

@@ -7,7 +7,7 @@
 
 - 禁止：`//` 行注释、`/* */` 块注释、Python 的 `#` 注释与 docstring、JSX 里的 `{/* */}`。
 - 说明文字一律写进 `DEVLOG.md`，不写进代码。
-- 自检：`node Tools/strip_comments.mjs --check`，必须输出 `clean`。
+- 自检：`node Tools/strip_comments.mjs --check` 与 `python Tools/strip_comments.py --check`，都必须输出 `clean`。
 - 原因：控制体量；单一事实源，避免注释与代码不同步。
 
 ## 2. 体量预算
@@ -25,7 +25,8 @@
 ## 3. 架构边界
 
 - `app/src/core/` 是纯规则层：不得 import DOM、不得 import React、不得请求网络。
-- `app/src/data/` 只管数据：解析、装配、样式生成；不持有 React 状态。
+- `app/src/data/` 只管数据：解析、装配、样式生成；不持有 React 状态。样式分件放 `app/src/data/style/`。
+- `app/src/map/` 只操作 MapLibre 实例：不得持有业务状态、不得 import React、不建 DOM 面板（面板归 `ui/`）。
 - `app/src/ui/` 只画面板；游戏视图不得经过 React 逐帧驱动。
 - 数值参数集中在源文件顶部常量或 `app/public/data/*.json`，不散落在逻辑里。
 
@@ -66,4 +67,4 @@
   共享样式模板 `tiles/base.style.json`。
 - DEM：`app/public/data/dem/<key>/{z}/{x}/{y}.png` + `index.json`。
 - 等高线：`app/public/data/contours_<key>.json`。
-- 提交前必跑：`node Tools/strip_comments.mjs --check`、`npx tsc --noEmit`、`npx vite build`。
+- 提交前必跑：`node Tools/check_all.mjs`（串起两条无注释自检、行数上限、`tsc --noEmit`、`vite build`、首屏 gzip 预算）。

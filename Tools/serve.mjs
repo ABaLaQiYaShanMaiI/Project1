@@ -1,8 +1,8 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
-import { join, extname, normalize } from 'node:path';
+import { join, extname, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { exec } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { serveRange } from './range_serve.mjs';
 
 const ROOT = fileURLToPath(new URL('../app/dist', import.meta.url));
@@ -43,7 +43,7 @@ const server = createServer(async (req, res) => {
     let path = decodeURIComponent(url.pathname);
     if (path === '/' || path === '') path = '/index.html';
     const file = normalize(join(ROOT, path));
-    if (!file.startsWith(ROOT)) {
+    if (file !== ROOT && !file.startsWith(ROOT.endsWith(sep) ? ROOT : ROOT + sep)) {
       res.writeHead(403).end('forbidden');
       return;
     }
@@ -90,13 +90,13 @@ function listen(port, tries = 12) {
     console.log('  已启动：' + url);
     console.log('  （关闭本窗口即停止服务）');
     console.log('');
-    if (OPEN_BROWSER) exec(`start "" "${url}"`);
+    if (OPEN_BROWSER) spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
   });
 }
 
 if (!(await exists(join(ROOT, 'index.html')))) {
   console.error('找不到 app/dist/index.html');
-  console.error('请先构建：cd app && npm run build');
+  console.error('请先构建：cd app && pnpm build');
   process.exit(1);
 }
 

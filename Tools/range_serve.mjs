@@ -1,6 +1,6 @@
 import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
-import { join, normalize, extname } from 'node:path';
+import { join, normalize, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PUBLIC = fileURLToPath(new URL('../app/public', import.meta.url));
@@ -18,7 +18,7 @@ export async function serveRange(root, req, res, prefix = '/data/tiles/') {
   const path = decodeURIComponent(url.split('?')[0]);
   const base = normalize(root);
   const file = normalize(join(base, path));
-  if (!file.startsWith(base)) {
+  if (file !== base && !file.startsWith(base.endsWith(sep) ? base : base + sep)) {
     res.writeHead(403).end('forbidden');
     return true;
   }

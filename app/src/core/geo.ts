@@ -53,59 +53,12 @@ export function utmIn(zone: number, lat: number, lon: number): Utm {
   return { zone, band, easting, northing, hemisphere: south ? 'S' : 'N' };
 }
 
-export function utmToLonLat(zone: number, easting: number, northing: number, south: boolean): [number, number] {
-  const x = easting - 500000;
-  const y = south ? northing - 10000000 : northing;
-  const e1 = (1 - Math.sqrt(1 - E2)) / (1 + Math.sqrt(1 - E2));
-  const mu = y / K0 / (A * (1 - E2 / 4 - (3 * E2 * E2) / 64 - (5 * E2 * E2 * E2) / 256));
-  const phi1 =
-    mu +
-    ((3 * e1) / 2 - (27 * e1 ** 3) / 32) * Math.sin(2 * mu) +
-    ((21 * e1 * e1) / 16 - (55 * e1 ** 4) / 32) * Math.sin(4 * mu) +
-    ((151 * e1 ** 3) / 96) * Math.sin(6 * mu) +
-    ((1097 * e1 ** 4) / 512) * Math.sin(8 * mu);
-  const sin1 = Math.sin(phi1);
-  const cos1 = Math.cos(phi1);
-  const tan1 = Math.tan(phi1);
-  const c1 = EP2 * cos1 * cos1;
-  const t1 = tan1 * tan1;
-  const n1 = A / Math.sqrt(1 - E2 * sin1 * sin1);
-  const r1 = (A * (1 - E2)) / (1 - E2 * sin1 * sin1) ** 1.5;
-  const d = x / (n1 * K0);
-  const lat =
-    phi1 -
-    ((n1 * tan1) / r1) *
-      (d * d / 2 -
-        ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * EP2) * d ** 4) / 24 +
-        ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * EP2 - 3 * c1 * c1) * d ** 6) / 720);
-  const lam0 = (((zone - 1) * 6 - 180 + 3) * Math.PI) / 180;
-  const lon =
-    lam0 +
-    (d -
-      ((1 + 2 * t1 + c1) * d ** 3) / 6 +
-      ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * EP2 + 24 * t1 * t1) * d ** 5) / 120) /
-      cos1;
-  return [(lon * 180) / Math.PI, (lat * 180) / Math.PI];
-}
-
 export function utmText(u: Utm, digits = 0): string {
   const e = Math.round(u.easting).toString().padStart(6, '0');
   const n = Math.round(u.northing).toString().padStart(7, '0');
   if (digits <= 0) return `${u.zone}${u.band} ${e} ${n}`;
   const k = 10 ** digits;
   return `${u.zone}${u.band} ${Math.floor(u.easting / k)} ${Math.floor(u.northing / k)}`;
-}
-
-export function dmsOf(lat: number, lon: number): string {
-  const one = (v: number, pos: string, neg: string): string => {
-    const s = v < 0 ? neg : pos;
-    const a = Math.abs(v);
-    const d = Math.floor(a);
-    const m = Math.floor((a - d) * 60);
-    const sec = ((a - d) * 60 - m) * 60;
-    return `${d}°${m.toString().padStart(2, '0')}′${sec.toFixed(1).padStart(4, '0')}″${s}`;
-  };
-  return `${one(lat, 'N', 'S')} ${one(lon, 'E', 'W')}`;
 }
 
 export function ddText(lat: number, lon: number): string {

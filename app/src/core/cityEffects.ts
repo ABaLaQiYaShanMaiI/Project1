@@ -25,7 +25,6 @@ export const MOD_LABEL: Record<keyof CityMods, string> = {
 };
 
 export const CITY_FADE = 1.25;
-export const CITY_R_MIN = 2000;
 
 export function urbanWeight(distM: number, radiusM: number): number {
   if (radiusM <= 0) return 0;

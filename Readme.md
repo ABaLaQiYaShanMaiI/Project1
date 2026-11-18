@@ -28,7 +28,7 @@
 
 ```bash
 # 双击 启动游戏.bat，或
-cd app && npm install && npm run dev
+cd app && pnpm install && pnpm dev
 ```
 
 打开 <http://127.0.0.1:5183/>。**不要直接双击 `app/index.html`**：`file://` 下模块与 `fetch`
@@ -84,32 +84,49 @@ python Tools/bake_dem.py --bbox=8.849,50.240,10.591,51.000 --key=fulda --zmin=9 
 # 5) 等高线矢量（需要该区域 DEM 已烘好）
 python Tools/bake_contours.py --key=fulda --bbox=8.849,50.240,10.591,51.000
 
-# 6) 低倍铁路层（底图 z10 以下没有 rail，必须单独烘）
+# 6) 坡度通行瓦片（需要对应 DEM 已烘好；产物按分类着色，不是高程）
+python Tools/bake_slope.py --key=world
+python Tools/bake_slope.py --key=fulda
+
+# 7) 低倍铁路层（底图 z10 以下没有 rail，必须单独烘）
 node Tools/bake_rail.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=11 --out=app/public/data/rails_fulda.json
 
-# 7) 城区核心包（z14–15，高倍真实建筑；每城 3 MB 级）
+# 8) 城区核心包（z14–15，高倍真实建筑；每城 3 MB 级）
 Tools\bin\pmtiles.exe extract "E:\PersonalGame\v4.pmtiles" "app\public\data\tiles\fulda_core.pmtiles" --bbox=9.615,50.492,9.735,50.612 --minzoom=14 --maxzoom=15
 
-# 8) 城镇索引（城区影响场的唯一数据：全世界 5,615 座城 / 145 KB）
+# 9) 城镇索引（城区影响场的唯一数据：全世界 5,615 座城 / 145 KB）
 node Tools/bake_cities.mjs
 node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 --kinds=city,town,village --out=app/public/data/cities_fulda.json
 ```
 
-`app/public/data/tiles/` 与 `app/public/data/dem/` 不入库（体积大），换机器重跑上面几步即可；
-`contours_*.json` 体积小，入库。
+产物、生成命令与入库策略对账表：
 
-烘焙完数据后要 `cd app && npm run build`（服务读的是 `app/dist`），再刷新页面。
+| 产物 | 生成命令 | 入库 |
+| --- | --- | --- |
+| `tiles/*.pmtiles`、`tiles/index.json`、`base.style.json`、`glyphs/` | `node Tools/fetch_basemap.mjs`、`Tools\bin\pmtiles.exe extract` | 否（体积大） |
+| `dem/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_dem.py` | 否（体积大） |
+| `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | 是（5.9 MB，缺则「坡度通行」静默不出图） |
+| `contours_<key>.json` | `python Tools/bake_contours.py` | 是 |
+| `rails_<key>.json` | `node Tools/bake_rail.mjs` | 是 |
+| `cities.json`、`cities_<key>.json` | `node Tools/bake_cities.mjs` | 是 |
+
+`tiles/` 与 `dem/` 不入库（体积大），换机器重跑对应命令即可；其余产物体积小且入库，
+其中 `slope/` 仍建议换机器后重跑一遍 `bake_slope.py`，以对齐该机的 DEM 版本。
+
+烘焙完数据后要 `cd app && pnpm build`（服务读的是 `app/dist`），再刷新页面。
 
 ## 目录
 
 | 路径 | 说明 |
 | --- | --- |
 | `app/src/WorldMapLibre.tsx` | 世界地图主体：tier 装配、图层开关、格网、射程圈、读数 |
-| `app/src/data/militaryStyle.ts` | 军事地形样式：按 tier 复制图层、交通线分级、等高线/格网/射程圈 |
+| `app/src/data/militaryStyle.ts` | 军事地形样式装配：源与图层的先后顺序、去重 |
+| `app/src/data/style/` | 样式分件：`tokens` 共用色值 / `restyle` 底图改写 / `tier` 分层复制 / `rail` `boundary` `contour` `overlay` / `widths` 线宽插值 |
 | `app/src/data/pmtilesBasemap.ts` | Pmtiles 协议、`index.json`、`zonesAt()` / `tierBands()` |
 | `app/src/data/terrain.ts` | DEM 采样（高程 / 坡度 / 坡向） |
 | `app/src/core/geo.ts` | UTM 正算、格网生成、射程圈 |
 | `app/src/core/cityEffects.ts` | 城区影响：半径、衰减、规模系数、五项修饰 |
+| `app/src/map/measureTool.ts` | 测距：距离 / 方位 / 高差 / 地形剖面 |
 | `app/src/map/cityDamage.ts` | 城区战损：canvas 斜纹图案、按街区哈希、idle 刷新 |
 | `app/src/data/damageStore.ts` | 战损等级存档（`city.damage.v1`） |
 | `app/src/data/cities.ts` | 城镇索引（base64 二进制 + 0.5° 桶索引，含名字） |
@@ -118,8 +135,11 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 | `Tools/bake_rail.mjs` | 从区域包抽低倍铁路线（RDP 简化 + 去重） |
 | `Tools/fetch_basemap.mjs` | 取 CLI → 裁 bbox 或全球 → 出 style / 字形 / index |
 | `Tools/bake_dem.py` | DEM 瓦片（terrarium） |
+| `Tools/bake_slope.py` | 坡度通行瓦片（DEM 差分 → 分级着色） |
 | `Tools/bake_contours.py` | 等高线矢量（marching squares + 折线缝合 + 标注锚点） |
 | `Tools/serve.mjs` | 零依赖静态服务器（含 `.pmtiles` 的 HTTP Range） |
+| `Tools/check_all.mjs` | 一键自检：无注释 / 行数 / 类型 / 构建 / 首屏 gzip 预算 |
+| `Tools/dev_cdp.mjs` | 三个 dev 脚本共用的 CDP 连接与截图封装 |
 | `Tools/dev_mapshot.mjs` | 取 MapLibre 画布真实帧（headless 截图对 WebGL 不可靠） |
 
 ## 数据来源与许可

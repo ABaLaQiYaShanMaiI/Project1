@@ -76,8 +76,6 @@ export const LAYER_TREE: LayerGroup[] = [
   },
 ];
 
-export const ALL_LAYERS = LAYER_TREE.flatMap((g) => g.items.map((i) => i.key));
-
 const LAYER_DEFAULT: Record<string, boolean> = {
   relief: true,
   contour: true,
