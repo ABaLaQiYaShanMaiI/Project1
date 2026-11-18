@@ -1,4 +1,4 @@
-﻿# 地图设计（MAP DESIGN）
+# 地图设计（MAP DESIGN）
 
 目标：**一张离线、可缩放、能用于军事判读的世界地图**。
 分层采纳，不追求全球高精度；细节按区域叠加。
@@ -8,12 +8,17 @@
 ## 一、分层结构
 
 ```
-L0 全球      tiles/world.pmtiles   z0-z6    ~44 MB    全世界始终有图
-L1 大区      tiles/europe.pmtiles  z6-z8    ~30-60 MB 战役尺度（按需）
-L2 热点      tiles/fulda.pmtiles   z9-z13   42 MB     战术尺度（已有）
-地形        dem/world z0-z5（86 MB） + dem/fulda z9-z11
+L0 全球      tiles/world.pmtiles      z0-z6    42 MB     全世界始终有图
+L1 大区      tiles/europe.pmtiles     z6-z8    106 MB    战役尺度（已落地）
+L2 热点      tiles/fulda.pmtiles      z0-z13   42 MB     战术尺度
+L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
+地形        dem/world z0-z5（86 MB） + dem/europe z6-z8（21 MB） + dem/fulda z9-z11（15 MB）
+坡度        slope/world z0-z5（3.6 MB） + slope/europe z6-z8（5.0 MB） + slope/fulda z9-z11（2.0 MB）
 判读        contours_<key>.json、运行时 UTM 格网、射程圈
 ```
+
+四包同时在场时 307 个 style 图层。区域包不再截断到 2 个（v1.34 前 `MAX_REGION_TIERS = 2`
+会把 europe 静默丢掉，导致 z7–8 只能用 world z6 overzoom）。
 
 装配规则（`data/pmtilesBasemap.ts`）：
 
@@ -116,7 +121,7 @@ z5–11 只画它；全球范围的低倍铁路仍待做（见 §十 待办）�
 | 拖动 / 缩放 | 60 FPS |
 
 真实瓶颈是**瓦片请求**而不是绘制：`pmtiles://` 按视口做 Range 读取，图层数量（每层一套）会
-线性增加请求。目前 2 层 x 约 70 图层仍稳定。
+线性增加请求。目前 4 层 × 约 77 图层（307 个 style 图层）仍稳定。
 
 ## 九、历史方案（已废弃）
 

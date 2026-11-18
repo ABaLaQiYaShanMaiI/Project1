@@ -25,16 +25,35 @@ interface Loaded {
   size: number;
 }
 
+interface Layer {
+  man: DemTiles;
+  z: number;
+  cache: Map<string, Loaded>;
+  pending: Set<string>;
+  failed: Set<string>;
+  order: string[];
+}
+
+const MAX_CACHED = 48;
+
 export class DemSampler {
-  private cache = new Map<string, Loaded>();
-  private pending = new Set<string>();
-  private failed = new Set<string>();
-  private order: string[] = [];
+  private layers: Layer[];
   private listeners = new Set<() => void>();
   readonly zoom: number;
 
-  constructor(readonly man: DemTiles) {
-    this.zoom = man.maxzoom;
+  constructor(mans: DemTiles | DemTiles[]) {
+    const list = Array.isArray(mans) ? mans : [mans];
+    this.layers = list
+      .map((man) => ({
+        man,
+        z: man.maxzoom,
+        cache: new Map<string, Loaded>(),
+        pending: new Set<string>(),
+        failed: new Set<string>(),
+        order: [] as string[],
+      }))
+      .sort((a, b) => b.z - a.z);
+    this.zoom = this.layers.length ? this.layers[0].z : 0;
   }
 
   subscribe(fn: () => void): () => void {
@@ -46,8 +65,20 @@ export class DemSampler {
     for (const fn of this.listeners) fn();
   }
 
-  private tileUrl(z: number, x: number, y: number): string {
-    return this.man.tiles.replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y));
+  private inside(layer: Layer, lat: number, lon: number): boolean {
+    const [w, s, e, n] = layer.man.bbox;
+    return lon >= w && lon <= e && lat >= s && lat <= n;
+  }
+
+  private pick(lat: number, lon: number): Layer | null {
+    for (const layer of this.layers) {
+      if (this.inside(layer, lat, lon)) return layer;
+    }
+    return null;
+  }
+
+  private tileUrl(layer: Layer, z: number, x: number, y: number): string {
+    return layer.man.tiles.replace('{z}', String(z)).replace('{x}', String(x)).replace('{y}', String(y));
   }
 
   private tileOf(lat: number, lon: number, z: number): { x: number; y: number; fx: number; fy: number } {
@@ -58,12 +89,12 @@ export class DemSampler {
     return { x: Math.floor(wx), y: Math.floor(wy), fx: wx - Math.floor(wx), fy: wy - Math.floor(wy) };
   }
 
-  private load(z: number, x: number, y: number): Loaded | null {
+  private load(layer: Layer, z: number, x: number, y: number): Loaded | null {
     const key = `${z}/${x}/${y}`;
-    const hit = this.cache.get(key);
+    const hit = layer.cache.get(key);
     if (hit) return hit;
-    if (this.pending.has(key) || this.failed.has(key)) return null;
-    this.pending.add(key);
+    if (layer.pending.has(key) || layer.failed.has(key)) return null;
+    layer.pending.add(key);
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -72,32 +103,34 @@ export class DemSampler {
       cv.height = img.height;
       const ctx = cv.getContext('2d', { willReadFrequently: true });
       if (!ctx) {
-        this.pending.delete(key);
-        this.failed.add(key);
+        layer.pending.delete(key);
+        layer.failed.add(key);
         return;
       }
       ctx.drawImage(img, 0, 0);
       const data = ctx.getImageData(0, 0, img.width, img.height).data;
-      this.cache.set(key, { data, size: img.width });
-      this.order.push(key);
-      this.pending.delete(key);
-      while (this.order.length > 48) {
-        const old = this.order.shift();
-        if (old) this.cache.delete(old);
+      layer.cache.set(key, { data, size: img.width });
+      layer.order.push(key);
+      layer.pending.delete(key);
+      while (layer.order.length > MAX_CACHED) {
+        const old = layer.order.shift();
+        if (old) layer.cache.delete(old);
       }
       this.emit();
     };
     img.onerror = () => {
-      this.pending.delete(key);
-      this.failed.add(key);
+      layer.pending.delete(key);
+      layer.failed.add(key);
     };
-    img.src = this.tileUrl(z, x, y);
+    img.src = this.tileUrl(layer, z, x, y);
     return null;
   }
 
   private pixel(lat: number, lon: number): number | null {
-    const t = this.tileOf(lat, lon, this.zoom);
-    const tile = this.load(this.zoom, t.x, t.y);
+    const layer = this.pick(lat, lon);
+    if (!layer) return null;
+    const t = this.tileOf(lat, lon, layer.z);
+    const tile = this.load(layer, layer.z, t.x, t.y);
     if (!tile) return null;
     const px = Math.min(tile.size - 1, Math.max(0, Math.floor(t.fx * tile.size)));
     const py = Math.min(tile.size - 1, Math.max(0, Math.floor(t.fy * tile.size)));
@@ -115,7 +148,9 @@ export class DemSampler {
   }
 
   sample(lat: number, lon: number): { elevation: number; slope: number; aspect: number } | null {
-    const d = this.groundResolution(lat);
+    const layer = this.pick(lat, lon);
+    if (!layer) return null;
+    const d = (MERC * Math.cos((lat * Math.PI) / 180)) / 2 ** layer.z;
     const dLat = (4 * d) / 111320;
     const dLon = dLat / Math.max(0.2, Math.cos((lat * Math.PI) / 180));
     const z0 = this.elevation(lat, lon);

@@ -1176,6 +1176,87 @@ SHA-256 完全一致（160 个图层）。图层顺序是这套代码里最容�
    用 `inserted` 标志控制只插一次；若把这个标志挪到循环外或挪进辅助函数，图层顺序立刻变而 tsc 照过。
 2. **不要用「编译通过」证明重构无害**：这次真正的护栏是新旧输出做哈希比对；类型系统只看形状，不看顺序。
 
+### v1.34 判读要素解绑与多层装配修复
+
+#### 一、格网与射程圈不再依赖等高线
+
+`militaryStyle()` 里 `grid` / `rings` 两个 source 与四张图层原本整块包在 `if (inp.contours)` 内：
+只要某个区域包没烘 `contours_<key>.json`，UTM 格网和射程圈会**整体消失且无提示**，
+`WorldMapLibre` 的格网重建 effect 拿不到 source 就静默 return。这直接踩 CONSTRAINTS §6
+「判读要素常驻」。改成无条件装配（无等高线时 `contours` 源不建，格网源给空 FC）。
+
+#### 二、测距剖面不再要求点第三次
+
+`installMeasure()` 在**地图初始化那一刻**取 `getSampler()`，而此时 DEM 还没构造，拿到的必然是 null，
+于是订阅永远是空函数——DEM 就绪后剖面不会重算，用户必须再点一次点才看到图。
+改为：`render()` 时懒订阅（首次拿到 sampler 就挂监听），并把返回值改成
+`{ dispose, refresh }`；`WorldMapLibre` 在 sampler 建好后调 `refresh()`，卸载时调 `dispose()`，
+顺带修掉开发态 StrictMode 双挂载残留一套按钮/面板的问题。
+
+#### 三、区域包不再截断到 2 个
+
+`zonesInBounds()` 里 `MAX_REGION_TIERS = 2` 会把重叠包截到两个（按 maxzoom 取最后两个）。
+富尔达视图内 europe(8) 与 fulda(13)、core(15) 同时命中，结果 **europe 被静默丢掉**：
+z7–8 退化成 world z6 overzoom，而 europe 那 106 MB 白躺在盘上。删除截断后四包同时装配：
+world z0–6 / europe z7–8 / fulda z9–13 / core z14–15，307 个 style 图层，徽标显示
+`全球 z0–6 + 欧洲 z6–8 + 富尔达缺口 z0–13 + Fulda core z14–15 · 193.3 MB`。
+
+观感变化：z7 起德国全境的村镇标注密度明显上来（原来是 z6 拉伸），这是真实数据，不是样式改动。
+
+#### 验证
+
+- `Tools/check_all.mjs` 7 项全绿（首屏 48.6 KB gzip，最大单文件 665 行）；
+- headless Edge 实测：4 包装配 / 307 图层 / 格网要素 2 条；
+- 测距面板：两次点击后剖面 SVG 直接出现，`地形数据加载中…` 不再常驻。
+
+#### 遗留
+
+图上仅富尔达 bbox 有 DEM，点选到 bbox 外的点仍显示 `高程 —`；要解决得补 `dem/europe z6–z8`
+或按区域扩 DEM 覆盖。
+
+### v1.35 中欧 DEM 与多源高程采样
+
+#### 一、补烘 dem/europe z6–z8
+
+之前高程只有 `world`(z0–5) 与 `fulda`(z9–11)：z6–8 全靠 z5 overzoom，富尔达 bbox 之外更是
+根本没有 DEM，读数永久停在「高程 …」。这次按中欧 `0,44,20,56` 烘了 z6–8：
+
+| 项 | 实测 |
+| --- | --- |
+| 瓦片 | 309 张（z6 20 / z7 64 / z8 225） |
+| 体积 | 20.64 MB |
+| 耗时 | 约 3 分钟（10 线程，AWS terrarium） |
+| 坡度 | `slope/europe` 309 张 / 5.03 MB（2.7 s） |
+| DEM 总量 | 86 + 21 + 15 = **122 MB**，仍在 CONSTRAINTS §2 的 200 MB 预算内 |
+
+坡度的 z 范围由 `dem/europe/index.json` 自动推出，不用再传参数。
+
+#### 二、高程采样器改成多源
+
+`DemSampler` 原来只吃一个 `DemTiles`，而 `WorldMapLibre` 里 `pickDem` 只取**一个**区域包：
+只要有 europe DEM，富尔达也会被降级成 z8 采样；反之不取 europe，bbox 外就永远没高程。
+
+改成：`DemSampler` 接受多个 `DemTiles`，内部按 `maxzoom` 降序存放，采样时**取第一个
+「bbox 命中该点」的层**。于是富尔达内用 z11、中欧用 z8、其余用 z5，缓存与请求也各自独立
+（每层 48 张的 LRU）。
+
+同时顺带修掉一类无谓请求：点落在所有 bbox 之外时直接返回 `null`，不再发注定 404 的瓦片请求。
+
+#### 验证
+
+- `Tools/check_all.mjs` 7 项全绿（最大数据文件 1.37 MB，首屏 48.6 KB）；
+- 读数实测：法兰克福 `50.10841, 8.68179` → **高程 98 m / 坡度 1% / 坡向 南**（此前是 `—`）；
+  富尔达城心 268 m（走 fulda z11），两地各自用对了层；
+- 网络实测：只请求 `dem/europe/8/...` 与 `dem/world/5/...`，未再出现大面积 404；
+- **headless Edge 的 SwiftShader 不画 hillshade**：把三类 hillshade 层全设 `visibility:none`
+  后 canvas 的 PNG 哈希完全不变，所以晕渲锐度这次无法用截图验证，需要在真实浏览器里肉眼确认。
+
+#### 遗留
+
+- 中欧以外仍无 z6–8 DEM（伊比利亚、东欧、北非）；要全覆盖得按同样方式再烘几块；
+- z9–12 的**矢量**仍只有富尔达，德国其余地区在 z9 以上还是 europe z8 拉伸；
+  下一步可用 `v4.pmtiles` 母包再切一个德国 z9–11 包（离线，母包在 `G:\PersonalGame\v4.pmtiles`）。
+
 ## 技术决策与原因
 
 | 决策 | 原因 |
@@ -1206,6 +1287,12 @@ SHA-256 完全一致（160 个图层）。图层顺序是这套代码里最容�
 11. **换盘符后 `node_modules` 全废**：pnpm 的 junction 记的是绝对路径，项目从 `E:\` 挪到 `G:\` 后
     `node_modules/typescript` 指向不存在的目录，`tsc` 直接 `Cannot find module`，看起来像"Node 没装"。
     重跑 `pnpm install` 即可（只重建依赖，不动源码），不要先怀疑环境。
+12. **这台机器原先根本没装 Node**：只有 DSH 内置的 electron 运行时（`ELECTRON_RUN_AS_NODE=1` 可当 node 用），
+    `where node` 为空导致 `启动游戏.bat` 第一道检查就退出。C 盘只剩 2.7 GB，所以装到了 D 盘：
+    `D:\Tools\node`（官网 zip 便携版，无注册表、无 MSI，删目录即可回退），只往用户 PATH 追加两项
+    （`D:\Tools\node`、`D:\Tools\npm-global`），PATH 改动前已备份到 `D:\Tools\env-backup\`。
+    npm 的 prefix/cache 与 pnpm store 一并迁出 C：`D:\Tools\npm-global`、`D:\Tools\npm-cache`、
+    `G:\.pnpm-store`。
 
 ---
 

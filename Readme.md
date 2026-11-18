@@ -13,16 +13,29 @@
 
    | 层 | 范围 | 缩放 | 体积 | 作用 |
    | --- | --- | --- | --- | --- |
-   | L0 全球 | 全世界 | z0–z6 | ≈ 44 MB | 大洲、国界、主要道路与铁路、城市 |
-   | L1 大区 | 按需（欧洲等） | z6–z8 | ≈ 30–60 MB | 战役尺度路网与中小城市 |
-   | L2 热点 | 按需（富尔达） | z9–z13 | 42 MB | 二级路、街区、建筑 |
+   | L0 全球 | 全世界 | z0–z6 | 42 MB | 大洲、国界、主要道路与铁路、城市 |
+   | L1 大区 | 欧洲 | z6–z8 | 106 MB | 战役尺度路网与中小城市 |
+   | L2 热点 | 富尔达 | z0–z13 | 42 MB | 二级路、街区、建筑 |
+   | L3 城区核心 | 富尔达镇区 | z14–z15 | 3.2 MB | 真实建筑与街道 |
 
-   层级由 `zonesAt()` + `tierBands()` 自动装配：**后一层从上一层的 maxzoom+1 接管**，
-   加一个区域包就多一层细节，前端不用改。
+   层级由 `zonesInBounds()` + `tierBands()` 自动装配：**后一层从上一层的 maxzoom+1 接管**，
+   加一个区域包就多一层细节，前端不用改。四包同时在场时约 307 个 style 图层（v1.34 起不再截断到 2 个区域包）。
 3. **离线优先。** 底图、高程、字体、等高线一律本地文件；不请求任何第三方服务。
 4. **军事判读优先于装饰。** 只强调主干交通与铁路；次要道路淡化并在 `minzoom 13` 后才出现，
    避免干扰读图。常驻 UTM 格网、高程/坡度/坡向读数、射程圈。
 5. **代码无注释、单一事实源。** 说明文字只写进文档（`CONSTRAINTS.md` §1）。
+
+## 环境
+
+| 依赖 | 版本 | 位置（本机） |
+| --- | --- | --- |
+| Node.js | ≥ 18（当前 v26.13.1 LTS） | `D:\Tools\node`（便携版，已进用户 PATH） |
+| pnpm | 11.8.0 | `D:\Tools\npm-global`（npm 全局装） |
+| Python | 3.13 + numpy / Pillow / requests / openpyxl | `D:\Python313` |
+| pmtiles CLI | 随仓库 | `Tools\bin\pmtiles.exe` |
+
+npm 缓存与 pnpm store 都不在 C 盘：`npm config get cache` → `D:\Tools\npm-cache`，
+`pnpm store path` → `G:\.pnpm-store`。装完 Node 后需要**新开一个终端**才生效。
 
 ## 启动
 
@@ -39,11 +52,14 @@ cd app && pnpm install && pnpm dev
 | 图层 | 数据 | 说明 |
 | --- | --- | --- |
 | 全球矢量 | `tiles/world.pmtiles` | z0–z6，全世界都有图 |
+| 大区矢量 | `tiles/europe.pmtiles` | 欧洲 bbox 内 z6–z8（106 MB），战役尺度路网与中小城市 |
 | 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z9–13 接管 |
 | 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |
+| 大区晕渲 | `dem/europe` z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，z6–8 的真实高程，不再用 z5 overzoom |
 | 区域晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲 |
-| 等高线 | `contours_fulda.json` | 50 m 等高距 / 250 m 计曲线 + 高程标注 |
+| 坡度通行 | `slope/world` z0–z5、`slope/europe` z6–z8、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色，默认关闭 |
+| 等高线 | `contours_fulda.json` | 25 m 等高距 / 125 m 计曲线 + 高程标注 |
 | 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），z11 起出现；次级 z12（城区大路）；支路 z13 |
 | 铁路 | `rails_fulda.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，最粗、压最上层；z5–11 用烘焙层（底图 z10 以下没有 rail），z11 起用瓦片 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |

@@ -68,10 +68,17 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, style: string, text?:
   return node;
 }
 
-export function installMeasure(map: MlMap, getSampler: () => DemSampler | null): () => void {
+export interface MeasureHandle {
+  dispose: () => void;
+  refresh: () => void;
+}
+
+export function installMeasure(map: MlMap, getSampler: () => DemSampler | null): MeasureHandle {
   let active = false;
   let a: GeoPoint | null = null;
   let b: GeoPoint | null = null;
+  let unsub: (() => void) | null = null;
+  let subscribed: DemSampler | null = null;
 
   const button = el(
     'button',
@@ -159,6 +166,11 @@ export function installMeasure(map: MlMap, getSampler: () => DemSampler | null):
       return;
     }
     const sampler = getSampler();
+    if (sampler && sampler !== subscribed) {
+      unsub?.();
+      subscribed = sampler;
+      unsub = sampler.subscribe(render);
+    }
     const d = distanceM(a, b);
     const brg = (bearingDeg(a, b) + 360) % 360;
     const values = profile(sampler, a, b, 64);
@@ -229,14 +241,19 @@ export function installMeasure(map: MlMap, getSampler: () => DemSampler | null):
   map.on('click', onClick);
   map.on('styledata', onStyleData);
 
-  const sampler = getSampler();
-  const unsub = sampler ? sampler.subscribe(render) : () => {};
-
-  return () => {
-    unsub();
-    map.off('click', onClick);
-    map.off('styledata', onStyleData);
-    button.remove();
-    panel.remove();
+  return {
+    dispose: () => {
+      unsub?.();
+      unsub = null;
+      subscribed = null;
+      map.off('click', onClick);
+      map.off('styledata', onStyleData);
+      button.remove();
+      panel.remove();
+    },
+    refresh: () => {
+      draw();
+      render();
+    },
   };
 }

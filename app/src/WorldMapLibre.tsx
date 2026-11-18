@@ -20,7 +20,7 @@ import { DemSampler, loadDemManifest } from './data/terrain';
 import { loadCityDex, type CityDex } from './data/cities';
 import { cityKey } from './data/damageStore';
 import { createCityDamage, type DamageDisc, type DamageLayer } from './map/cityDamage';
-import { installMeasure } from './map/measureTool';
+import { installMeasure, type MeasureHandle } from './map/measureTool';
 import {
   contourGeoJson,
   militaryStyle,
@@ -140,6 +140,7 @@ export function WorldMapLibre(): JSX.Element {
   const ringsRef = useRef(false);
   const dexRef = useRef<CityDex | null>(null);
   const damageRef = useRef<DamageLayer | null>(null);
+  const measureRef = useRef<MeasureHandle | null>(null);
   const damageModeRef = useRef(false);
   const [damageMode, setDamageMode] = useState(false);
 
@@ -174,7 +175,7 @@ export function WorldMapLibre(): JSX.Element {
     (window as unknown as Record<string, unknown>).__ml = map;
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left');
-    installMeasure(map, () => samplerRef.current);
+    measureRef.current = installMeasure(map, () => samplerRef.current);
     map.addControl(new AttributionControl({ compact: true }));
 
     const sync = () => {
@@ -266,6 +267,8 @@ export function WorldMapLibre(): JSX.Element {
     return () => {
       if (raf) cancelAnimationFrame(raf);
       unsub();
+      measureRef.current?.dispose();
+      measureRef.current = null;
       for (const mk of markersRef.current.values()) mk.remove();
       markersRef.current.clear();
       map.remove();
@@ -396,17 +399,18 @@ export function WorldMapLibre(): JSX.Element {
       damageRef.current.refresh(damageDiscs(store.damage));
       damageRef.current.setVisible(Boolean(store.layers.damage));
 
-      const regionDem = demTiers.find((d) => !d.id.startsWith('world'));
-      const pickDem = regionDem ?? demTiers.find((d) => d.id.startsWith('world'));
-      samplerRef.current = pickDem
-        ? new DemSampler({
-            tiles: pickDem.tiles,
-            minzoom: pickDem.minzoom,
-            maxzoom: pickDem.maxzoom,
-            bbox: pickDem.bounds,
-          })
+      samplerRef.current = demTiers.length
+        ? new DemSampler(
+            demTiers.map((d) => ({
+              tiles: d.tiles,
+              minzoom: d.minzoom,
+              maxzoom: d.maxzoom,
+              bbox: d.bounds,
+            })),
+          )
         : null;
       if (samplerRef.current) samplerRef.current.subscribe(() => resampleRef.current());
+      measureRef.current?.refresh();
 
       store.setBasemap({
         name: focus.name,

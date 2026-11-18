@@ -83,9 +83,9 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
 
   if (inp.contours) {
     sources.contours = { type: 'geojson', data: inp.contours };
-    sources.grid = { type: 'geojson', data: inp.grid ?? { type: 'FeatureCollection', features: [] } };
-    sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
   }
+  sources.grid = { type: 'geojson', data: inp.grid ?? { type: 'FeatureCollection', features: [] } };
+  sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
 
   const contours = inp.contours ? contourLayers() : [];
 
@@ -116,7 +116,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
   if (slopeLayers.length) out.push(...slopeLayers);
 
-  if (inp.contours) out.push(...gridLayers(), ...ringLayers());
+  out.push(...gridLayers(), ...ringLayers());
 
   const seen = new Set<string>();
   const deduped = out.filter((layer) => {
