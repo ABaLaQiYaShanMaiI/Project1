@@ -1,3 +1,5 @@
+import { cityMods, urbanWeight, type CityZone } from '../core/cityEffects';
+
 export interface CityDisc {
   lon: number;
   lat: number;
@@ -92,4 +94,19 @@ export async function loadCityDex(regionKeys: string[]): Promise<CityDex> {
     points.push(...decodeCities(doc));
   }
   return new CityDex(points);
+}
+export function cityZoneAt(dex: CityDex | null, lon: number, lat: number): CityZone | null {
+  if (!dex) return null;
+  const hit = dex.nearest(lon, lat);
+  if (!hit) return null;
+  const weight = urbanWeight(hit.distM, hit.city.r);
+  if (weight <= 0.02) return null;
+  return {
+    name: hit.city.name,
+    lon: hit.city.lon,
+    lat: hit.city.lat,
+    r: hit.city.r,
+    weight,
+    mods: cityMods(weight, hit.city.r),
+  };
 }

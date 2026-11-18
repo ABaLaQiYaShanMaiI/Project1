@@ -34,7 +34,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       source: `${sl.id}-slope`,
       minzoom: Math.max(sl.styleMin, sl.minzoom),
       maxzoom: 22,
-      paint: { 'raster-opacity': 0.42, 'raster-resampling': 'linear' },
+      paint: { 'raster-opacity': 0.85, 'raster-resampling': 'linear' },
     });
   }
 
@@ -91,12 +91,17 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   const contours = inp.contours ? contourLayers() : [];
 
   let reliefPlaced = false;
+  let slopePlaced = false;
   const last = inp.tiers.length - 1;
   inp.tiers.forEach((tier, i) => {
     const suffix = i === 0 ? '' : `__${tier.id}`;
     let inserted = false;
     for (const layer of tierLayers(inp.base, tier, suffix)) {
       const sl = String(layer['source-layer']);
+      if (i === 0 && !slopePlaced && slopeLayers.length && sl === 'roads') {
+        out.push(...slopeLayers);
+        slopePlaced = true;
+      }
       if (contours.length && i === last && !inserted && sl === 'roads') {
         out.push(...contours);
         inserted = true;
@@ -115,7 +120,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (inp.railsLow) out.push(...railLowLayers());
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
-  if (slopeLayers.length) out.push(...slopeLayers);
+  if (!slopePlaced && slopeLayers.length) out.push(...slopeLayers);
 
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
 

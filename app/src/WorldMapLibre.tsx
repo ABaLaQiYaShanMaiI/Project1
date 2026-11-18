@@ -13,15 +13,16 @@ import {
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useStore, store } from './hooks';
-import type { LayerKey } from './store';
-import { SIDE_COLOR, type Marker } from './core/markers';
+import { markerElement } from './map/markerElement';
+import { bearingLabel, buildReadout, type Readout } from './map/readout';
+import { groupOf } from './data/style/layerGroups';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
-import { MOD_KEYS, MOD_LABEL, cityMods, fmtMod, urbanWeight, type CityZone } from './core/cityEffects';
+import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
-import { loadCityDex, type CityDex } from './data/cities';
+import { cityZoneAt, loadCityDex, type CityDex } from './data/cities';
 import { cityKey } from './data/damageStore';
-import { createCityDamage, type DamageDisc, type DamageLayer } from './map/cityDamage';
-import { installMeasure, type MeasureHandle } from './map/measureTool';
+import { createCityDamage, damageDiscs, type DamageLayer } from './map/cityDamage';
+import { MeasurePanel } from './ui/MeasurePanel';
 import {
   contourGeoJson,
   militaryStyle,
@@ -29,14 +30,13 @@ import {
   type DemTier,
   type SlopeTier,
   type FC,
-  type Tier,
 } from './data/militaryStyle';
 import {
   loadBaseStyle,
   loadPmtilesZones,
-  pmtilesUrl,
   registerPmtiles,
   tierBands,
+  tierOf,
   zonesInBounds,
   type PmtilesZone,
 } from './data/pmtilesBasemap';
@@ -61,74 +61,27 @@ async function getJson<T>(url: string): Promise<T | null> {
   }
 }
 
-interface Readout {
-  lat: number;
-  lon: number;
-  elevation: number | null;
-  slope: number | null;
-  aspect: number | null;
+interface SlopeManifest {
+  tiles: string;
+  minzoom: number;
+  maxzoom: number;
+  bbox: [number, number, number, number];
 }
 
-function markerEl(m: Marker, onDelete: (id: string) => void): HTMLDivElement {
-  const el = document.createElement('div');
-  el.className = 'ml-unit';
-  const c = SIDE_COLOR[m.side];
-  el.style.borderColor = c.stroke;
-  el.style.background = c.fill;
-  el.style.color = c.text;
-  el.textContent = m.label;
-  el.title = `${m.label}（拖动移动 · 右键删除）`;
-  el.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onDelete(m.id);
-  });
-  return el;
+interface RailsDoc {
+  lines?: [number, number][][];
 }
 
-function bearing(deg: number): string {
-  const dirs = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
-  return dirs[Math.round(deg / 45) % 8];
+interface PoiDoc {
+  points?: Array<{ o: number; l: number; k: string }>;
 }
 
-function tierOf(zone: PmtilesZone, _index: number, from: number): Tier {
-  const isWorld = zone.kind === 'world';
-  return {
-    id: isWorld ? 'world' : `detail_${zone.key}`,
-    url: pmtilesUrl(zone.file),
-    bounds: zone.bbox,
-    minzoom: zone.minzoom,
-    maxzoom: zone.maxzoom,
-    styleMin: from,
-    styleMax: 22,
-  };
-}
-
-
-function cityZoneAt(dex: CityDex | null, lon: number, lat: number): CityZone | null {
-  if (!dex) return null;
-  const hit = dex.nearest(lon, lat);
-  if (!hit) return null;
-  const weight = urbanWeight(hit.distM, hit.city.r);
-  if (weight <= 0.02) return null;
-  return {
-    name: hit.city.name,
-    lon: hit.city.lon,
-    lat: hit.city.lat,
-    r: hit.city.r,
-    weight,
-    mods: cityMods(weight, hit.city.r),
-  };
-}
-
-function damageDiscs(map: Record<string, [number, number]>): DamageDisc[] {
-  const out: DamageDisc[] = [];
-  for (const [key, [r, lv]] of Object.entries(map)) {
-    const [lon, lat] = key.split(',').map(Number);
-    if (!Number.isFinite(lon) || !Number.isFinite(lat) || !r || !lv) continue;
-    out.push({ lon, lat, r, lv });
+async function firstJson<T>(zones: PmtilesZone[], urlOf: (key: string) => string): Promise<T | null> {
+  for (const z of zones) {
+    const doc = await getJson<T>(urlOf(z.key));
+    if (doc) return doc;
   }
-  return out;
+  return null;
 }
 
 export function WorldMapLibre(): JSX.Element {
@@ -141,6 +94,8 @@ export function WorldMapLibre(): JSX.Element {
   const resampleRef = useRef<() => void>(() => undefined);
   const gridStepRef = useRef(0);
 
+  const [mapObj, setMapObj] = useState<MLMap | null>(null);
+  const [sampler, setSampler] = useState<DemSampler | null>(null);
   const [readout, setReadout] = useState<Readout | null>(null);
   const [ring, setRing] = useState<{ center: [number, number]; km: number } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,7 +106,6 @@ export function WorldMapLibre(): JSX.Element {
   const ringsRef = useRef(false);
   const dexRef = useRef<CityDex | null>(null);
   const damageRef = useRef<DamageLayer | null>(null);
-  const measureRef = useRef<MeasureHandle | null>(null);
   const damageModeRef = useRef(false);
   const [damageMode, setDamageMode] = useState(false);
 
@@ -188,7 +142,7 @@ export function WorldMapLibre(): JSX.Element {
     }
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left');
-    measureRef.current = installMeasure(map, () => samplerRef.current);
+    setMapObj(map);
     map.addControl(new AttributionControl({ compact: true }));
 
     const sync = () => {
@@ -206,7 +160,7 @@ export function WorldMapLibre(): JSX.Element {
           continue;
         }
         const mk = new MapLibreMarker({
-          element: markerEl(m, (id) => store.removeMarker(id)),
+          element: markerElement(m, (id) => store.removeMarker(id)),
           draggable: true,
           anchor: 'center',
         })
@@ -227,15 +181,7 @@ export function WorldMapLibre(): JSX.Element {
       raf = 0;
       const p = posRef.current;
       if (!p) return;
-      const s = samplerRef.current;
-      const sp = s ? s.sample(p.lat, p.lon) : null;
-      setReadout({
-        lat: p.lat,
-        lon: p.lon,
-        elevation: sp ? Math.round(sp.elevation) : null,
-        slope: sp ? sp.slope : null,
-        aspect: sp ? sp.aspect : null,
-      });
+      setReadout(buildReadout(samplerRef.current, p.lat, p.lon));
     };
     resampleRef.current = resample;
     map.on('mousemove', (e) => {
@@ -280,8 +226,7 @@ export function WorldMapLibre(): JSX.Element {
     return () => {
       if (raf) cancelAnimationFrame(raf);
       unsub();
-      measureRef.current?.dispose();
-      measureRef.current = null;
+      setMapObj(null);
       for (const mk of markersRef.current.values()) mk.remove();
       markersRef.current.clear();
       map.remove();
@@ -306,12 +251,16 @@ export function WorldMapLibre(): JSX.Element {
       const vb = map.getBounds();
       const tiersZones = zonesInBounds(zones, [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()]);
       mountedRef.current = tiersZones.map((z) => z.key).sort().join(',');
-      const base = await loadBaseStyle(tiersZones[tiersZones.length - 1]);
       const bands = tierBands(tiersZones);
-      const tiers = bands.map(({ zone, from }, i) => tierOf(zone, i, from));
+      const regionBands = bands.filter((b) => b.zone.key !== 'world');
+      const [base, worldMan, regionMans] = await Promise.all([
+        loadBaseStyle(tiersZones[tiersZones.length - 1]),
+        loadDemManifest('world'),
+        Promise.all(regionBands.map((b) => loadDemManifest(b.zone.key))),
+      ]);
+      const tiers = bands.map(({ zone, from }) => tierOf(zone, from));
 
       const demTiers: DemTier[] = [];
-      const worldMan = await loadDemManifest('world');
       if (worldMan) {
         demTiers.push({
           id: 'world-dem',
@@ -323,87 +272,78 @@ export function WorldMapLibre(): JSX.Element {
           styleMax: 22,
         });
       }
-      for (const { zone, from } of bands) {
-        if (zone.key === 'world') continue;
-        const man = await loadDemManifest(zone.key);
-        if (!man) continue;
+      regionBands.forEach((band, i) => {
+        const man = regionMans[i];
+        if (!man) return;
         demTiers.push({
-          id: `${zone.key}-dem`,
+          id: `${band.zone.key}-dem`,
           tiles: man.tiles,
           minzoom: man.minzoom,
           maxzoom: man.maxzoom,
           bounds: man.bbox,
-          styleMin: from,
+          styleMin: band.from,
           styleMax: 22,
         });
-      }
-
-      const slopeTiers: SlopeTier[] = [];
-      const addSlope = async (key: string, styleMin: number) => {
-        const m = await getJson<{ tiles: string; minzoom: number; maxzoom: number; bbox: [number, number, number, number] }>(
-          `/data/slope/${key}/index.json`,
-        );
-        if (!m?.tiles) return;
-        slopeTiers.push({
-          id: key,
-          tiles: m.tiles,
-          minzoom: m.minzoom,
-          maxzoom: m.maxzoom,
-          bounds: m.bbox,
-          styleMin,
-        });
-      };
-      await addSlope('world', 0);
-      for (const band of bands) {
-        if (band.zone.key !== 'world') await addSlope(band.zone.key, band.from);
-      }
+      });
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
-      let contours: FC | null = null;
-      for (const r of regions) {
-        const doc = await getJson<ContourDoc>(`/data/contours_${r.key}.json`);
-        if (!doc?.levels) continue;
-        const mPerDegLat = doc.mPerDegLat ?? 110540;
-        const mPerDegLon = doc.mPerDegLon ?? 111320 * Math.cos((doc.origin[1] * Math.PI) / 180);
-        contours = contourGeoJson(doc, mPerDegLon, mPerDegLat);
-        break;
-      }
+      const slopeKeys = ['world', ...regionBands.map((b) => b.zone.key)];
+      const [slopeMans, contoursDoc, railsDoc, poiDoc, dex] = await Promise.all([
+        Promise.all(slopeKeys.map((k) => getJson<SlopeManifest>(`/data/slope/${k}/index.json`))),
+        firstJson<ContourDoc>(regions, (k) => `/data/contours_${k}.json`),
+        firstJson<RailsDoc>(regions, (k) => `/data/rails_${k}.json`),
+        firstJson<PoiDoc>(regions, (k) => `/data/poi_${k}.json`),
+        loadCityDex(regions.map((z) => z.key)),
+      ]);
 
-      let railsLow: FC | null = null;
-      for (const r of regions) {
-        const doc = await getJson<{ lines?: [number, number][][] }>(`/data/rails_${r.key}.json`);
-        if (!Array.isArray(doc?.lines) || !doc.lines.length) continue;
-        railsLow = {
-          type: 'FeatureCollection',
-          features: [
-            {
+      const slopeTiers: SlopeTier[] = [];
+      slopeMans.forEach((man, i) => {
+        if (!man?.tiles) return;
+        const key = slopeKeys[i];
+        const band = regionBands.find((b) => b.zone.key === key);
+        slopeTiers.push({
+          id: key,
+          tiles: man.tiles,
+          minzoom: man.minzoom,
+          maxzoom: man.maxzoom,
+          bounds: man.bbox,
+          styleMin: band ? band.from : 0,
+        });
+      });
+
+      const contours = contoursDoc?.levels
+        ? contourGeoJson(
+            contoursDoc,
+            contoursDoc.mPerDegLon ?? 111320 * Math.cos((contoursDoc.origin[1] * Math.PI) / 180),
+            contoursDoc.mPerDegLat ?? 110540,
+          )
+        : null;
+
+      const railsLow = railsDoc?.lines?.length
+        ? ({
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'MultiLineString', coordinates: railsDoc.lines },
+              },
+            ],
+          } as unknown as FC)
+        : null;
+
+      const poi = poiDoc?.points?.length
+        ? ({
+            type: 'FeatureCollection',
+            features: poiDoc.points.map((p) => ({
               type: 'Feature',
-              properties: {},
-              geometry: { type: 'MultiLineString', coordinates: doc.lines },
-            },
-          ],
-        } as unknown as FC;
-        break;
-      }
-
-      let poi: FC | null = null;
-      for (const r of regions) {
-        const doc = await getJson<{ points?: Array<{ o: number; l: number; k: string }> }>(`/data/poi_${r.key}.json`);
-        if (!Array.isArray(doc?.points) || !doc.points.length) continue;
-        poi = {
-          type: 'FeatureCollection',
-          features: doc.points.map((p) => ({
-            type: 'Feature',
-            properties: { k: p.k },
-            geometry: { type: 'Point', coordinates: [p.o, p.l] },
-          })),
-        } as unknown as FC;
-        break;
-      }
-
+              properties: { k: p.k },
+              geometry: { type: 'Point', coordinates: [p.o, p.l] },
+            })),
+          } as unknown as FC)
+        : null;
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
       const grid = buildUtmGrid(focus.bbox, gridStepFor(Math.round(START.zoom)));
-      const dex = await loadCityDex(tiersZones.filter((z) => z.kind !== 'world').map((z) => z.key));
       if (!alive) return;
       dexRef.current = dex;
       const style = militaryStyle({
@@ -437,7 +377,7 @@ export function WorldMapLibre(): JSX.Element {
           )
         : null;
       if (samplerRef.current) samplerRef.current.subscribe(() => resampleRef.current());
-      measureRef.current?.refresh();
+      setSampler(samplerRef.current);
 
       store.setBasemap({
         name: focus.name,
@@ -446,10 +386,12 @@ export function WorldMapLibre(): JSX.Element {
         maxzoom: Math.max(...tiersZones.map((z) => z.maxzoom)),
         sizeMB: Number(tiersZones.reduce((s, z) => s + z.sizeMB, 0).toFixed(1)),
       });
-      map.once('idle', () => {
+      const hideLoading = () => {
         if (!alive) return;
         setLoading(false);
-      });
+      };
+      map.once('styledata', hideLoading);
+      window.setTimeout(hideLoading, 8000);
     })().catch((err: Error) => {
       if (alive) {
         setFailure(err.message);
@@ -508,6 +450,21 @@ export function WorldMapLibre(): JSX.Element {
   }, [store.version]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    const style = map ? map.getStyle() : null;
+    if (!map || !style || !Array.isArray(style.layers)) return;
+    const from = store.preset === 'terrain' ? 10 : 5;
+    for (const layer of style.layers) {
+      if (!String(layer.id).startsWith('rail-low')) continue;
+      try {
+        map.setLayerZoomRange(String(layer.id), from, 12);
+      } catch {
+        continue;
+      }
+    }
+  }, [store.preset, viewEpoch]);
+
+  useEffect(() => {
     damageRef.current?.refresh(damageDiscs(store.damage));
   }, [store.damage]);
 
@@ -563,6 +520,8 @@ export function WorldMapLibre(): JSX.Element {
   return (
     <div className="ml-wrap">
       <div className="ml-map" ref={boxRef} />
+
+      <MeasurePanel map={mapObj} sampler={sampler} />
 
       <div className="world-tools">
         <button className={`btn small ${damageMode ? 'on' : ''}`} onClick={() => setDamageMode((v) => !v)}>
@@ -631,7 +590,7 @@ export function WorldMapLibre(): JSX.Element {
                 <span className="ro-sep" />
                 <span>坡度 {readout.slope.toFixed(0)}%</span>
                 <span className="ro-sep" />
-                <span>坡向 {bearing(readout.aspect ?? 0)}</span>
+                <span>坡向 {bearingLabel(readout.aspect ?? 0)}</span>
               </>
             )}
           </>
@@ -649,42 +608,6 @@ export function WorldMapLibre(): JSX.Element {
       </div>
     </div>
   );
-}
-
-const NEW_IDS: Partial<Record<string, LayerKey>> = {
-  relief: 'relief',
-  contour: 'contour',
-  'contour-bold': 'contour',
-  'contour-label': 'contour',
-  'rail-hatch': 'rail',
-  'grid-minor': 'grid',
-  'grid-major': 'grid',
-};
-
-function groupOf(id: string): LayerKey | null {
-  const base = id.includes('__') ? id.slice(0, id.indexOf('__')) : id;
-  const fixed = NEW_IDS[base];
-  if (fixed) return fixed;
-  if (base.includes('-relief') || base === 'relief') return 'relief';
-  if (base === 'roads_rail' || base.startsWith('rail-')) return 'rail';
-  if (base.startsWith('roads_labels') || base === 'address_label') return 'label';
-  if (base.startsWith('roads_runway') || base.startsWith('roads_taxiway')) return 'airport';
-  if (base.startsWith('roads_minor') || base.startsWith('roads_other')) return 'minor';
-  if (base.startsWith('roads_')) return 'road';
-  if (base.startsWith('water')) return base.includes('label') ? 'label' : 'water';
-  if (base.startsWith('slope')) return 'slope';
-  if (base === 'buildings' || base === 'address_label' || base.startsWith('buildings_glow')) return 'building';
-  if (base.startsWith('places')) return 'label';
-  if (base.startsWith('boundary')) return 'boundary';
-  if (base === 'landcover_urban') return 'urban';
-  if (base === 'landcover') return 'landcover';
-  if (base === 'landuse_urban_glow' || base === 'landuse_residential') return 'urban';
-  if (base.startsWith('poi-')) return 'poi';
-  if (base === 'landuse_military') return 'military';
-  if (base === 'landuse_aerodrome' || base === 'landuse_runway' || base === 'aerodrome_mark') return 'airport';
-  if (base === 'landuse_hospital' || base === 'landuse_school' || base === 'landuse_industrial') return 'urban';
-  if (base.startsWith('landuse_')) return 'landcover';
-  return null;
 }
 
 function buildBounds(map: MLMap): [number, number, number, number] {

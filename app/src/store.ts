@@ -44,43 +44,19 @@ export interface StylePreset {
 }
 
 export const STYLE_PRESETS: StylePreset[] = [
-  { key: 'situation', label: '态势', layers: {} },
+  { key: 'city', label: '城区图', layers: {} },
   {
     key: 'terrain',
-    label: '地形',
-    layers: {
-      relief: true,
-      contour: true,
-      slope: false,
-      water: true,
-      rail: false,
-      road: false,
-      minor: false,
-      airport: false,
-      urban: false,
-      building: false,
-      label: true,
-      boundary: true,
-      landcover: true,
-      military: false,
-      damage: false,
-      grid: true,
-      rings: false,
-      poi: false,
-    },
-  },
-  {
-    key: 'traffic',
-    label: '交通',
+    label: '地形图',
     layers: {
       relief: false,
-      contour: false,
-      slope: false,
+      contour: true,
+      slope: true,
       water: true,
       rail: true,
       road: true,
-      minor: true,
-      airport: true,
+      minor: false,
+      airport: false,
       urban: false,
       building: false,
       label: true,
@@ -90,7 +66,7 @@ export const STYLE_PRESETS: StylePreset[] = [
       damage: false,
       grid: true,
       rings: false,
-      poi: true,
+      poi: false,
     },
   },
 ];
@@ -109,7 +85,7 @@ export interface LayerGroup {
 export const LAYER_TREE: LayerGroup[] = [
   {
     key: 'terrain',
-    label: '地形',
+    label: '地形图',
     items: [
       { key: 'relief', label: '晕渲' },
       { key: 'contour', label: '等高线' },
@@ -194,7 +170,7 @@ class Store {
   damage: DamageMap = loadDamage();
 
   layers: Record<LayerKey, boolean> = { ...BASE_LAYERS };
-  preset = 'situation';
+  preset = 'city';
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };

@@ -18,7 +18,7 @@
 | 单个数据文件 | 4 MB（底图 `.pmtiles` 与 DEM 瓦片除外：按区域/全球裁剪，单包 ≤ 64 MB、DEM 总量 ≤ 200 MB） |
 | 前端首屏 JS（gzip） | 120 KB（世界地图按需加载的 `maplibre-gl` + `pmtiles` 单独成 chunk，不计入首屏） |
 | 生产依赖 | 只允许 `react` `react-dom` `maplibre-gl` `pmtiles`；构建期 `vite` `typescript` `@vitejs/plugin-react` |
-| Python 依赖 | 只允许 `numpy` `Pillow` `requests` |
+| Python 依赖 | 只允许 `numpy` `Pillow` `requests`；文档构建（`Tools/build_requirements_workbook.py`）允许 `openpyxl` |
 
 新增依赖必须在 `DEVLOG.md` 记一条，写清为什么现有依赖做不到。
 

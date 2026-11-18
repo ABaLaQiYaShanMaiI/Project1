@@ -1,4 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
+import type { Tier } from './style/types';
 
 export interface PmtilesZone {
   key: string;
@@ -125,4 +126,17 @@ export async function loadBaseStyle(zone: PmtilesZone): Promise<StyleSpecificati
     return JSON.parse(JSON.stringify(style)) as StyleSpecification;
   }
   throw new Error(`底图样式缺失：${zone.style}`);
+}
+
+export function tierOf(zone: PmtilesZone, from: number): Tier {
+  const isWorld = zone.kind === 'world';
+  return {
+    id: isWorld ? 'world' : `detail_${zone.key}`,
+    url: pmtilesUrl(zone.file),
+    bounds: zone.bbox,
+    minzoom: zone.minzoom,
+    maxzoom: zone.maxzoom,
+    styleMin: from,
+    styleMax: 22,
+  };
 }

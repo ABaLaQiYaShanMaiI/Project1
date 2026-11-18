@@ -6,7 +6,7 @@ import type { Tier } from './types';
 
 const RAIL_MINZOOM = 11;
 const RAIL_LOW_MAXZOOM = 12;
-const RAIL_HATCH_MAXZOOM = 14;
+const RAIL_HATCH_MAXZOOM = 13;
 
 export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   const rail = restyle({

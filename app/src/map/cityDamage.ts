@@ -200,3 +200,12 @@ export function createCityDamage(map: MlMap, tiers: () => string[]): DamageLayer
 
   return { refresh, setVisible, destroy };
 }
+export function damageDiscs(map: Record<string, [number, number]>): DamageDisc[] {
+  const out: DamageDisc[] = [];
+  for (const [key, [r, lv]] of Object.entries(map)) {
+    const [lon, lat] = key.split(',').map(Number);
+    if (!Number.isFinite(lon) || !Number.isFinite(lat) || !r || !lv) continue;
+    out.push({ lon, lat, r, lv });
+  }
+  return out;
+}

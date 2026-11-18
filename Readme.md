@@ -80,7 +80,8 @@ cd app && pnpm install && pnpm dev
 - **城区影响**：光标进入城区，右下角出现面板（城名 / 强度 / 半径 / 五项修饰 / 战损级别）；离开即消失；
 - **战损**：顶部「战损」开关，单击城区 +1 级（最高 3 级），Shift+单击清零；存 localStorage；
 - 左下读数：**DD 经纬 / UTM（带号 + 东向 + 北向）/ 高程 / 坡度 / 坡向**；
-- 左侧顶部「视图」三档预设（态势 / 地形 / 交通），切换即改一组图层可见性；手动改图层会退出预设；
+- 左侧顶部「视图」两档预设（**城区图 / 地形图**），切换即改一组图层可见性；手动改图层会退出预设；
+  「地形」档：以**坡度通行**为主底（0.85 不透明），叠加等高线 / 水系 / 行政边界 / 地名 / 格网 + 铁路与主干公路，**铁路与主干公路从同一级 z10 同时出现**；城块、建筑、地表填充全部隐藏；
 - 左侧「图层」逐项开关；「兵牌」可在地图放标记（拖动移动、右键删除）。
 
 ## 数据管线
@@ -148,7 +149,8 @@ node Tools/bake_poi.mjs --zoom=12
 | `app/src/data/terrain.ts` | DEM 采样（高程 / 坡度 / 坡向） |
 | `app/src/core/geo.ts` | UTM 正算、格网生成、射程圈 |
 | `app/src/core/cityEffects.ts` | 城区影响：半径、衰减、规模系数、五项修饰 |
-| `app/src/map/measureTool.ts` | 测距：距离 / 方位 / 高差 / 地形剖面 |
+| `app/src/map/measure.ts` | 测距纯函数：距离 / 方位 / 密位 / 高差 / 剖面 + 线图层 |
+| `app/src/ui/MeasurePanel.tsx` | 测距面板（React）：按钮、两点状态、统计与剖面渲染 |
 | `app/src/map/cityDamage.ts` | 城区战损：canvas 斜纹图案、按街区哈希、idle 刷新 |
 | `app/src/data/damageStore.ts` | 战损等级存档（`city.damage.v1`） |
 | `app/src/data/cities.ts` | 城镇索引（base64 二进制 + 0.5° 桶索引，含名字） |
@@ -161,6 +163,7 @@ node Tools/bake_poi.mjs --zoom=12
 | `Tools/bake_slope.py` | 坡度通行瓦片（DEM 差分 → 分级着色） |
 | `Tools/bake_contours.py` | 等高线矢量（marching squares + 折线缝合 + 标注锚点） |
 | `Tools/serve.mjs` | 零依赖静态服务器（含 `.pmtiles` 的 HTTP Range） |
+| `Tools/perf_probe.mjs` | 帧率与静态重绘实测（CDP 拖动 + render 间隔统计；`--strict` 可当闸门） |
 | `Tools/check_all.mjs` | 一键自检：无注释 / 行数 / 类型 / 构建 / 首屏 gzip 预算 |
 | `Tools/dev_cdp.mjs` | 三个 dev 脚本共用的 CDP 连接与截图封装 |
 | `Tools/dev_mapshot.mjs` | 取 MapLibre 画布真实帧（headless 截图对 WebGL 不可靠）；需对着 `pnpm dev` 跑，生产构建不再暴露 `window.__ml` |
