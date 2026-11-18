@@ -112,9 +112,15 @@ export async function loadBaseStyle(zone: PmtilesZone): Promise<StyleSpecificati
   if (hit) return JSON.parse(JSON.stringify(hit)) as StyleSpecification;
   const candidates = ['base.style.json', zone.style];
   for (const name of candidates) {
-    const res = await fetch(`/data/tiles/${name}`, { cache: 'no-cache' });
-    if (!res.ok) continue;
-    const style = (await res.json()) as StyleSpecification;
+    const res = await fetch(`/data/tiles/${name}`, { cache: 'no-cache' }).catch(() => null);
+    if (!res || !res.ok) continue;
+    let style: StyleSpecification;
+    try {
+      style = (await res.json()) as StyleSpecification;
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(style?.layers)) continue;
     baseCache.set(zone.key, style);
     return JSON.parse(JSON.stringify(style)) as StyleSpecification;
   }

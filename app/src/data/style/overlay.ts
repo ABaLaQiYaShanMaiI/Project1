@@ -17,6 +17,39 @@ export function gridLayers(): Record<string, unknown>[] {
   ];
 }
 
+export function poiLayers(): Record<string, unknown>[] {
+  return [
+    {
+      id: 'poi-airport',
+      type: 'circle',
+      source: 'poi',
+      filter: ['==', ['get', 'k'], 'airport'],
+      minzoom: 5,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 10, 4, 14, 6.5],
+        'circle-color': '#3f5570',
+        'circle-opacity': 0.9,
+        'circle-stroke-color': '#f3eee1',
+        'circle-stroke-width': 1.2,
+      },
+    },
+    {
+      id: 'poi-bridge',
+      type: 'circle',
+      source: 'poi',
+      filter: ['==', ['get', 'k'], 'bridge'],
+      minzoom: 11,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 1.1, 14, 1.9, 17, 2.6],
+        'circle-color': '#8a5a3c',
+        'circle-opacity': 0.75,
+        'circle-stroke-color': '#f3eee1',
+        'circle-stroke-width': 0.5,
+      },
+    },
+  ];
+}
+
 export function ringLayers(): Record<string, unknown>[] {
   return [
     {

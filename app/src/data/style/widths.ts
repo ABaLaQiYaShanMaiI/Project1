@@ -19,8 +19,8 @@ export function railWidth(w: number, factor?: unknown): unknown {
     [7, w * 0.42],
     [10, w * 0.7],
     [13, w],
-    [16, w * 1.25],
-    [18, w * 1.45],
+    [16, w * 0.72],
+    [18, w * 0.6],
   ];
   const out: unknown[] = ['interpolate', ['linear'], ['zoom']];
   for (const [z, v] of stops) out.push(z, factor ? ['*', Number(v.toFixed(3)), factor] : Number(v.toFixed(3)));

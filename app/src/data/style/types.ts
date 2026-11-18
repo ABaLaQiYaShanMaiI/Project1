@@ -48,4 +48,5 @@ export interface StyleInputs {
   contours?: FC | null;
   railsLow?: FC | null;
   grid?: FC | null;
+  poi?: FC | null;
 }

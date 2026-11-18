@@ -1,8 +1,12 @@
-import { MAIN_MINZOOM, RAIL_HALO, RAIL_INK } from './tokens';
+import { RAIL_HALO, RAIL_INK } from './tokens';
 import { restyle } from './restyle';
 import { clampZoom } from './tier';
 import { railWidth, railNarrow } from './widths';
 import type { Tier } from './types';
+
+const RAIL_MINZOOM = 11;
+const RAIL_LOW_MAXZOOM = 12;
+const RAIL_HATCH_MAXZOOM = 14;
 
 export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   const rail = restyle({
@@ -22,7 +26,7 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       source: tier.id,
       'source-layer': 'roads',
       filter: ['==', ['get', 'kind'], 'rail'],
-      minzoom: Math.max(tier.styleMin, MAIN_MINZOOM),
+      minzoom: Math.max(tier.styleMin, RAIL_MINZOOM),
       maxzoom: tier.styleMax,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
@@ -37,8 +41,8 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       source: tier.id,
       'source-layer': 'roads',
       filter: ['==', ['get', 'kind'], 'rail'],
-      minzoom: Math.max(tier.styleMin, MAIN_MINZOOM),
-      maxzoom: tier.styleMax,
+      minzoom: Math.max(tier.styleMin, RAIL_MINZOOM),
+      maxzoom: Math.min(tier.styleMax, RAIL_HATCH_MAXZOOM),
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
       paint: {
         'line-color': '#f7f4ea',
@@ -56,7 +60,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-low',
       minzoom: 5,
-      maxzoom: 11,
+      maxzoom: RAIL_LOW_MAXZOOM,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(5.2) },
     },
@@ -65,7 +69,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-low',
       minzoom: 5,
-      maxzoom: 11,
+      maxzoom: RAIL_LOW_MAXZOOM,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: { 'line-color': RAIL_INK, 'line-width': railWidth(3.4), 'line-opacity': 1 },
     },
@@ -74,7 +78,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-low',
       minzoom: 5,
-      maxzoom: 11,
+      maxzoom: RAIL_LOW_MAXZOOM,
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
       paint: { 'line-color': '#f7f4ea', 'line-width': railWidth(1.05), 'line-dasharray': [1.1, 2.1] },
     },

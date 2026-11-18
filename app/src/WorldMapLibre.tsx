@@ -13,6 +13,7 @@ import {
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useStore, store } from './hooks';
+import type { LayerKey } from './store';
 import { SIDE_COLOR, type Marker } from './core/markers';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
 import { MOD_KEYS, MOD_LABEL, cityMods, fmtMod, urbanWeight, type CityZone } from './core/cityEffects';
@@ -49,6 +50,16 @@ const BLANK_STYLE = {
 } as unknown as StyleSpecification;
 
 const START = { lon: 9.72, lat: 50.62, zoom: 7 };
+
+async function getJson<T>(url: string): Promise<T | null> {
+  const res = await fetch(url, { cache: 'no-cache' }).catch(() => null);
+  if (!res || !res.ok) return null;
+  try {
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
 
 interface Readout {
   lat: number;
@@ -172,7 +183,9 @@ export function WorldMapLibre(): JSX.Element {
       collectResourceTiming: false,
     });
     mapRef.current = map;
-    (window as unknown as Record<string, unknown>).__ml = map;
+    if (import.meta.env.DEV) {
+      (window as unknown as Record<string, unknown>).__ml = map;
+    }
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left');
     measureRef.current = installMeasure(map, () => samplerRef.current);
@@ -327,9 +340,10 @@ export function WorldMapLibre(): JSX.Element {
 
       const slopeTiers: SlopeTier[] = [];
       const addSlope = async (key: string, styleMin: number) => {
-        const res = await fetch(`/data/slope/${key}/index.json`, { cache: 'no-cache' }).catch(() => null);
-        if (!res || !res.ok) return;
-        const m = (await res.json()) as { tiles: string; minzoom: number; maxzoom: number; bbox: [number, number, number, number] };
+        const m = await getJson<{ tiles: string; minzoom: number; maxzoom: number; bbox: [number, number, number, number] }>(
+          `/data/slope/${key}/index.json`,
+        );
+        if (!m?.tiles) return;
         slopeTiers.push({
           id: key,
           tiles: m.tiles,
@@ -347,9 +361,8 @@ export function WorldMapLibre(): JSX.Element {
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       let contours: FC | null = null;
       for (const r of regions) {
-        const res = await fetch(`/data/contours_${r.key}.json`, { cache: 'no-cache' }).catch(() => null);
-        if (!res || !res.ok) continue;
-        const doc = (await res.json()) as ContourDoc;
+        const doc = await getJson<ContourDoc>(`/data/contours_${r.key}.json`);
+        if (!doc?.levels) continue;
         const mPerDegLat = doc.mPerDegLat ?? 110540;
         const mPerDegLon = doc.mPerDegLon ?? 111320 * Math.cos((doc.origin[1] * Math.PI) / 180);
         contours = contourGeoJson(doc, mPerDegLon, mPerDegLat);
@@ -358,10 +371,8 @@ export function WorldMapLibre(): JSX.Element {
 
       let railsLow: FC | null = null;
       for (const r of regions) {
-        const res = await fetch(`/data/rails_${r.key}.json`, { cache: 'no-cache' }).catch(() => null);
-        if (!res || !res.ok) continue;
-        const doc = (await res.json()) as { lines?: [number, number][][] };
-        if (!Array.isArray(doc.lines) || !doc.lines.length) continue;
+        const doc = await getJson<{ lines?: [number, number][][] }>(`/data/rails_${r.key}.json`);
+        if (!Array.isArray(doc?.lines) || !doc.lines.length) continue;
         railsLow = {
           type: 'FeatureCollection',
           features: [
@@ -371,6 +382,21 @@ export function WorldMapLibre(): JSX.Element {
               geometry: { type: 'MultiLineString', coordinates: doc.lines },
             },
           ],
+        } as unknown as FC;
+        break;
+      }
+
+      let poi: FC | null = null;
+      for (const r of regions) {
+        const doc = await getJson<{ points?: Array<{ o: number; l: number; k: string }> }>(`/data/poi_${r.key}.json`);
+        if (!Array.isArray(doc?.points) || !doc.points.length) continue;
+        poi = {
+          type: 'FeatureCollection',
+          features: doc.points.map((p) => ({
+            type: 'Feature',
+            properties: { k: p.k },
+            geometry: { type: 'Point', coordinates: [p.o, p.l] },
+          })),
         } as unknown as FC;
         break;
       }
@@ -388,6 +414,7 @@ export function WorldMapLibre(): JSX.Element {
         contours,
         railsLow,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
+        poi,
       });
       if (!alive) return;
       gridStepRef.current = gridStepFor(Math.round(START.zoom));
@@ -469,7 +496,7 @@ export function WorldMapLibre(): JSX.Element {
     for (const layer of style.layers) {
       const g = groupOf(layer.id);
       if (!g) continue;
-      wanted.set(layer.id, store.layers[g as keyof typeof store.layers]);
+      wanted.set(layer.id, store.layers[g]);
     }
     for (const [id, on] of wanted) {
       try {
@@ -624,7 +651,7 @@ export function WorldMapLibre(): JSX.Element {
   );
 }
 
-const NEW_IDS: Record<string, string> = {
+const NEW_IDS: Partial<Record<string, LayerKey>> = {
   relief: 'relief',
   contour: 'contour',
   'contour-bold': 'contour',
@@ -634,7 +661,7 @@ const NEW_IDS: Record<string, string> = {
   'grid-major': 'grid',
 };
 
-function groupOf(id: string): string | null {
+function groupOf(id: string): LayerKey | null {
   const base = id.includes('__') ? id.slice(0, id.indexOf('__')) : id;
   const fixed = NEW_IDS[base];
   if (fixed) return fixed;
@@ -652,6 +679,7 @@ function groupOf(id: string): string | null {
   if (base === 'landcover_urban') return 'urban';
   if (base === 'landcover') return 'landcover';
   if (base === 'landuse_urban_glow' || base === 'landuse_residential') return 'urban';
+  if (base.startsWith('poi-')) return 'poi';
   if (base === 'landuse_military') return 'military';
   if (base === 'landuse_aerodrome' || base === 'landuse_runway' || base === 'aerodrome_mark') return 'airport';
   if (base === 'landuse_hospital' || base === 'landuse_school' || base === 'landuse_industrial') return 'urban';

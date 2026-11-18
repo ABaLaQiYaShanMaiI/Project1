@@ -1257,6 +1257,84 @@ world z0–6 / europe z7–8 / fulda z9–13 / core z14–15，307 个 style 图
 - z9–12 的**矢量**仍只有富尔达，德国其余地区在 z9 以上还是 europe z8 拉伸；
   下一步可用 `v4.pmtiles` 母包再切一个德国 z9–11 包（离线，母包在 `G:\PersonalGame\v4.pmtiles`）。
 
+### v1.36 铁路连续性与一轮代码质量
+
+#### 一、铁路断在哪
+
+大比例尺下铁路看着断，三个原因叠在一起：
+
+1. **低倍烘焙层与瓦片层的交接有缝**：`rails_fulda.json` 只画到 z11（`maxzoom: 11`，而 MapLibre 的
+   maxzoom 是开区间，z11 起就隐藏），瓦片铁路虽然 minzoom 10 但 z10–11 的瓦片里没有 rail 要素。
+   结果 z11–11.x 有一段只能靠瓦片、瓦片又没数据。改法：烘焙层上限抬到 **12**，瓦片层下限统一到 **11**，
+   两套重叠一个缩放级。
+2. **绘线三层的 minzoom 不一致**：ink（`roads_rail`）由 `restyle()` 设成 11，光晕/枕木却按
+   `max(styleMin, 10)`，于是 10–11 之间只有白底和白色枕木、没有墨线——看起来就是"断线"。
+   三层现在统一 `RAIL_MINZOOM = 11`。
+3. **城区核心包重复画铁路**：`fulda_core`（z14–15、0.12° 见方）也生成了一套 rail 图层，
+   与富尔达包 z13 overzoom 的铁路错位叠加；在核心包 bbox 边界上就出现跳线。改法：
+   minzoom ≥ 14 的"建筑级"包不再生成铁路图层（`BUILDING_TIER_MINZOOM`），铁路始终由
+   富尔达包 overzoom 提供，跨 bbox 连续。
+
+另外把高倍线宽从"越放越粗"改成"z13 封顶后回落"（z16 ×0.72、z18 ×0.6）：
+富尔达站场有十几股道，原来每股 4 px 宽、间距 2 px，糊成一块黑板；现在能看出是轨道群。
+枕木虚线在 z14 以上关闭（`RAIL_HATCH_MAXZOOM`），否则密集道岔会变成阶梯噪点。
+
+#### 二、代码质量
+
+- **图层键类型化**：`LAYER_DEFAULT` 改成带 as-const 的唯一事实源，导出 `LayerKey`；
+  `LAYER_TREE` 的 `key`、`store.layers`、`setLayer()`、`groupOf()` 全部用 `LayerKey`。
+  以前 `groupOf` 返回裸 `string`、`store.layers[g as keyof typeof store.layers]` 的强制转换等于没保护：
+  映射写错就静默 `visibility: none`。现在写错直接编译失败。
+- **调试全局只在 DEV 暴露**：`window.__ml` / `window.__store` 用 `import.meta.env.DEV` 包起来，
+  生产包不再留可变后门。代价是 `Tools/dev_mapshot.mjs` 必须对着 `pnpm dev` 跑（dev 才有 `__ml`）。
+- **JSON 读取统一兜底**：新增 `getJson()`，`res.ok` 但返回 HTML（vite dev 的 SPA fallback 就是这样）
+  时返回 null 而不是抛 `Unexpected token '<'`。此前 dev 模式下 `fulda_core` 缺失的 slope/dem
+  清单会让整张图直接失败黑屏；`loadBaseStyle()` 同样加了 `layers` 结构校验。
+
+#### 验证
+
+`Tools/check_all.mjs` 7 项全绿；dev 服务器下 10.7 / 12 / 13.5 / 15 四级截图对比：
+z13.5 的站场从"黑板"变为可分辨的轨道群，核心包边界不再有跳线。
+
+### v1.37 视图预设、设施气泡与低配模式
+
+#### 一、视图预设（替代"第二张地图"）
+
+侧栏顶部加 3 档：**态势 / 地形 / 交通**。实现是 `store.ts` 的 `STYLE_PRESETS`：
+每档给一份 `Partial<Record<LayerKey, boolean>>`，`applyPreset()` 以 `BASE_LAYERS` 为底叠加。
+手动改任一图层会把预设切成 `custom`（按钮不高亮）。
+
+比"再做一张地图"省的地方：同一套 style、同一套瓦片，只切可见性组合，切换零成本。
+
+#### 二、设施气泡
+
+新烘焙脚本 `Tools/bake_poi.mjs`，从 pmtiles 抽两类点：
+
+| 类型 | 来源 | 数量（富尔达 z12） |
+| --- | --- | --- |
+| 机场 | `landuse.kind ∈ {aerodrome, airfield}` 质心 | 31 |
+| 桥隧 | `roads.is_bridge = true`（高速/干线/主干/次干/铁路） | 115 |
+
+产出 `poi_fulda.json` 6 KB。前端是 geojson 源 + 两个 circle 层（机场 z5+ 深蓝 6.5 px，
+桥 z11+ 褐色 2.6 px），归入「判读 / 设施气泡」可开关。港口暂未做——富尔达内陆没有，
+要做得给欧洲包单独烘 POI。
+
+#### 三、低配模式
+
+`navigator.hardwareConcurrency <= 4` 或 URL 带 `?lite=1` 时，`BASE_LAYERS` 默认关掉
+晕渲与等高线（`?lite=0` 强制全开）。侧栏显示「低配模式」提示。阈值先按核数，
+等有真实帧率样本再换成实测驱动。
+
+#### 四、军事用地默认关
+
+`landuse_military` 保留但默认 `false`：德国境内 OSM 军事用地极少且成片，默认开容易误导。
+
+#### 验证
+
+- `check_all` 7 项全绿（首屏 48.9 KB gzip，最大文件 693 行）；
+- 预设实测：切「地形」→ urban/poi 变 `none`；切「交通」→ relief/contour 变 `none`、poi 可见；
+- 设施气泡实测：把 `poi-airport` 临时改成 14 px 红点后画面出现圆点，确认图层与数据通路正常。
+
 ## 技术决策与原因
 
 | 决策 | 原因 |

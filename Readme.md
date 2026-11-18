@@ -64,6 +64,7 @@ cd app && pnpm install && pnpm dev
 | 铁路 | `rails_fulda.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，最粗、压最上层；z5–11 用烘焙层（底图 z10 以下没有 rail），z11 起用瓦片 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
+| 设施气泡 | `poi_fulda.json` | 机场（z5+）/ 桥隧（z11+）点位，判读组可开关 |
 | 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块（居住/商业/零售/铁路/工业等合并），绿=植被、米=农田、灰=城区 |
 | 行政边界 | 底图 `boundaries` | 国界/州/县/乡镇四级，冷灰虚线，按 `kind_detail` 分级 |
 | 城区战损 | 运行时图案 | 1–3 级战损：按街区哈希挑一部分地块叠 rubble 斜纹 + 红虚线；顶部「战损」开关单击标记 |
@@ -79,6 +80,7 @@ cd app && pnpm install && pnpm dev
 - **城区影响**：光标进入城区，右下角出现面板（城名 / 强度 / 半径 / 五项修饰 / 战损级别）；离开即消失；
 - **战损**：顶部「战损」开关，单击城区 +1 级（最高 3 级），Shift+单击清零；存 localStorage；
 - 左下读数：**DD 经纬 / UTM（带号 + 东向 + 北向）/ 高程 / 坡度 / 坡向**；
+- 左侧顶部「视图」三档预设（态势 / 地形 / 交通），切换即改一组图层可见性；手动改图层会退出预设；
 - 左侧「图层」逐项开关；「兵牌」可在地图放标记（拖动移动、右键删除）。
 
 ## 数据管线
@@ -113,6 +115,9 @@ Tools\bin\pmtiles.exe extract "E:\PersonalGame\v4.pmtiles" "app\public\data\tile
 # 9) 城镇索引（城区影响场的唯一数据：全世界 5,615 座城 / 145 KB）
 node Tools/bake_cities.mjs
 node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 --kinds=city,town,village --out=app/public/data/cities_fulda.json
+
+# 10) 设施气泡（机场 / 桥隧点位，判读组可开关）
+node Tools/bake_poi.mjs --zoom=12
 ```
 
 产物、生成命令与入库策略对账表：
@@ -124,6 +129,7 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 | `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | 是（5.9 MB，缺则「坡度通行」静默不出图） |
 | `contours_<key>.json` | `python Tools/bake_contours.py` | 是 |
 | `rails_<key>.json` | `node Tools/bake_rail.mjs` | 是 |
+| `poi_<key>.json` | `node Tools/bake_poi.mjs` | 是 |
 | `cities.json`、`cities_<key>.json` | `node Tools/bake_cities.mjs` | 是 |
 
 `tiles/` 与 `dem/` 不入库（体积大），换机器重跑对应命令即可；其余产物体积小且入库，
@@ -149,6 +155,7 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 | `Tools/bake_cities.mjs` | 从 PMTiles 的 `places` 点烘城镇索引 |
 | `Tools/mvt.mjs` | 零依赖 MVT 解码（烘焙期用，zigzag 几何） |
 | `Tools/bake_rail.mjs` | 从区域包抽低倍铁路线（RDP 简化 + 去重） |
+| `Tools/bake_poi.mjs` | 从区域包抽机场/桥隧点位（设施气泡） |
 | `Tools/fetch_basemap.mjs` | 取 CLI → 裁 bbox 或全球 → 出 style / 字形 / index |
 | `Tools/bake_dem.py` | DEM 瓦片（terrarium） |
 | `Tools/bake_slope.py` | 坡度通行瓦片（DEM 差分 → 分级着色） |
@@ -156,7 +163,7 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 | `Tools/serve.mjs` | 零依赖静态服务器（含 `.pmtiles` 的 HTTP Range） |
 | `Tools/check_all.mjs` | 一键自检：无注释 / 行数 / 类型 / 构建 / 首屏 gzip 预算 |
 | `Tools/dev_cdp.mjs` | 三个 dev 脚本共用的 CDP 连接与截图封装 |
-| `Tools/dev_mapshot.mjs` | 取 MapLibre 画布真实帧（headless 截图对 WebGL 不可靠） |
+| `Tools/dev_mapshot.mjs` | 取 MapLibre 画布真实帧（headless 截图对 WebGL 不可靠）；需对着 `pnpm dev` 跑，生产构建不再暴露 `window.__ml` |
 
 ## 数据来源与许可
 

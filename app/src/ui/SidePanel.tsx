@@ -1,6 +1,6 @@
 import { useStore, store } from '../hooks';
 import { SIDE_LABEL, UNIT_LABEL, type Side, type UnitKind } from '../core/markers';
-import { LAYER_TREE } from '../store';
+import { LITE_MODE, LAYER_TREE, STYLE_PRESETS } from '../store';
 
 const UNIT_KINDS: UnitKind[] = ['infantry', 'armor', 'artillery', 'recon', 'hq'];
 const SIDES: Side[] = ['nato', 'wp'];
@@ -11,6 +11,22 @@ export function SidePanel(): JSX.Element {
 
   return (
     <aside className="side">
+      <div className="layer-panel">
+        <div className="lp-title">视图</div>
+        <div className="unit-sides">
+          {STYLE_PRESETS.map((p) => (
+            <button
+              key={p.key}
+              className={`unit-side ${store.preset === p.key ? 'on' : ''}`}
+              onClick={() => store.applyPreset(p.key)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        {LITE_MODE && <div className="lp-hint">低配模式：晕渲与等高线默认关闭</div>}
+      </div>
+
       <div className="layer-panel">
         <div className="lp-title">图层</div>
         {LAYER_TREE.map((group) => (

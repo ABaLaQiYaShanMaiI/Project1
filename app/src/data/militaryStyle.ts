@@ -1,10 +1,10 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { PAPER } from './style/tokens';
+import { PAPER, BUILDING_TIER_MINZOOM } from './style/tokens';
 import { tierLayers } from './style/tier';
 import { boundaryLayers } from './style/boundary';
 import { railsOf, railLowLayers } from './style/rail';
 import { contourLayers } from './style/contour';
-import { gridLayers, ringLayers } from './style/overlay';
+import { gridLayers, ringLayers, poiLayers } from './style/overlay';
 import type { StyleInputs } from './style/types';
 
 export type { ContourDoc } from './style/contour';
@@ -86,6 +86,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   }
   sources.grid = { type: 'geojson', data: inp.grid ?? { type: 'FeatureCollection', features: [] } };
   sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
+  sources.poi = { type: 'geojson', data: inp.poi ?? { type: 'FeatureCollection', features: [] } };
 
   const contours = inp.contours ? contourLayers() : [];
 
@@ -108,7 +109,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
-    out.push(...railsOf(tier, suffix));
+    if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
   });
 
   if (inp.railsLow) out.push(...railLowLayers());
@@ -116,7 +117,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
   if (slopeLayers.length) out.push(...slopeLayers);
 
-  out.push(...gridLayers(), ...ringLayers());
+  out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
 
   const seen = new Set<string>();
   const deduped = out.filter((layer) => {

@@ -3,8 +3,100 @@ import type { CityZone } from './core/cityEffects';
 import { loadDamage, saveDamage, type DamageMap } from './data/damageStore';
 import { loadMarkers, saveMarkers } from './data/markerStore';
 
-export interface LayerItem {
+export const LAYER_DEFAULT = {
+  relief: true,
+  contour: true,
+  slope: false,
+  water: true,
+  rail: true,
+  road: true,
+  minor: true,
+  airport: true,
+  urban: true,
+  building: true,
+  label: true,
+  boundary: true,
+  landcover: true,
+  military: false,
+  damage: true,
+  grid: true,
+  rings: false,
+  poi: true,
+};
+
+export type LayerKey = keyof typeof LAYER_DEFAULT;
+
+const query = typeof location === 'undefined' ? '' : location.search;
+const liteFlag = new URLSearchParams(query).get('lite');
+const cores = typeof navigator === 'undefined' ? 8 : (navigator.hardwareConcurrency ?? 8);
+
+export const LITE_MODE = liteFlag === '1' || (liteFlag !== '0' && cores <= 4);
+
+export const BASE_LAYERS: Record<LayerKey, boolean> = {
+  ...LAYER_DEFAULT,
+  ...(LITE_MODE ? { relief: false, contour: false } : {}),
+};
+
+export interface StylePreset {
   key: string;
+  label: string;
+  layers: Partial<Record<LayerKey, boolean>>;
+}
+
+export const STYLE_PRESETS: StylePreset[] = [
+  { key: 'situation', label: '态势', layers: {} },
+  {
+    key: 'terrain',
+    label: '地形',
+    layers: {
+      relief: true,
+      contour: true,
+      slope: false,
+      water: true,
+      rail: false,
+      road: false,
+      minor: false,
+      airport: false,
+      urban: false,
+      building: false,
+      label: true,
+      boundary: true,
+      landcover: true,
+      military: false,
+      damage: false,
+      grid: true,
+      rings: false,
+      poi: false,
+    },
+  },
+  {
+    key: 'traffic',
+    label: '交通',
+    layers: {
+      relief: false,
+      contour: false,
+      slope: false,
+      water: true,
+      rail: true,
+      road: true,
+      minor: true,
+      airport: true,
+      urban: false,
+      building: false,
+      label: true,
+      boundary: true,
+      landcover: false,
+      military: false,
+      damage: false,
+      grid: true,
+      rings: false,
+      poi: true,
+    },
+  },
+];
+
+export interface LayerItem {
+  key: LayerKey;
   label: string;
 }
 
@@ -72,29 +164,10 @@ export const LAYER_TREE: LayerGroup[] = [
     items: [
       { key: 'grid', label: '军用格网' },
       { key: 'rings', label: '射程圈' },
+      { key: 'poi', label: '设施气泡' },
     ],
   },
 ];
-
-const LAYER_DEFAULT: Record<string, boolean> = {
-  relief: true,
-  contour: true,
-  slope: false,
-  water: true,
-  rail: true,
-  road: true,
-  minor: true,
-  airport: true,
-  urban: true,
-  building: true,
-  label: true,
-  boundary: true,
-  landcover: true,
-  military: true,
-  damage: true,
-  grid: true,
-  rings: false,
-};
 
 export interface BasemapInfo {
   name: string;
@@ -120,7 +193,8 @@ class Store {
   cityZone: CityZone | null = null;
   damage: DamageMap = loadDamage();
 
-  layers: Record<string, boolean> = { ...LAYER_DEFAULT };
+  layers: Record<LayerKey, boolean> = { ...BASE_LAYERS };
+  preset = 'situation';
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };
@@ -166,9 +240,18 @@ class Store {
     this.emit();
   }
 
-  setLayer(key: string, on: boolean): void {
+  setLayer(key: LayerKey, on: boolean): void {
     if (this.layers[key] === on) return;
     this.layers = { ...this.layers, [key]: on };
+    this.preset = 'custom';
+    this.emit();
+  }
+
+  applyPreset(key: string): void {
+    const p = STYLE_PRESETS.find((x) => x.key === key);
+    if (!p) return;
+    this.layers = { ...BASE_LAYERS, ...p.layers };
+    this.preset = p.key;
     this.emit();
   }
 
@@ -181,7 +264,7 @@ class Store {
   setGroup(group: string, on: boolean): void {
     const g = LAYER_TREE.find((x) => x.key === group);
     if (!g) return;
-    const next = { ...this.layers };
+    const next: Record<LayerKey, boolean> = { ...this.layers };
     for (const i of g.items) next[i.key] = on;
     this.layers = next;
     this.emit();
