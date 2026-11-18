@@ -86,7 +86,11 @@ cd app && pnpm install && pnpm dev
 
 ## 数据管线
 
+新区域一把跑完（dem → contours → rail → poi → slope → cities）：
+
 ```bash
+node Tools/bake_region.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --zmin=9 --zmax=11
+```
 # 1) 全球矢量包（z0–z6，约 44 MB）
 #    有本地母包时用 --source，全程离线、约 2 秒：
 node Tools/fetch_basemap.mjs --key=world --world --source="E:\PersonalGame\v4.pmtiles"
@@ -160,7 +164,8 @@ node Tools/bake_poi.mjs --zoom=12
 | `Tools/bake_poi.mjs` | 从区域包抽机场/桥隧点位（设施气泡） |
 | `Tools/fetch_basemap.mjs` | 取 CLI → 裁 bbox 或全球 → 出 style / 字形 / index |
 | `Tools/bake_dem.py` | DEM 瓦片（terrarium） |
-| `Tools/bake_slope.py` | 坡度通行瓦片（DEM 差分 → 分级着色） |
+| `Tools/bake_slope.py` | 坡度通行瓦片（DEM 差分 → 按 `Tools/slope_palette.json` 着色） |
+| `Tools/bake_region.mjs` | 一键区域管线：dem → contours → rail → poi → slope → cities |
 | `Tools/bake_contours.py` | 等高线矢量（marching squares + 折线缝合 + 标注锚点） |
 | `Tools/serve.mjs` | 零依赖静态服务器（含 `.pmtiles` 的 HTTP Range） |
 | `Tools/perf_probe.mjs` | 帧率与静态重绘实测（CDP 拖动 + render 间隔统计；`--strict` 可当闸门） |

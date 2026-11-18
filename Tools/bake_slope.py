@@ -14,14 +14,27 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, '..')
 DATA = os.path.join(ROOT, 'app', 'public', 'data')
 
-CLASSES = [
-    (3, (214, 228, 196)),
-    (8, (190, 214, 168)),
-    (15, (232, 214, 150)),
-    (25, (224, 176, 116)),
-    (35, (206, 132, 96)),
-    (999, (176, 92, 82)),
-]
+PALETTE_PATH = os.path.join(HERE, 'slope_palette.json')
+DEFAULT_LIMITS = [3, 8, 15, 25, 35, 999]
+DEFAULT_COLORS = ['#d6e4c4', '#bed6a8', '#e8d696', '#e0b074', '#ce8460', '#b05c52']
+
+
+def load_palette():
+    try:
+        with io.open(PALETTE_PATH, encoding='utf-8') as f:
+            doc = json.load(f)
+        limits = [int(v) for v in doc.get('limits', DEFAULT_LIMITS)]
+        colors = [str(v) for v in doc.get('colors', DEFAULT_COLORS)]
+        if len(limits) == len(colors) and limits:
+            return limits, colors
+    except Exception as exc:
+        log(f'palette fallback: {exc}')
+    return DEFAULT_LIMITS, DEFAULT_COLORS
+
+
+LIMITS, COLORS = load_palette()
+CLASSES = list(zip(LIMITS, COLORS))
+LIMITS = [c[0] for c in CLASSES]
 ALPHA = 255
 
 
@@ -32,6 +45,13 @@ def log(msg):
 def tile_center_lat(z, y):
     n = math.pi - 2.0 * math.pi * (y + 0.5) / (2 ** z)
     return math.degrees(math.atan(math.sinh(n)))
+
+
+def hex_rgb(value):
+    s = str(value).lstrip('#')
+    if len(s) != 6:
+        return (200, 200, 200)
+    return (int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16))
 
 
 def slope_rgba(dem_path, z, y):
@@ -49,14 +69,14 @@ def slope_rgba(dem_path, z, y):
         hit = rest & (pct < limit)
         if not hit.any():
             continue
-        out[hit, 0] = color[0]
-        out[hit, 1] = color[1]
-        out[hit, 2] = color[2]
+        r, g, b = hex_rgb(color)
+        out[hit, 0] = r
+        out[hit, 1] = g
+        out[hit, 2] = b
         out[hit, 3] = ALPHA
         rest &= ~hit
     out[~np.isfinite(pct), 3] = 0
     return Image.fromarray(out, mode='RGBA')
-
 
 def job(args):
     key, z, x, y = args

@@ -1493,6 +1493,34 @@ v1.42 的地形档只关了城市与建筑，坡度还是关的，等于「没�
 
 z13.5 实测：股道不再糊成黑板，单条呈现"墨线 + 白缝 + 纸色光晕"，站场能看出是编组场而不是色块。
 
+### v1.45 三件扩展铺垫：配色外置、层预算、一键区域管线
+
+#### 一、坡度配色外置（raster-color 走不通）
+
+目标是不重烘就能换坡度配色。试了两条路：
+
+1. **索引图 + `raster-color`**：把 PNG 烘成单通道分类号（0–5），配色交给样式。
+   结果 **本仓库的 maplibre 6.18 构建不支持**：控制台直接报
+   `layers[14].paint.raster-color-mix: unknown property "raster-color-mix"`，
+   整张样式被拒，地图白屏。索引图体积倒是小（fulda 1.55 MB vs 2.04 MB），但没法着色。
+2. **配色外置到烘焙期**：新增 `Tools/slope_palette.json`（limits + colors），
+   `bake_slope.py` 启动时读取，取不到才用内置默认值。
+
+最终采用 2。美术返工路径变成：**改一个 JSON → `bake_slope.py --key=<区域>` 重烘 ≈3 秒**。
+其余所有美术（纸底、水系、林地、城区、边界、道路分级、等高线、铁路、战损纹理）都在
+`app/src/data/style/*.ts`，纯代码改动，不碰数据。
+
+#### 二、层预算
+
+`zonesInBounds()` 恢复上限 `MAX_REGION_TIERS = 5`：重叠包按 maxzoom 升序，超出时丢弃最低倍的那几包
+（它们本来就是 fallback）。4 包现状不触发；扩到几十个包时不会无限叠图层。
+
+#### 三、一键区域管线
+
+新增 `Tools/bake_region.mjs`：`dem → contours → rail → poi → slope → cities` 六步串行，
+任一步失败即停。支持 `--key --bbox --zmin --zmax --skip=dem,slope --dry-run`。
+底图包不存在时直接提示先跑 `fetch_basemap.mjs`。
+
 ## 技术决策与原因
 
 | 决策 | 原因 |

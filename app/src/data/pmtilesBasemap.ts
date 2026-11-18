@@ -59,6 +59,8 @@ function overlaps(a: [number, number, number, number], b: [number, number, numbe
   return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 }
 
+const MAX_REGION_TIERS = 5;
+
 export function zonesAt(zones: PmtilesZone[], lon: number, lat: number): PmtilesZone[] {
   const worlds = zones.filter((z) => z.kind === 'world').sort((a, b) => a.maxzoom - b.maxzoom);
   const regions = zones
@@ -76,7 +78,8 @@ export function zonesInBounds(
   const regions = zones
     .filter((z) => z.kind !== 'world' && overlaps(z.bbox, bounds))
     .sort((a, b) => a.maxzoom - b.maxzoom);
-  const out = [...worlds, ...regions];
+  const kept = regions.length > MAX_REGION_TIERS ? regions.slice(regions.length - MAX_REGION_TIERS) : regions;
+  const out = [...worlds, ...kept];
   return out.length ? out : zones.slice(0, 1);
 }
 
