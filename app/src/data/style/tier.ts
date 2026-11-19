@@ -1,5 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { URBAN_GREY, URBAN_KINDS } from './tokens';
+import { AERODROME_MARK_INK, BUILDING_GLOW_INK, LANDUSE, MILITARY_FILL, MILITARY_OUTLINE, URBAN_GREY, URBAN_KINDS } from './tokens';
 import { restyle } from './restyle';
 import type { Tier } from './types';
 
@@ -45,7 +45,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
       minzoom: 8,
       maxzoom: tier.styleMax,
       paint: {
-        'fill-color': ['match', ['get', 'kind'], 'residential', '#c2bcb1', 'commercial', '#b9b3a8', 'retail', '#bdb7ac', '#b5afa4'],
+        'fill-color': ['match', ['get', 'kind'], 'residential', LANDUSE.residential, 'commercial', LANDUSE.commercial, 'retail', LANDUSE.retail, LANDUSE.railway],
         'fill-opacity': 0.92,
       },
     },
@@ -65,7 +65,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
     maxzoom: tier.styleMax,
     layout: { 'line-join': 'round', 'line-cap': 'round' },
     paint: {
-      'line-color': '#b6b0a4',
+      'line-color': BUILDING_GLOW_INK,
       'line-width': ['interpolate', ['linear'], ['zoom'], 14, 2, 16, 3.2],
       'line-opacity': 0.85,
     },
@@ -94,9 +94,9 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
     minzoom: 8,
     maxzoom: tier.styleMax,
     paint: {
-      'fill-color': '#c8b39c',
+      'fill-color': MILITARY_FILL,
       'fill-opacity': 0.55,
-      'fill-outline-color': '#8a705a',
+      'fill-outline-color': MILITARY_OUTLINE,
     },
   });
   out.push({
@@ -108,7 +108,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
     minzoom: 9,
     maxzoom: tier.styleMax,
     paint: {
-      'line-color': '#6f6a86',
+      'line-color': AERODROME_MARK_INK,
       'line-width': 1.3,
       'line-dasharray': [2, 2],
     },

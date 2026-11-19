@@ -1,3 +1,4 @@
+import { GRID_MAJOR, GRID_MINOR, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY } from './tokens';
 export function gridLayers(): Record<string, unknown>[] {
   return [
     {
@@ -5,14 +6,14 @@ export function gridLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'grid',
       filter: ['==', ['get', 'major'], false],
-      paint: { 'line-color': '#4a6b8a', 'line-opacity': 0.34, 'line-width': 0.8 },
+      paint: { 'line-color': GRID_MINOR, 'line-opacity': 0.34, 'line-width': 0.8 },
     },
     {
       id: 'grid-major',
       type: 'line',
       source: 'grid',
       filter: ['==', ['get', 'major'], true],
-      paint: { 'line-color': '#3f5f7d', 'line-opacity': 0.42, 'line-width': 1.1 },
+      paint: { 'line-color': GRID_MAJOR, 'line-opacity': 0.42, 'line-width': 1.1 },
     },
   ];
 }
@@ -27,9 +28,9 @@ export function poiLayers(): Record<string, unknown>[] {
       minzoom: 5,
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 2, 10, 4, 14, 6.5],
-        'circle-color': '#3f5570',
+        'circle-color': POI_AIRPORT,
         'circle-opacity': 0.9,
-        'circle-stroke-color': '#f3eee1',
+        'circle-stroke-color': POI_STROKE,
         'circle-stroke-width': 1.2,
       },
     },
@@ -41,9 +42,9 @@ export function poiLayers(): Record<string, unknown>[] {
       minzoom: 4,
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 2.2, 8, 3.4, 12, 5],
-        'circle-color': '#1f6f8b',
+        'circle-color': POI_PORT,
         'circle-opacity': 0.9,
-        'circle-stroke-color': '#eaf2f5',
+        'circle-stroke-color': POI_PORT_STROKE,
         'circle-stroke-width': 1,
       },
     },
@@ -55,9 +56,9 @@ export function poiLayers(): Record<string, unknown>[] {
       minzoom: 11,
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 1.1, 14, 1.9, 17, 2.6],
-        'circle-color': '#8a5a3c',
+        'circle-color': POI_BRIDGE,
         'circle-opacity': 0.75,
-        'circle-stroke-color': '#f3eee1',
+        'circle-stroke-color': POI_STROKE,
         'circle-stroke-width': 0.5,
       },
     },
@@ -71,7 +72,7 @@ export function ringLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rings',
       paint: {
-        'line-color': '#c04227',
+        'line-color': RING_INK,
         'line-opacity': 0.88,
         'line-width': ['case', ['==', ['%', ['get', 'km'], 50], 0], 1.8, 1.1],
         'line-dasharray': [3, 2],
@@ -87,7 +88,7 @@ export function ringLayers(): Record<string, unknown>[] {
         'text-size': 10,
         'symbol-placement': 'line-center',
       },
-      paint: { 'text-color': '#8f2f1f', 'text-halo-color': '#f6f0e4', 'text-halo-width': 1.4 },
+      paint: { 'text-color': RING_LABEL_INK, 'text-halo-color': RING_LABEL_HALO, 'text-halo-width': 1.4 },
     },
   ];
 }
@@ -99,7 +100,7 @@ export function urbanWorldLayers(): Record<string, unknown>[] {
       source: 'urban-world',
       minzoom: 4,
       maxzoom: 9,
-      paint: { 'fill-color': '#b9b3a7', 'fill-opacity': 0.45 },
+      paint: { 'fill-color': URBAN_GREY, 'fill-opacity': 0.45 },
     },
   ];
 }

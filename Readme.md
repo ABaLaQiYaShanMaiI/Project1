@@ -94,6 +94,19 @@ cd app && pnpm install && pnpm dev
 ```bash
 node Tools/bake_region.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --zmin=9 --zmax=11
 ```
+
+一条命令替代 #2 与 #4–#8（zoom 自动推导、失败回滚、manifest 登记）：
+
+```
+node Tools/add_region.mjs --name=berlin --bbox=13.0,52.3,13.8,52.7 --label=柏林
+```
+
+按 `Tools/data_manifest.json` 校验产物，`--fix` 重跑重建：
+
+```
+node Tools/restore.mjs [--name=...] [--fix]
+```
+
 # 1) 全球矢量包（z0–z6，约 44 MB）
 #    有本地母包时用 --source，全程离线、约 2 秒：
 node Tools/fetch_basemap.mjs --key=world --world --source="E:\PersonalGame\v4.pmtiles"
@@ -142,14 +155,14 @@ python Tools/bake_ne_urban.py
 | --- | --- | --- |
 | `tiles/*.pmtiles`、`tiles/index.json`、`base.style.json`、`glyphs/` | `node Tools/fetch_basemap.mjs`、`Tools\bin\pmtiles.exe extract` | 否（体积大） |
 | `dem/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_dem.py` | 否（体积大） |
-| `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | world/fulda 入库；**区域包（如 germany）不入库**，46 MB 级，按 .gitignore 由 DEM 重烘 |
+| `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | 全部入库（含 germany 区域包，约 46 MB；v1.55 起不再忽略） |
 | `contours_<key>.json` | `python Tools/bake_contours.py` | 是 |
 | `rails_<key>.json` | `node Tools/bake_rail.mjs` | 是 |
 | `poi_<key>.json` | `node Tools/bake_poi.mjs` | 是 |
 | `cities.json`、`cities_<key>.json` | `node Tools/bake_cities.mjs` | 是 |
 
-`tiles/` 与 `dem/` 不入库（体积大），换机器重跑对应命令即可；其余产物体积小且入库，
-其中 `slope/` 仍建议换机器后重跑一遍 `bake_slope.py`，以对齐该机的 DEM 版本。
+`tiles/` 与 `dem/` 不入库（体积大），换机器重跑对应命令即可；其余产物（含 `slope/`）全部入库，
+换机器直接 checkout 即可，无需重烘。
 
 烘焙完数据后要 `cd app && pnpm build`（服务读的是 `app/dist`），再刷新页面。
 
@@ -159,7 +172,7 @@ python Tools/bake_ne_urban.py
 | --- | --- |
 | `app/src/WorldMapLibre.tsx` | 世界地图主体：tier 装配、图层开关、格网、射程圈、读数 |
 | `app/src/data/militaryStyle.ts` | 军事地形样式装配：源与图层的先后顺序、去重 |
-| `app/src/data/style/` | 样式分件：`tokens` 共用色值 / `restyle` 底图改写 / `tier` 分层复制 / `rail` `boundary` `contour` `overlay` / `widths` 线宽插值 |
+| `app/src/data/style/` | 样式分件：`tokens` 全部色值唯一事实源 / `restyle` 底图改写 / `tier` 分层复制 / `rail` `boundary` `contour` `overlay` / `widths` 线宽插值 |
 | `app/src/data/pmtilesBasemap.ts` | Pmtiles 协议、`index.json`、`zonesAt()` / `tierBands()` |
 | `app/src/data/terrain.ts` | DEM 采样（高程 / 坡度 / 坡向） |
 | `app/src/core/geo.ts` | UTM 正算、格网生成、射程圈 |
@@ -174,6 +187,10 @@ python Tools/bake_ne_urban.py
 | `Tools/bake_rail.mjs` | 从区域包抽低倍铁路线（RDP 简化 + 去重） |
 | `Tools/bake_poi.mjs` | 从区域包抽机场/桥隧点位（设施气泡） |
 | `Tools/fetch_basemap.mjs` | 取 CLI → 裁 bbox 或全球 → 出 style / 字形 / index |
+| `Tools/add_region.mjs` | 一条命令新增区域：矢量裁剪 + 7 步烘焙 + 失败回滚 + manifest 登记 |
+| `Tools/restore.mjs` | 按 manifest 校验产物，`--fix` 重跑重建 |
+| `Tools/data_manifest.json` | 区域产物台账（sha256 / 目录规模），restore.mjs 的输入 |
+| `Tools/style_snapshot.mjs` | 样式输出快照（tsc 编译 militaryStyle → 固定输入 → sha256），样式重构护栏 |
 | `Tools/bake_dem.py` | DEM 瓦片（terrarium） |
 | `Tools/bake_slope.py` | 坡度通行瓦片（DEM 差分 → 按 `Tools/slope_palette.json` 着色） |
 | `Tools/bake_region.mjs` | 一键区域管线：dem → contours → rail → poi → slope → cities |

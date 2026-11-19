@@ -1,0 +1,118 @@
+[
+ {
+  "name": "germany",
+  "label": "德国",
+  "bbox": [
+   5.8,
+   47.2,
+   15.1,
+   55.1
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": [
+   11,
+   11
+  ],
+  "command": "node Tools/add_region.mjs --name=germany --bbox=5.8,47.2,15.1,55.1 --label=\"德国\" --zmin=11 --zmax=12",
+  "recordedAt": "2026-11-19 08:12",
+  "products": [
+   {
+    "path": "tiles/germany.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b2ce5d4ae5b50f1cc31bc171b1cb1feea349a04fbcfb53cd7e39e77310d44c2b",
+    "bytes": 722069114
+   },
+   {
+    "path": "dem/germany",
+    "kind": "dir",
+    "files": 3943,
+    "bytes": 402688477
+   },
+   {
+    "path": "slope/germany",
+    "kind": "dir",
+    "files": 3943,
+    "bytes": 48151806
+   }
+  ]
+ },
+ {
+  "name": "fulda",
+  "label": "富尔达缺口",
+  "bbox": [
+   8.849,
+   50.24,
+   10.591,
+   51
+  ],
+  "zoom": [
+   0,
+   13
+  ],
+  "demZoom": [
+   9,
+   11
+  ],
+  "command": "node Tools/add_region.mjs --name=fulda --bbox=8.849,50.240,10.591,51.000 --label=\"富尔达缺口\" --zmin=0 --zmax=13 --dem-zmin=9 --dem-zmax=11",
+  "recordedAt": "2026-11-19 08:13",
+  "products": [
+   {
+    "path": "tiles/fulda.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:76707a9a41ce51d60ea3165ade3c9ef1941870e562a6079a30587de3681eb737",
+    "bytes": 43698990
+   },
+   {
+    "path": "tiles/fulda.style.json",
+    "kind": "file",
+    "sha256": "sha256:1de563f335e47bec35d5bdd9cf5c1c865954e7fff699b57a5f846f9d0a50909b",
+    "bytes": 40540
+   },
+   {
+    "path": "dem/fulda",
+    "kind": "dir",
+    "files": 131,
+    "bytes": 16242665
+   },
+   {
+    "path": "contours_fulda.json",
+    "kind": "file",
+    "sha256": "sha256:248cbf15e97d00f2d89fa9e4cc663b37531644a564b1c3f6e3256df262498ea8",
+    "bytes": 1432850
+   },
+   {
+    "path": "rails_fulda.json",
+    "kind": "file",
+    "sha256": "sha256:addcbff52144ba506b4ca431acfc717df4de2f0a4366a762b467dd8f8357461f",
+    "bytes": 259473
+   },
+   {
+    "path": "rails_fulda_low.json",
+    "kind": "file",
+    "sha256": "sha256:85bac9b35ff220aa394b3463d96550fa6163c0ae64ff5e3105105ea2f14dd510",
+    "bytes": 52260
+   },
+   {
+    "path": "poi_fulda.json",
+    "kind": "file",
+    "sha256": "sha256:daa21ad45add7fef5eda1c054be009fe3fbef3a0978d02c221237091693706f7",
+    "bytes": 7390
+   },
+   {
+    "path": "slope/fulda",
+    "kind": "dir",
+    "files": 131,
+    "bytes": 2140664
+   },
+   {
+    "path": "cities_fulda.json",
+    "kind": "file",
+    "sha256": "sha256:71887cb3978fe1f938e3a090e632faf6e8e149ffbd0202aae580054b55e40448",
+    "bytes": 35447
+   }
+  ]
+ }
+]

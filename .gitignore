@@ -24,6 +24,9 @@ app/public/data/dem/
 Saves/*
 !Saves/.gitkeep
 
+# 样式快照工具的 tsc 编译缓存（Tools/style_snapshot.mjs 生成）
+Tools/.style-cache/
+
 # Python 缓存
 __pycache__/
 *.pyc
@@ -46,5 +49,5 @@ desktop.ini
 .idea/
 *.swp
 
-# 区域坡度瓦片（体积大，用 Tools/bake_slope.py 从 dem/<key> 重烘）
-app/public/data/slope/germany/
+# 坡度瓦片与美术资源按决定入库（v1.38）：slope/germany（约 46 MB）不再忽略，
+# 未来的美术资源（Arts/ 与 public 下的图像产物）一律跟踪，不再新增忽略规则。

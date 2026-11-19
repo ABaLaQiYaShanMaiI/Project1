@@ -1,11 +1,11 @@
-import { RAIL_HALO, RAIL_INK } from './tokens';
+import { RAIL_HALO, RAIL_INK, RAIL_TICK } from './tokens';
 import { restyle } from './restyle';
 import { clampZoom } from './tier';
 import { railWidth, railNarrow } from './widths';
 import type { Tier } from './types';
 
 const RAIL_MINZOOM = 11;
-const RAIL_LOW_MAXZOOM = 12;
+const RAIL_LOW_MAXZOOM = 11;
 const RAIL_HATCH_MAXZOOM = 13;
 
 export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
@@ -31,7 +31,7 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
         'line-color': RAIL_HALO,
-        'line-width': railWidth(4.9, railNarrow()),
+        'line-width': railWidth(5.2, railNarrow()),
       },
     },
     rail,
@@ -45,8 +45,8 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       maxzoom: Math.min(tier.styleMax, RAIL_HATCH_MAXZOOM),
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
       paint: {
-        'line-color': '#f7f4ea',
-        'line-width': railWidth(1.0, railNarrow()),
+        'line-color': RAIL_TICK,
+        'line-width': railWidth(1.05, railNarrow()),
         'line-dasharray': [1.1, 2.1],
       },
     },
@@ -80,7 +80,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       minzoom: 9,
       maxzoom: RAIL_LOW_MAXZOOM,
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
-      paint: { 'line-color': '#f7f4ea', 'line-width': railWidth(1.05), 'line-dasharray': [1.1, 2.1] },
+      paint: { 'line-color': RAIL_TICK, 'line-width': railWidth(1.05), 'line-dasharray': [1.1, 2.1] },
     },
   ];
 }

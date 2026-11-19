@@ -1,0 +1,22 @@
+{
+ "key": "germany",
+ "minzoom": 11,
+ "maxzoom": 11,
+ "bbox": [
+  5.8,
+  47.2,
+  15.1,
+  55.1
+ ],
+ "tiles": "/data/slope/germany/{z}/{x}/{y}.png",
+ "classes": [
+  3,
+  8,
+  15,
+  25,
+  35
+ ],
+ "attribution": "AWS Terrain Tiles (Terrarium / SRTM, 公有领域)",
+ "sizeMB": 45.92,
+ "generated": "2026-11-19 13:16"
+}

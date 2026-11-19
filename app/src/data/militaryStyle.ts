@@ -1,5 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { PAPER, BUILDING_TIER_MINZOOM } from './style/tokens';
+import { BUILDING_TIER_MINZOOM, HILLSHADE_ACCENT, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
 import { tierLayers } from './style/tier';
 import { boundaryLayers } from './style/boundary';
 import { railsOf, railLowLayers, railLowCoarseLayers, railWorldLayers } from './style/rail';
@@ -61,9 +61,9 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       paint: {
         'hillshade-exaggeration': ['interpolate', ['linear'], ['zoom'], 4, 1.05, 8, 0.85, 12, 0.6, 16, 0.52],
         'hillshade-illumination-direction': 315,
-        'hillshade-shadow-color': '#7a6444',
-        'hillshade-highlight-color': '#fffdf6',
-        'hillshade-accent-color': '#a88f6b',
+        'hillshade-shadow-color': HILLSHADE_SHADOW,
+        'hillshade-highlight-color': HILLSHADE_HIGHLIGHT,
+        'hillshade-accent-color': HILLSHADE_ACCENT,
       },
     });
   }
