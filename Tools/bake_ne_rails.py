@@ -14,6 +14,7 @@ OUT = os.path.join(DATA, "rails_world.json")
 
 TOL = 0.01
 MINLEN = 25000.0
+MAXSEG = 80000.0
 
 
 def rdp(pts, tol):
@@ -55,12 +56,25 @@ reader = shapefile.Reader(SHP)
 lines = []
 for shape in reader.shapes():
     pts = [(round(x, 5), round(y, 5)) for x, y in shape.points]
-    simp = rdp(pts, TOL)
-    if len(simp) < 2:
-        continue
-    if length_m(simp) < MINLEN:
-        continue
-    lines.append([[a, b] for a, b in simp])
+    parts = list(shape.parts) + [len(pts)]
+    for i in range(len(parts) - 1):
+        part = pts[parts[i]:parts[i + 1]]
+        if len(part) < 2:
+            continue
+        simp = rdp(part, TOL)
+        if len(simp) < 2:
+            continue
+        if length_m(simp) < MINLEN:
+            continue
+        longest = 0.0
+        for k in range(1, len(simp)):
+            (ax, ay), (bx, by) = simp[k - 1], simp[k]
+            dx = (bx - ax) * 111320.0 * math.cos(math.radians(ay))
+            dy = (by - ay) * 111320.0
+            longest = max(longest, math.hypot(dx, dy))
+        if longest > MAXSEG:
+            continue
+        lines.append([[a, b] for a, b in simp])
 
 doc = {"v": 1, "source": "Natural Earth 1:10m railroads", "count": len(lines), "lines": lines}
 with open(OUT, "w", encoding="utf-8") as f:

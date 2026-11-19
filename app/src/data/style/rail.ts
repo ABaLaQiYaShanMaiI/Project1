@@ -6,7 +6,7 @@ import type { Tier } from './types';
 
 const RAIL_MINZOOM = 11;
 const RAIL_LOW_MAXZOOM = 11;
-const RAIL_HATCH_MAXZOOM = 13;
+const RAIL_HATCH_MAXZOOM = 16;
 
 export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   const rail = restyle({
@@ -18,7 +18,7 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
     layout: { visibility: 'visible' },
     paint: {},
   });
-  clampZoom(rail, tier);
+  if (!clampZoom(rail, tier)) return [];
   return [
     {
       id: `rail-halo${suffix}`,
@@ -93,7 +93,7 @@ export function railLowCoarseLayers(): Record<string, unknown>[] {
       minzoom: 4,
       maxzoom: 9,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(3.2) },
+      paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(5.2) },
     },
     {
       id: 'rail-low2',
@@ -102,7 +102,7 @@ export function railLowCoarseLayers(): Record<string, unknown>[] {
       minzoom: 4,
       maxzoom: 9,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': RAIL_INK, 'line-width': railWidth(1.9) },
+      paint: { 'line-color': RAIL_INK, 'line-width': railWidth(3.4), 'line-opacity': ['interpolate', ['linear'], ['zoom'], 10, 1, 12, 0.35] },
     },
   ];
 }
@@ -113,18 +113,18 @@ export function railWorldLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-world',
       minzoom: 3,
-      maxzoom: 10,
+      maxzoom: 12,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(2.6) },
+      paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(5.2) },
     },
     {
       id: 'rail-world',
       type: 'line',
       source: 'rails-world',
       minzoom: 3,
-      maxzoom: 10,
+      maxzoom: 12,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': RAIL_INK, 'line-width': railWidth(1.5), 'line-opacity': 0.9 },
+      paint: { 'line-color': RAIL_INK, 'line-width': railWidth(3.4), 'line-opacity': ['interpolate', ['linear'], ['zoom'], 10, 1, 12, 0.35] },
     },
   ];
 }

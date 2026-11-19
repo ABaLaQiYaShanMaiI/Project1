@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { styleExpressionErrors } from './style_lint.mjs';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -154,6 +155,12 @@ function checkFirstJs() {
   return ok;
 }
 
+function checkStyleExpressions() {
+  const bad = styleExpressionErrors();
+  const ok = bad.length === 0;
+  record('样式表达式合法', ok, ok ? 'zoom 仅在顶层 interpolate/step' : bad.slice(0, 3).join(' | '));
+  return ok;
+}
 const steps = [
   checkJsComments,
   checkPyComments,
@@ -162,6 +169,7 @@ const steps = [
   checkTypes,
   checkBuild,
   checkFirstJs,
+  checkStyleExpressions,
 ];
 
 for (const step of steps) {

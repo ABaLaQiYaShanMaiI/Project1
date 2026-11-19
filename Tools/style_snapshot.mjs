@@ -50,6 +50,10 @@ const inputs = {
 const spec = build(inputs);
 const text = JSON.stringify(spec);
 const hash = `sha256:${createHash('sha256').update(text).digest('hex')}`;
+if (process.argv.includes('--json')) {
+  console.log(text);
+  process.exit(0);
+}
 const raw = (process.argv.find((s) => s.startsWith('--expect=')) || '').slice(9);
 const expect = raw ? (raw.startsWith('sha256:') ? raw : `sha256:${raw}`) : '';
 if (expect) {

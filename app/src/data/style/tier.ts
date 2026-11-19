@@ -54,23 +54,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
     const sl = String(l['source-layer'] ?? '');
     return sl === 'landcover' || sl === 'landuse' ? i : idx;
   }, -1);
-  out.splice(lastGround + 1, 0, ...urbanFills);
-
-  out.push({
-    id: `buildings_glow${suffix}`,
-    type: 'line',
-    source: tier.id,
-    'source-layer': 'buildings',
-    minzoom: 14,
-    maxzoom: tier.styleMax,
-    layout: { 'line-join': 'round', 'line-cap': 'round' },
-    paint: {
-      'line-color': BUILDING_GLOW_INK,
-      'line-width': ['interpolate', ['linear'], ['zoom'], 14, 2, 16, 3.2],
-      'line-opacity': 0.85,
-    },
-  });
-  out.push({
+  out.splice(lastGround + 1, 0, ...urbanFills, {
     id: `landuse_urban_glow${suffix}`,
     type: 'line',
     source: tier.id,
@@ -84,7 +68,21 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
       'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2, 13, 3.5, 16, 5],
       'line-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.5, 13, 0.62],
     },
+  }, {
+    id: `buildings_glow${suffix}`,
+    type: 'line',
+    source: tier.id,
+    'source-layer': 'buildings',
+    minzoom: 14,
+    maxzoom: tier.styleMax,
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: {
+      'line-color': BUILDING_GLOW_INK,
+      'line-width': ['interpolate', ['linear'], ['zoom'], 14, 2, 16, 3.2],
+      'line-opacity': 0.85,
+    },
   });
+
   out.push({
     id: `landuse_military${suffix}`,
     type: 'fill',

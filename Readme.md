@@ -55,6 +55,7 @@ cd app && pnpm install && pnpm dev
 | 全球 z7–8 | `tiles/world8.pmtiles` | z7–z8 全世界（476 MB），村镇级标注与路网 |
 | 全球 z9–10 | `tiles/world9.pmtiles` | z9–z10 全世界（3.0 GB），街区级路网与更密地名 |
 | 区域矢量（德） | `tiles/germany.pmtiles` | 德国 z11–12（689 MB），街区级路网与地名 |
+| 区域矢量（德 z13） | `tiles/germany13.pmtiles` | 德国 z13（879 MB），与富尔达同源细节 |
 | 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z9–13 接管 |
 | 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |

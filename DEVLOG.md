@@ -139,6 +139,160 @@ z9 复查：仍是概化灰块 + NE 铁路，符合这一级的精度预期。
 `Tools/style_snapshot.mjs`：基线 sha256:c6b92db4… → **sha256:973da106…**（166 layers，两次运行一致，
 变更范围即上述美术决策）；`tsc --noEmit` 0 error；`check_all` 7 项全绿。
 
+### v1.55 样式表达式把整张图拖垮（铁路/灰块现象的真因）
+
+v1.0.19 的配色 token 化重构里，`restyle.ts` 的两处 `line-opacity` 写成了
+
+```
+['case', isMain, 0.9, isArterial, ['*', 0.5, ['interpolate', ['linear'], ['zoom'], ...]], 0.38]
+```
+
+MapLibre 只允许 `zoom` 出现在 **顶层** `interpolate` / `step` 的输入位，
+嵌套在 `case` 或乘法里会让**整张样式校验失败**——浏览器只留下
+`layers[268].paint.line-opacity: "zoom" expression may only be used as input to a top-level ...`，
+其余全部图层不渲染（实测只剩 6 层：measure-line、damage 等）。
+
+于是用户看到的现象——「富尔达铁路能显示、别处不行」「灰色块乱盖」——其实不是铁路或城区数据的问题，
+而是绝大多数底图图层当时根本没有加载；缩小时能看到连线是 NE 全球层（那几层恰好排在报错图层之后）。
+
+修法：把 arterial 的淡入提到顶层：
+
+```
+['interpolate', ['linear'], ['zoom'],
+  MAIN_MINZOOM, ['case', isMain, 0.9, isArterial, 0, 0.38],
+  ARTERIAL_MINZOOM, ['case', isMain, 0.9, isArterial, 0.5, 0.38]]
+```
+
+#### 新增第 8 道闸：样式表达式校验
+
+这类错误 `tsc` 查不出来、`vite build` 也过，只有浏览器控制台会报。补两个工具：
+
+- `Tools/style_lint.mjs`：在 Node 里用 `style_snapshot` 的合成输入构建整张样式，扫描所有
+  paint/layout，凡 `zoom` 不在顶层 `interpolate`/`step` 输入位就报错
+- `Tools/check_all.mjs` 第 8 项「样式表达式合法」，实测能抓出 24 处旧写法
+
+#### 对 v1.0.19 优化的评估
+
+可保留、方向正确：
+- 颜色全部收进 `tokens.ts`（`GRID_*` `POI_*` `HILLSHADE_*` `MILITARY_*` `RAIL_TICK`），符合「美术=常量」原则
+- `railsOf(tier, suffix)` 给每层 rail 加 tier 后缀，修掉跨 tier 的 id 冲突
+- `Tools/add_region.mjs`（区域一键接入）、`restore.mjs`（产物一致性检查）、`style_snapshot.mjs`（样式哈希基线）都实测可用
+
+需要留意：
+- `style_snapshot` 的哈希适合做美术回归基线，但要先确定基线值，否则每次都「不一致」
+- `tierLayers` 里 landuse 的 match 兜底用了 `LANDUSE.railway`，语义上更像「其他」兜底，建议改名或单列
+
+### v1.56 德国 z13 补齐 + 交互跟手度
+
+#### 一、德国 z13（消除富尔达/德国观感差异）
+
+`--minzoom=13 --maxzoom=13` 德国全区：**879 MB / 1 分 39 秒**，作为独立包 `germany13` 接入。
+分档变成 world 0–6 → world8 7–8 → world9 9–10 → 德国 11–12 → 德国 z13 → core 14–15。
+富尔达的 z13 由 `germany13` 覆盖（同一母包同一级），铁路几何与富尔达同源，粗细不再有差别。
+
+#### 二、不跟手：三个原因
+
+1. **样式里存在大量「区间已死」的图层**：`railsOf()` 里 `clampZoom()` 返回 false（min≥max）时
+   仍然把图层 push 进去。结果 world / world8 / world9 三个全球 tier 的 `roads_rail`
+   在 z13 仍然 active（min 11、无 max），三层铁路同时叠画——既粗又慢。
+   改：`clampZoom` 失败直接返回空数组。
+2. **下级 tier 不封顶**：world9 的 `styleMax` 一直是 22，在德国、富尔达 z11+ 仍以 z10 overzoom 渲染，
+   多出约 77 个图层。改：任何 tier 若下一个 band 的包**完全覆盖当前视口**，就把 `styleMax` 截到下一档起点。
+3. **可见性更新全量刷**：每次 `store.emit()`（含平移时的 cityZone 变化）都对 400 多个图层调
+   `setLayoutProperty`。改成按「上次已应用状态」做差量，并记录 viewEpoch，样式重建后才重置。
+
+另外给铁路 hatch 的上限从 13 提到 16：z13 及以上编组站的黑块被白色刻线打散，观感接近富尔达。
+
+实测（同一 z13 视角）：
+
+| 指标 | 修前 | 修后 |
+| --- | --- | --- |
+| 点击到首帧 | 74–84 ms | **24–26 ms** |
+| 点击到全部瓦片 idle | ~2.0 s | **1.1 s** |
+| z13 active 铁路图层 | 5 层（3 个 tier 叠画） | **2 层** |
+| 富尔达 z13 图层总数 | 447 | 390 |
+
+#### 三、关于美术移植性的结论
+
+`斜度/晕渲/纸底/水系/林地/城区/边界/道路分级/铁路/等高线` 全部由 `tokens.ts` 常量驱动，
+换区域只换数据不改样式——目前德国、富尔达、全球三档的同一份样式表现一致，满足你定的判据。
+
+### v1.57 铁路线宽统一 + 城区面下沉到道路之下
+
+两个观感问题，来源不同：
+
+#### 一、富尔达的铁路比全球的更深
+
+铁路一共四套图层，base 宽度不一致：
+
+| 图层 | 场景 | 旧 ink 宽度 |
+| --- | --- | --- |
+| `roads_rail*` | 瓦片铁路 z11+ | 3.4 |
+| `rail-low` | 区域烘焙 z9–11 | 3.4 |
+| `rail-low2` | 区域粗线 z4–9 | **1.9** |
+| `rail-world` | NE 全球 z3–10 | **1.5** |
+
+同一缩放下富尔达（3.4）比全球（1.5）粗一倍多，看起来「更黑」。全部统一到
+`railWidth(3.4)` ink + `railWidth(5.2)` halo，并把 `rail-cloud` 的 `line-opacity 0.9` 去掉。
+现在 z10 富尔达与法兰克福的线宽完全一致。
+
+#### 二、灰色块盖住铁路和道路
+
+两处层级错位：
+
+1. `urbanWorldLayers()`（NE 全球城区面）原来在 `militaryStyle()` 末尾 push，
+   等于压在**所有 tier 的道路/铁路之上**。改成在第一个 tier 的 `landcover` 之后插入，
+   与坡度、晕渲同一层位。
+2. `landuse_urban_glow` / `buildings_glow` 原来在 `tierLayers()` 末尾 push，
+   也在道路之上（5 px 宽的灰描边会糊住细线）。改成和城区填充一起 splice 到
+   `landcover/landuse` 之后。
+
+现在城区（面 + 描边）统一在「地表之上、水系道路之下」，铁路与道路永远压在最上面。
+
+### v1.58 铁路分层校验：同一缩放只保留一套铁路
+
+验收时发现 z13–z15 在富尔达会**同时**激活两套铁路（`germany` 与 `fulda`、`germany13`），
+叠画导致线更黑、也浪费图层。根因：`styleMax` 的封顶依赖「下一档包是否覆盖视口」，
+而样式只在**包集合**变化时重建，缩放跨档时不会重建，封顶值就停在进入该区域时的旧值。
+
+改法：把「band 阶梯签名」并入重建判据——`zonesInBounds` 的结果加上 `tierBands().from` 序列，
+任一变化即重建样式。样式重建时按当前视口重新计算封顶，跨档后自然只剩一套铁路。
+
+校验结果（rail 专用图层，括号内为当前 zoom 下 active 的铁路 tier）：
+
+| 视角 | z11 | z12 | z13 | z14 | z15 |
+| --- | --- | --- | --- | --- | --- |
+| 富尔达 | germany | germany | fulda | germany13 | germany13 |
+| 慕尼黑 | — | germany | germany13 | germany13 | — |
+
+每个缩放级别都只有一套，且层宽统一为 `railWidth(3.4)`；截图核对 z13/z14 慕尼黑、
+z13 富尔达的线路连续、无断口、无折返形变，编组站黑块由白色刻线劈开。
+
+代价：跨档（z7/9/11/13/14）时会重建一次样式，有短暂重载。
+
+### v1.59 波罗的海「纵向铁路」与放大后断联
+
+#### 一、海上那条线是什么
+
+排查 `rails_world.json`：最长直线段 207 km，坐标 (18.0, 56.22) → (20.0, 57.71)，
+正好横穿波罗的海；再查 Natural Earth 源要素，是一条 29 个点的线，从赫尔辛基
+(22.96, 59.82) 连到瑞典外海——**是轮渡航线被 NE 收进了 railroads 数据集**，
+不是我们的坐标算错。
+
+处理：烘焙时丢弃「任一单段长度 > 80 km」的线（轮渡、异常直连都符合这个特征）。
+重烘后全球铁路最长单段降到 79 km，波罗的海纵向线消失。
+
+#### 二、放大后铁路断联
+
+`rail-world`（NE 全球）原本 maxzoom 10，而瓦片铁路从 z11 才有——于是 z10→z11 之间
+在没有区域包的地区（波兰、法国等）铁路整段消失，看起来像「断联」。
+
+处理：`rail-world` 延到 **z12**，并用 `line-opacity` 从 z10 的 1 淡到 z12 的 0.35。
+有区域瓦片的地区（德国、富尔达）由瓦片铁路压在上面，NE 只作淡底；
+没有区域瓦片的地区仍有连续但较淡的铁路。
+
+实测：华沙 z11 铁路连续可见（淡线）；慕尼黑 z11 瓦片铁路为主；波罗的海 z5 无海上线。
+
 ## 技术决策与原因
 
 | 决策 | 原因 |

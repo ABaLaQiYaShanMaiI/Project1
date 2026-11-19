@@ -258,11 +258,17 @@ export function WorldMapLibre(): JSX.Element {
         loadDemManifest('world'),
         Promise.all(regionBands.map((b) => loadDemManifest(b.zone.key))),
       ]);
+      const viewBox = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
+      const covers = (zone: PmtilesZone) =>
+        zone.bbox[0] <= viewBox[0] &&
+        zone.bbox[1] <= viewBox[1] &&
+        zone.bbox[2] >= viewBox[2] &&
+        zone.bbox[3] >= viewBox[3];
       const tiers = bands.map(({ zone, from }, i) => {
         const tier = tierOf(zone, from);
         const next = bands[i + 1];
-        if (zone.kind === 'world' && next && next.zone.kind === 'world') return { ...tier, styleMax: next.from };
-        return tier;
+        const styleMax = next && next.from > from && covers(next.zone) ? next.from : 22;
+        return styleMax === tier.styleMax ? tier : { ...tier, styleMax };
       });
 
       const demTiers: DemTier[] = [];
@@ -461,10 +467,9 @@ export function WorldMapLibre(): JSX.Element {
       const zones = zonesRef.current;
       if (!zones.length) return;
       const b = map.getBounds();
-      const next = zonesInBounds(zones, [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()])
-        .map((z) => z.key)
-        .sort()
-        .join(',');
+      const hit = zonesInBounds(zones, [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+      const bands = tierBands(hit);
+      const next = `${hit.map((z) => z.key).sort().join(',')}|${bands.map((x) => x.from).join(',')}`;
       if (next === mountedRef.current) return;
       mountedRef.current = next;
       setViewEpoch((v) => v + 1);
@@ -480,29 +485,37 @@ export function WorldMapLibre(): JSX.Element {
     };
   }, []);
 
+  const appliedRef = useRef<{ epoch: number; map: Record<string, boolean> }>({ epoch: -1, map: {} });
+
   useEffect(() => {
     const map = mapRef.current;
     const style = map ? map.getStyle() : null;
     if (!map || !style || !Array.isArray(style.layers) || style.layers.length <= 1) return;
-    const wanted = new Map<string, boolean>();
+    if (appliedRef.current.epoch !== viewEpoch) appliedRef.current = { epoch: viewEpoch, map: {} };
+    const applied = appliedRef.current.map;
     for (const layer of style.layers) {
       const g = groupOf(layer.id);
       if (!g) continue;
-      wanted.set(layer.id, store.layers[g]);
-    }
-    for (const [id, on] of wanted) {
+      const on = store.layers[g];
+      if (applied[layer.id] === on) continue;
       try {
-        map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none');
+        map.setLayoutProperty(layer.id, 'visibility', on ? 'visible' : 'none');
+        applied[layer.id] = on;
       } catch {
         continue;
       }
     }
-  }, [store.version]);
+  }, [store.version, viewEpoch]);
+
+  const railRangeRef = useRef<{ epoch: number; preset: string }>({ epoch: -1, preset: '' });
 
   useEffect(() => {
     const map = mapRef.current;
     const style = map ? map.getStyle() : null;
     if (!map || !style || !Array.isArray(style.layers)) return;
+    const range = railRangeRef.current;
+    if (range.epoch === viewEpoch && range.preset === store.preset) return;
+    railRangeRef.current = { epoch: viewEpoch, preset: store.preset };
     const from = store.preset === 'terrain' ? 10 : 5;
     for (const layer of style.layers) {
       if (!String(layer.id).startsWith('rail-low')) continue;

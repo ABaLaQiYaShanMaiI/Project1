@@ -103,6 +103,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
 
   let reliefPlaced = false;
   let slopePlaced = false;
+  let urbanPlaced = false;
   const last = inp.tiers.length - 1;
   inp.tiers.forEach((tier, i) => {
     const suffix = i === 0 ? '' : `__${tier.id}`;
@@ -122,18 +123,22 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         out.push(...slopeLayers);
         slopePlaced = true;
       }
+      if (!urbanPlaced && inp.urbanWorld && sl === 'landcover') {
+        out.push(...urbanWorldLayers());
+        urbanPlaced = true;
+      }
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
     if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
   });
 
-  if (inp.urbanWorld) out.push(...urbanWorldLayers());
   if (inp.railsWorld) out.push(...railWorldLayers());
   if (inp.railsLow2) out.push(...railLowCoarseLayers());
   if (inp.railsLow) out.push(...railLowLayers());
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
+  if (!urbanPlaced && inp.urbanWorld) out.push(...urbanWorldLayers());
   if (!slopePlaced && slopeLayers.length) out.push(...slopeLayers);
 
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
@@ -146,6 +151,10 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     return true;
   });
 
-  style.layers = deduped as unknown as StyleSpecification['layers'];
+  style.layers = deduped.filter((layer) => {
+    const min = (layer as { minzoom?: number }).minzoom;
+    const max = (layer as { maxzoom?: number }).maxzoom;
+    return min === undefined || max === undefined || min < max;
+  }) as unknown as StyleSpecification['layers'];
   return style;
 }

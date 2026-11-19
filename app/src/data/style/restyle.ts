@@ -116,7 +116,6 @@ export function restyle(layer: Record<string, unknown>): Record<string, unknown>
       const key: unknown = ['coalesce', ['get', 'kind_detail'], ['get', 'kind']];
       const isMain: unknown = ['in', key, ['literal', MAIN_ROADS]];
       const isArterial: unknown = ['in', key, ['literal', ARTERIAL_ROADS]];
-      const arterialFade: unknown = ['interpolate', ['linear'], ['zoom'], MAIN_MINZOOM, 0, ARTERIAL_MINZOOM, 1];
       const spec = ROADS[rc.cls] ?? ROADS.other;
       const isStrip = rc.cls === 'runway' || rc.cls === 'taxiway' || rc.cls === 'pier';
       const widthFactor: unknown = isStrip
@@ -143,11 +142,27 @@ export function restyle(layer: Record<string, unknown>): Record<string, unknown>
             ? PAPER
             : ['case', isMain, cmatch, isArterial, ARTERIAL_CASING, FAINT_CASING];
           paint['line-width'] = zoomWidth(rc.bridge ? 2 : 1.7, widthFactor);
-          paint['line-opacity'] = ['case', isMain, 0.9, isArterial, ['*', 0.5, arterialFade], 0.38];
+          paint['line-opacity'] = [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            MAIN_MINZOOM,
+            ['case', isMain, 0.9, isArterial, 0, 0.38],
+            ARTERIAL_MINZOOM,
+            ['case', isMain, 0.9, isArterial, 0.5, 0.38],
+          ];
         } else {
           paint['line-color'] = ['case', isMain, fmatch, isArterial, ARTERIAL_FILL, FAINT_ROAD];
           paint['line-width'] = zoomWidth(MAIN_ROAD_W, widthFactor);
-          paint['line-opacity'] = ['case', isMain, 0.9, isArterial, ['*', 0.8, arterialFade], 0.55];
+          paint['line-opacity'] = [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            MAIN_MINZOOM,
+            ['case', isMain, 0.9, isArterial, 0, 0.55],
+            ARTERIAL_MINZOOM,
+            ['case', isMain, 0.9, isArterial, 0.8, 0.55],
+          ];
         }
       }
       if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.4, 0.22];
