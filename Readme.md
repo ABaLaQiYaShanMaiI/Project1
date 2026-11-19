@@ -52,11 +52,13 @@ cd app && pnpm install && pnpm dev
 | 图层 | 数据 | 说明 |
 | --- | --- | --- |
 | 全球矢量 | `tiles/world.pmtiles` | z0–z6，全世界都有图 |
-| 大区矢量 | `tiles/europe.pmtiles` | 欧洲 bbox 内 z6–z8（106 MB），战役尺度路网与中小城市 |
+| 全球 z7–8 | `tiles/world8.pmtiles` | z7–z8 全世界（476 MB），村镇级标注与路网 |
+| 全球 z9–10 | `tiles/world9.pmtiles` | z9–z10 全世界（3.0 GB），街区级路网与更密地名 |
+| 区域矢量（德） | `tiles/germany.pmtiles` | 德国 z11–12（689 MB），街区级路网与地名 |
 | 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z9–13 接管 |
 | 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |
-| 大区晕渲 | `dem/europe` z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，z6–8 的真实高程，不再用 z5 overzoom |
+| 大区晕渲 | dem/europe z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，由 dem/world8 清单别名复用 |
 | 区域晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲 |
 | 坡度通行 | `slope/world` z0–z5、`slope/europe` z6–z8、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色，默认关闭 |
 | 等高线 | `contours_fulda.json` | 25 m 等高距 / 125 m 计曲线 + 高程标注 |
@@ -64,7 +66,8 @@ cd app && pnpm install && pnpm dev
 | 铁路 | `rails_fulda.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，最粗、压最上层；z5–11 用烘焙层（底图 z10 以下没有 rail），z11 起用瓦片 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
-| 设施气泡 | `poi_fulda.json` | 机场（z5+）/ 桥隧（z11+）点位，判读组可开关 |
+| 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
+| 全球城区面 | `urban_world.json` | NE 1:10m 建成区面，z4–14 铺在底图上 |
 | 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块（居住/商业/零售/铁路/工业等合并），绿=植被、米=农田、灰=城区 |
 | 行政边界 | 底图 `boundaries` | 国界/州/县/乡镇四级，冷灰虚线，按 `kind_detail` 分级 |
 | 城区战损 | 运行时图案 | 1–3 级战损：按街区哈希挑一部分地块叠 rubble 斜纹 + 红虚线；顶部「战损」开关单击标记 |
@@ -95,6 +98,10 @@ node Tools/bake_region.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --zmin=
 #    有本地母包时用 --source，全程离线、约 2 秒：
 node Tools/fetch_basemap.mjs --key=world --world --source="E:\PersonalGame\v4.pmtiles"
 
+# 2a) 全球 z7–8（476 MB，从母包离线切，约 20 秒）
+Tools\bin\pmtiles.exe extract "G:\PersonalGame\v4.pmtiles" "app\public\data\tiles\world8.pmtiles" --bbox=-180,-85,180,85 --minzoom=7 --maxzoom=8
+Tools\bin\pmtiles.exe extract "G:\PersonalGame\v4.pmtiles" "app\public\data\tiles\world9.pmtiles" --bbox=-180,-85,180,85 --minzoom=9 --maxzoom=10
+
 # 2) 区域矢量包（示例：富尔达，z0–z13，约 42 MB）
 node Tools/fetch_basemap.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --name=富尔达缺口
 
@@ -123,6 +130,10 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 
 # 10) 设施气泡（机场 / 桥隧点位，判读组可开关）
 node Tools/bake_poi.mjs --zoom=12
+
+# 11) 全球铁路 / 机场 / 港口 / 城区面（Natural Earth 1:10m，一次性）
+python Tools/bake_ne_rails.py
+python Tools/bake_ne_urban.py
 ```
 
 产物、生成命令与入库策略对账表：
@@ -131,7 +142,7 @@ node Tools/bake_poi.mjs --zoom=12
 | --- | --- | --- |
 | `tiles/*.pmtiles`、`tiles/index.json`、`base.style.json`、`glyphs/` | `node Tools/fetch_basemap.mjs`、`Tools\bin\pmtiles.exe extract` | 否（体积大） |
 | `dem/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_dem.py` | 否（体积大） |
-| `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | 是（5.9 MB，缺则「坡度通行」静默不出图） |
+| `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | world/fulda 入库；**区域包（如 germany）不入库**，46 MB 级，按 .gitignore 由 DEM 重烘 |
 | `contours_<key>.json` | `python Tools/bake_contours.py` | 是 |
 | `rails_<key>.json` | `node Tools/bake_rail.mjs` | 是 |
 | `poi_<key>.json` | `node Tools/bake_poi.mjs` | 是 |

@@ -16,6 +16,20 @@ const PACK = arg('pack', join(ROOT, 'app', 'public', 'data', 'tiles', 'fulda.pmt
 const ZOOM = Number(arg('zoom', '11'));
 const OUT = arg('out', join(ROOT, 'app', 'public', 'data', 'rails_fulda.json'));
 const TOL = Number(arg('tol', '0.00004'));
+const MINLEN = Number(arg('minlen', '600'));
+const NEAR = Number(arg('near', '25'));
+
+function lengthM(pts) {
+  let s = 0;
+  for (let i = 1; i < pts.length; i += 1) {
+    const [a, b] = pts[i - 1];
+    const [c, d] = pts[i];
+    const dx = (c - a) * 111320 * Math.cos((b * Math.PI) / 180);
+    const dy = (d - b) * 111320;
+    s += Math.hypot(dx, dy);
+  }
+  return s;
+}
 
 function rdp(pts, tol) {
   if (pts.length < 3) return pts;
@@ -58,7 +72,7 @@ const ty0 = Math.max(0, Math.floor(((1 - Math.log(Math.tan((head.maxLat * Math.P
 const ty1 = Math.min(n - 1, Math.floor(((1 - Math.log(Math.tan((head.minLat * Math.PI) / 180) + 1 / Math.cos((head.minLat * Math.PI) / 180)) / Math.PI) / 2) * n));
 
 const seen = new Set();
-const lines = [];
+const raw = [];
 let tiles = 0;
 
 for (let x = tx0; x <= tx1; x++) {
@@ -72,23 +86,87 @@ for (let x = tx0; x <= tx1; x++) {
       if (f.props.kind !== 'rail') continue;
       for (const ring of f.rings) {
         if (ring.length < 2) continue;
-        const pts = ring.map(([px, py]) => [
-          ((x + px / 4096) / n) * 360 - 180,
-          (Math.atan(Math.sinh(Math.PI * (1 - 2 * ((y + py / 4096) / n)))) * 180) / Math.PI,
-        ]);
-        const simp = rdp(pts, TOL);
-        if (simp.length < 2) continue;
-        const fwd = simp.map((p) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join(';');
-        const rev = [...simp].reverse().map((p) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join(';');
-        const key = fwd.length <= rev.length ? fwd : rev;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        lines.push(simp);
+        raw.push(
+          ring.map(([px, py]) => [
+            ((x + px / 4096) / n) * 360 - 180,
+            (Math.atan(Math.sinh(Math.PI * (1 - 2 * ((y + py / 4096) / n)))) * 180) / Math.PI,
+          ]),
+        );
       }
     }
   }
 }
 
+const KEY = 0.00025;
+
+function node(p) {
+  return `${Math.round(p[0] / KEY)},${Math.round(p[1] / KEY)}`;
+}
+
+function distM(a, b) {
+  const dx = (b[0] - a[0]) * 111320 * Math.cos((a[1] * Math.PI) / 180);
+  const dy = (b[1] - a[1]) * 111320;
+  return Math.hypot(dx, dy);
+}
+
+const used = new Array(raw.length).fill(false);
+const chains = [];
+
+for (let i = 0; i < raw.length; i += 1) {
+  if (used[i]) continue;
+  used[i] = true;
+  const chain = raw[i].slice();
+  let grew = true;
+  while (grew) {
+    grew = false;
+    const head = node(chain[0]);
+    const tail = node(chain[chain.length - 1]);
+    for (let j = 0; j < raw.length; j += 1) {
+      if (used[j]) continue;
+      const seg = raw[j];
+      const a = node(seg[0]);
+      const b = node(seg[seg.length - 1]);
+      if (b === tail) {
+        chain.push(...seg.slice(1));
+        used[j] = true;
+        grew = true;
+        break;
+      }
+      if (a === tail) {
+        chain.push(...seg.slice(1).reverse());
+        used[j] = true;
+        grew = true;
+        break;
+      }
+      if (b === head) {
+        chain.unshift(...seg.slice(0, -1));
+        used[j] = true;
+        grew = true;
+        break;
+      }
+      if (a === head) {
+        chain.unshift(...seg.slice(1).reverse());
+        used[j] = true;
+        grew = true;
+        break;
+      }
+    }
+  }
+  chains.push(chain);
+}
+
+const lines = [];
+for (const chain of chains) {
+  const simp = rdp(chain, TOL);
+  if (simp.length < 2) continue;
+  if (lengthM(simp) < MINLEN) continue;
+  const fwd = simp.map((p) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join(';');
+  const rev = [...simp].reverse().map((p) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join(';');
+  const key = fwd.length <= rev.length ? fwd : rev;
+  if (seen.has(key)) continue;
+  seen.add(key);
+  lines.push(simp);
+}
 const doc = {
   v: 1,
   source: PACK.replace(ROOT, '').replace(/\\/g, '/'),

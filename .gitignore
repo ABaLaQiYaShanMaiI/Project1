@@ -45,3 +45,6 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# 区域坡度瓦片（体积大，用 Tools/bake_slope.py 从 dem/<key> 重烘）
+app/public/data/slope/germany/

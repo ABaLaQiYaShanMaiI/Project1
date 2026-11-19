@@ -6,6 +6,7 @@ import { spawn } from 'node:child_process';
 import { serveRange } from './range_serve.mjs';
 
 const ROOT = fileURLToPath(new URL('../app/dist', import.meta.url));
+const PUBLIC = fileURLToPath(new URL('../app/public', import.meta.url));
 const START_PORT = Number(process.argv[2] ?? 5183);
 const OPEN_BROWSER = !process.argv.includes('--no-open');
 
@@ -38,9 +39,29 @@ async function exists(p) {
 
 const server = createServer(async (req, res) => {
   try {
-    if (await serveRange(ROOT, req, res)) return;
     const url = new URL(req.url, 'http://localhost');
     let path = decodeURIComponent(url.pathname);
+    if (path === '/data/' || path.startsWith('/data/')) {
+      if (await serveRange(PUBLIC, req, res)) return;
+      const dataFile = normalize(join(PUBLIC, path));
+      if (dataFile !== PUBLIC && !dataFile.startsWith(PUBLIC.endsWith(sep) ? PUBLIC : PUBLIC + sep)) {
+        res.writeHead(403).end('forbidden');
+        return;
+      }
+      const dInfo = await fileStat(dataFile);
+      if (!dInfo) {
+        res.writeHead(404).end('not found');
+        return;
+      }
+      const dBuf = await readFile(dataFile);
+      res.writeHead(200, {
+        'content-type': MIME[extname(dataFile).toLowerCase()] ?? 'application/octet-stream',
+        'cache-control': 'no-cache',
+        'content-length': dBuf.length,
+      });
+      res.end(dBuf);
+      return;
+    }
     if (path === '/' || path === '') path = '/index.html';
     const file = normalize(join(ROOT, path));
     if (file !== ROOT && !file.startsWith(ROOT.endsWith(sep) ? ROOT : ROOT + sep)) {

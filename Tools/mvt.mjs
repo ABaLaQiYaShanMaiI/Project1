@@ -76,6 +76,8 @@ function readGeometry(buf, type) {
         x += zigzag(readVarint(buf, pos));
         y += zigzag(readVarint(buf, pos));
         out.points.push([x, y]);
+        cur = [[x, y]];
+        out.rings.push(cur);
       }
     } else if (id === 2) {
       if (!cur) {

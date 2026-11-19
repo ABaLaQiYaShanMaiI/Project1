@@ -132,9 +132,8 @@ export async function loadBaseStyle(zone: PmtilesZone): Promise<StyleSpecificati
 }
 
 export function tierOf(zone: PmtilesZone, from: number): Tier {
-  const isWorld = zone.kind === 'world';
   return {
-    id: isWorld ? 'world' : `detail_${zone.key}`,
+    id: zone.key === 'world' ? 'world' : `detail_${zone.key}`,
     url: pmtilesUrl(zone.file),
     bounds: zone.bbox,
     minzoom: zone.minzoom,

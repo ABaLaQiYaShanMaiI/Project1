@@ -2,9 +2,9 @@ import type { StyleSpecification } from 'maplibre-gl';
 import { PAPER, BUILDING_TIER_MINZOOM } from './style/tokens';
 import { tierLayers } from './style/tier';
 import { boundaryLayers } from './style/boundary';
-import { railsOf, railLowLayers } from './style/rail';
+import { railsOf, railLowLayers, railLowCoarseLayers, railWorldLayers } from './style/rail';
 import { contourLayers } from './style/contour';
-import { gridLayers, ringLayers, poiLayers } from './style/overlay';
+import { gridLayers, ringLayers, poiLayers, urbanWorldLayers } from './style/overlay';
 import type { StyleInputs } from './style/types';
 
 export type { ContourDoc } from './style/contour';
@@ -13,7 +13,9 @@ export type { DemTier, FC, SlopeTier, StyleInputs, Tier } from './style/types';
 
 export function militaryStyle(inp: StyleInputs): StyleSpecification {
   const style = JSON.parse(JSON.stringify(inp.base)) as StyleSpecification;
-  const sources = style.sources as Record<string, unknown>;
+  const base = style.sources as Record<string, unknown>;
+  for (const key of Object.keys(base)) delete base[key];
+  const sources = base;
   const out: Record<string, unknown>[] = [
     { id: 'background', type: 'background', paint: { 'background-color': PAPER } },
   ];
@@ -80,6 +82,15 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (inp.railsLow) {
     sources['rails-low'] = { type: 'geojson', data: inp.railsLow };
   }
+  if (inp.railsLow2) {
+    sources['rails-low2'] = { type: 'geojson', data: inp.railsLow2 };
+  }
+  if (inp.urbanWorld) {
+    sources['urban-world'] = { type: 'geojson', data: inp.urbanWorld };
+  }
+  if (inp.railsWorld) {
+    sources['rails-world'] = { type: 'geojson', data: inp.railsWorld };
+  }
 
   if (inp.contours) {
     sources.contours = { type: 'geojson', data: inp.contours };
@@ -98,10 +109,6 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     let inserted = false;
     for (const layer of tierLayers(inp.base, tier, suffix)) {
       const sl = String(layer['source-layer']);
-      if (i === 0 && !slopePlaced && slopeLayers.length && sl === 'roads') {
-        out.push(...slopeLayers);
-        slopePlaced = true;
-      }
       if (contours.length && i === last && !inserted && sl === 'roads') {
         out.push(...contours);
         inserted = true;
@@ -111,12 +118,19 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         out.push(...reliefLayers);
         reliefPlaced = true;
       }
+      if (!slopePlaced && slopeLayers.length && sl === 'landcover') {
+        out.push(...slopeLayers);
+        slopePlaced = true;
+      }
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
     if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
   });
 
+  if (inp.urbanWorld) out.push(...urbanWorldLayers());
+  if (inp.railsWorld) out.push(...railWorldLayers());
+  if (inp.railsLow2) out.push(...railLowCoarseLayers());
   if (inp.railsLow) out.push(...railLowLayers());
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);

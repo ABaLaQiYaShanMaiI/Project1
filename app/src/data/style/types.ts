@@ -47,6 +47,9 @@ export interface StyleInputs {
   slopeTiers?: SlopeTier[];
   contours?: FC | null;
   railsLow?: FC | null;
+  railsLow2?: FC | null;
+  railsWorld?: FC | null;
+  urbanWorld?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
 }

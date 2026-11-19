@@ -34,6 +34,20 @@ export function poiLayers(): Record<string, unknown>[] {
       },
     },
     {
+      id: 'poi-port',
+      type: 'circle',
+      source: 'poi',
+      filter: ['==', ['get', 'k'], 'port'],
+      minzoom: 4,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 2.2, 8, 3.4, 12, 5],
+        'circle-color': '#1f6f8b',
+        'circle-opacity': 0.9,
+        'circle-stroke-color': '#eaf2f5',
+        'circle-stroke-width': 1,
+      },
+    },
+    {
       id: 'poi-bridge',
       type: 'circle',
       source: 'poi',
@@ -74,6 +88,18 @@ export function ringLayers(): Record<string, unknown>[] {
         'symbol-placement': 'line-center',
       },
       paint: { 'text-color': '#8f2f1f', 'text-halo-color': '#f6f0e4', 'text-halo-width': 1.4 },
+    },
+  ];
+}
+export function urbanWorldLayers(): Record<string, unknown>[] {
+  return [
+    {
+      id: 'urban-world',
+      type: 'fill',
+      source: 'urban-world',
+      minzoom: 4,
+      maxzoom: 9,
+      paint: { 'fill-color': '#b9b3a7', 'fill-opacity': 0.45 },
     },
   ];
 }

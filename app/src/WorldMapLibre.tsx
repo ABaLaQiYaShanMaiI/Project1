@@ -258,7 +258,12 @@ export function WorldMapLibre(): JSX.Element {
         loadDemManifest('world'),
         Promise.all(regionBands.map((b) => loadDemManifest(b.zone.key))),
       ]);
-      const tiers = bands.map(({ zone, from }) => tierOf(zone, from));
+      const tiers = bands.map(({ zone, from }, i) => {
+        const tier = tierOf(zone, from);
+        const next = bands[i + 1];
+        if (zone.kind === 'world' && next && next.zone.kind === 'world') return { ...tier, styleMax: next.from };
+        return tier;
+      });
 
       const demTiers: DemTier[] = [];
       if (worldMan) {
@@ -332,18 +337,60 @@ export function WorldMapLibre(): JSX.Element {
           } as unknown as FC)
         : null;
 
-      const poi = poiDoc?.points?.length
+      const poiBase = await getJson<PoiDoc>('/data/poi_world.json');
+      const poiPoints = [...(poiBase?.points ?? []), ...(poiDoc?.points ?? [])];
+      const poi = poiPoints.length
         ? ({
             type: 'FeatureCollection',
-            features: poiDoc.points.map((p) => ({
+            features: poiPoints.map((p) => ({
               type: 'Feature',
               properties: { k: p.k },
               geometry: { type: 'Point', coordinates: [p.o, p.l] },
             })),
           } as unknown as FC)
         : null;
+      const urbanDoc = await getJson<{ polys?: [number, number][][] }>('/data/urban_world.json');
+      const urbanWorld = urbanDoc?.polys?.length
+        ? ({
+            type: 'FeatureCollection',
+            features: urbanDoc.polys.map((ring) => ({
+              type: 'Feature',
+              properties: {},
+              geometry: { type: 'Polygon', coordinates: [ring] },
+            })),
+          } as unknown as FC)
+        : null;
+      const worldDoc = await getJson<{ lines?: [number, number][][] }>('/data/rails_world.json');
+      const railsWorld = worldDoc?.lines?.length
+        ? ({
+            type: 'FeatureCollection',
+            features: [
+              {
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'MultiLineString', coordinates: worldDoc.lines },
+              },
+            ],
+          } as unknown as FC)
+        : null;
+      let railsLow2: FC | null = null;
+      for (const r of regions) {
+        const doc = await getJson<{ lines?: [number, number][][] }>(`/data/rails_${r.key}_low.json`);
+        if (!Array.isArray(doc?.lines) || !doc.lines.length) continue;
+        railsLow2 = {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: {},
+              geometry: { type: 'MultiLineString', coordinates: doc.lines },
+            },
+          ],
+        } as unknown as FC;
+        break;
+      }
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
-      const grid = buildUtmGrid(focus.bbox, gridStepFor(Math.round(START.zoom)));
+      const grid = buildUtmGrid(buildBounds(map), gridStepFor(Math.round(map.getZoom())));
       if (!alive) return;
       dexRef.current = dex;
       const style = militaryStyle({
@@ -355,6 +402,9 @@ export function WorldMapLibre(): JSX.Element {
         railsLow,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
         poi,
+        railsLow2,
+        railsWorld,
+        urbanWorld,
       });
       if (!alive) return;
       gridStepRef.current = gridStepFor(Math.round(START.zoom));
@@ -477,7 +527,6 @@ export function WorldMapLibre(): JSX.Element {
     if (!map) return;
     const rebuild = () => {
       const step = gridStepFor(Math.round(map.getZoom()));
-      if (step === gridStepRef.current) return;
       gridStepRef.current = step;
       const src = map.getSource('grid') as { setData?: (d: unknown) => void } | undefined;
       src?.setData?.({

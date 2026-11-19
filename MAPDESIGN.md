@@ -9,7 +9,8 @@
 
 ```
 L0 全球      tiles/world.pmtiles      z0-z6    42 MB     全世界始终有图
-L1 大区      tiles/europe.pmtiles     z6-z8    106 MB    战役尺度（已落地）
+L1 全球 z7-8  tiles/world8.pmtiles     z7-z8    476 MB    村镇级标注与路网
+L1b 全球 z9-10 tiles/world9.pmtiles     z9-z10   3.0 GB    街区级路网与更密地名
 L2 热点      tiles/fulda.pmtiles      z0-z13   42 MB     战术尺度
 L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
 地形        dem/world z0-z5（86 MB） + dem/europe z6-z8（21 MB） + dem/fulda z9-z11（15 MB）
@@ -17,8 +18,7 @@ L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
 判读        contours_<key>.json、运行时 UTM 格网、射程圈
 ```
 
-四包同时在场时 307 个 style 图层。区域包不再截断到 2 个（v1.34 前 `MAX_REGION_TIERS = 2`
-会把 europe 静默丢掉，导致 z7–8 只能用 world z6 overzoom）。
+富尔达视图内四包同时在场约 305 个 style 图层；世界其余地区只有 world + world8 两包（157 层）。\r\n层预算 MAX_REGION_TIERS = 5，超出按 maxzoom 丢弃最低倍包。\r\ndem/europe 与 slope/europe 的瓦片目录由 dem/world8 / slope/world8 的清单别名复用，不再有独立的 europe 矢量包。
 
 装配规则（`data/pmtilesBasemap.ts`）：
 
