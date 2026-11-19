@@ -142,3 +142,15 @@ export function tierOf(zone: PmtilesZone, from: number): Tier {
     styleMax: 22,
   };
 }
+
+export function tierCaps(bands: Array<{ zone: PmtilesZone; from: number }>, viewBox: [number, number, number, number]): number[] {
+  const covers = (zone: PmtilesZone) =>
+    zone.bbox[0] <= viewBox[0] &&
+    zone.bbox[1] <= viewBox[1] &&
+    zone.bbox[2] >= viewBox[2] &&
+    zone.bbox[3] >= viewBox[3];
+  return bands.map((band, i) => {
+    const next = bands[i + 1];
+    return next && next.from > band.from && covers(next.zone) ? next.from : 22;
+  });
+}

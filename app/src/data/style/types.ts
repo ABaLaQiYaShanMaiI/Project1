@@ -45,6 +45,7 @@ export interface StyleInputs {
   tiers: Tier[];
   demTiers?: DemTier[];
   slopeTiers?: SlopeTier[];
+  densityTiers?: DensityTier[];
   contours?: FC | null;
   railsLow?: FC | null;
   railsLow2?: FC | null;
@@ -52,4 +53,12 @@ export interface StyleInputs {
   urbanWorld?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
+}
+
+export interface DensityTier {
+  id: string;
+  tiles: string;
+  minzoom: number;
+  maxzoom: number;
+  bbox: [number, number, number, number];
 }

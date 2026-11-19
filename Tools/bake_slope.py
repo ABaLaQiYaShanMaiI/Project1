@@ -63,24 +63,27 @@ def slope_rgba(dem_path, z, y):
     gy, gx = np.gradient(elev)
     grad = np.sqrt(gx * gx + gy * gy) / max(mpp, 1e-6)
     pct = grad * 100.0
-    out = np.zeros((a.shape[0], a.shape[1], 4), dtype=np.uint8)
+    idx = np.full(pct.shape, len(CLASSES), dtype=np.uint8)
     rest = np.ones(pct.shape, dtype=bool)
-    for limit, color in CLASSES:
+    for i, (limit, _) in enumerate(CLASSES):
         hit = rest & (pct < limit)
-        if not hit.any():
-            continue
-        r, g, b = hex_rgb(color)
-        out[hit, 0] = r
-        out[hit, 1] = g
-        out[hit, 2] = b
-        out[hit, 3] = ALPHA
+        idx[hit] = i
         rest &= ~hit
-    out[~np.isfinite(pct), 3] = 0
-    return Image.fromarray(out, mode='RGBA')
+    idx[~np.isfinite(pct)] = len(CLASSES)
+    out = Image.fromarray(idx, mode='P')
+    palette = []
+    for _, color in CLASSES:
+        palette.extend(hex_rgb(color))
+    palette.extend((0, 0, 0))
+    out.putpalette(palette)
+    out.info['transparency'] = len(CLASSES)
+    return out
 
 def job(args):
     key, z, x, y = args
     src = os.path.join(DATA, 'dem', key, str(z), str(x), f'{y}.png')
+    if not os.path.exists(src):
+        src = os.path.join(DATA, 'dem', key, str(z), str(x), f'{y}.webp')
     if not os.path.exists(src):
         return None
     dst_dir = os.path.join(DATA, 'slope', key, str(z), str(x))
@@ -123,8 +126,8 @@ def main():
             if not os.path.isdir(xd):
                 continue
             for name in sorted(os.listdir(xd)):
-                if name.endswith('.png'):
-                    tasks.append((args.key, z, int(x), int(name[:-4])))
+                if name.endswith('.png') or name.endswith('.webp'):
+                    tasks.append((args.key, z, int(x), int(os.path.splitext(name)[0])))
 
     if not tasks:
         log('没有可处理的 DEM 瓦片')

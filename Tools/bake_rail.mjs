@@ -110,8 +110,24 @@ function distM(a, b) {
 }
 
 const used = new Array(raw.length).fill(false);
-const chains = [];
+const ends = new Map();
+for (let i = 0; i < raw.length; i += 1) {
+  const seg = raw[i];
+  for (const key of [node(seg[0]), node(seg[seg.length - 1])]) {
+    const list = ends.get(key);
+    if (list) list.push(i);
+    else ends.set(key, [i]);
+  }
+}
 
+const pick = (key) => {
+  const list = ends.get(key);
+  if (!list) return -1;
+  for (const i of list) if (!used[i]) return i;
+  return -1;
+};
+
+const chains = [];
 for (let i = 0; i < raw.length; i += 1) {
   if (used[i]) continue;
   used[i] = true;
@@ -119,37 +135,20 @@ for (let i = 0; i < raw.length; i += 1) {
   let grew = true;
   while (grew) {
     grew = false;
-    const head = node(chain[0]);
-    const tail = node(chain[chain.length - 1]);
-    for (let j = 0; j < raw.length; j += 1) {
-      if (used[j]) continue;
+    for (const atTail of [true, false]) {
+      const endPt = atTail ? chain[chain.length - 1] : chain[0];
+      const j = pick(node(endPt));
+      if (j < 0) continue;
       const seg = raw[j];
-      const a = node(seg[0]);
-      const b = node(seg[seg.length - 1]);
-      if (b === tail) {
-        chain.push(...seg.slice(1));
-        used[j] = true;
-        grew = true;
-        break;
-      }
-      if (a === tail) {
-        chain.push(...seg.slice(1).reverse());
-        used[j] = true;
-        grew = true;
-        break;
-      }
-      if (b === head) {
-        chain.unshift(...seg.slice(0, -1));
-        used[j] = true;
-        grew = true;
-        break;
-      }
-      if (a === head) {
-        chain.unshift(...seg.slice(1).reverse());
-        used[j] = true;
-        grew = true;
-        break;
-      }
+      const tailKey = node(chain[chain.length - 1]);
+      const headKey = node(chain[0]);
+      if (node(seg[0]) === tailKey) chain.push(...seg.slice(1));
+      else if (node(seg[seg.length - 1]) === tailKey) chain.push(...seg.slice(1).reverse());
+      else if (node(seg[seg.length - 1]) === headKey) chain.unshift(...seg.slice(0, -1));
+      else chain.unshift(...seg.slice(1).reverse());
+      used[j] = true;
+      grew = true;
+      break;
     }
   }
   chains.push(chain);

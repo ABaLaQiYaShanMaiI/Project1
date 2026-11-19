@@ -34,7 +34,7 @@ import {
 } from './tokens';
 import { zoomWidth, railWidth, railNarrow } from './widths';
 
-const MAIN_MINZOOM_MINOR = 12;
+const MAIN_MINZOOM_MINOR = 11;
 
 function roadClass(id: string): { cls: string; casing: boolean; tunnel: boolean; bridge: boolean } | null {
   if (!id.startsWith('roads_')) return null;
@@ -168,7 +168,7 @@ export function restyle(layer: Record<string, unknown>): Record<string, unknown>
       if (rc.tunnel) paint['line-opacity'] = ['case', isMain, 0.4, 0.22];
       if (rc.cls === 'minor' && !isStrip) next.minzoom = MAIN_MINZOOM_MINOR;
       else if (!isStrip && rc.cls !== 'minor_service' && rc.cls !== 'other') next.minzoom = MAIN_MINZOOM;
-      if (rc.cls === 'minor_service' || rc.cls === 'other') next.minzoom = 13;
+      if (rc.cls === 'minor_service' || rc.cls === 'other') next.minzoom = 12;
     }
   } else if (sourceLayer === 'places') {
     const size = id === 'places_country' ? 13 : id === 'places_region' ? 11.5 : id === 'places_locality' ? 11.5 : 10.5;

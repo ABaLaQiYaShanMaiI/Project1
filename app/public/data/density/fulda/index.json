@@ -1,0 +1,17 @@
+{
+ "key": "fulda",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  9.615,
+  50.492,
+  9.735,
+  50.612
+ ],
+ "tiles": "/data/density/fulda/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 156,
+ "sizeMB": 0.14,
+ "source": "app/public/data/tiles/fulda_core.pmtiles"
+}

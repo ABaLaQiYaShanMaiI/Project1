@@ -1,5 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { BUILDING_TIER_MINZOOM, HILLSHADE_ACCENT, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
+import { HILLSHADE_ACCENT, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
 import { tierLayers } from './style/tier';
 import { boundaryLayers } from './style/boundary';
 import { railsOf, railLowLayers, railLowCoarseLayers, railWorldLayers } from './style/rail';
@@ -92,6 +92,25 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     sources['rails-world'] = { type: 'geojson', data: inp.railsWorld };
   }
 
+  const densityLayers: Record<string, unknown>[] = [];
+  for (const dt of inp.densityTiers ?? []) {
+    sources[`density-${dt.id}`] = {
+      type: 'raster',
+      tiles: [dt.tiles],
+      tileSize: 256,
+      minzoom: dt.minzoom,
+      maxzoom: dt.maxzoom,
+      bounds: dt.bbox,
+    };
+    densityLayers.push({
+      id: `density-${dt.id}`,
+      type: 'raster',
+      source: `density-${dt.id}`,
+      minzoom: dt.minzoom,
+      maxzoom: 17,
+      paint: { 'raster-opacity': 0.85, 'raster-resampling': 'linear' },
+    });
+  }
   if (inp.contours) {
     sources.contours = { type: 'geojson', data: inp.contours };
   }
@@ -104,6 +123,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   let reliefPlaced = false;
   let slopePlaced = false;
   let urbanPlaced = false;
+  let densityPlaced = false;
   const last = inp.tiers.length - 1;
   inp.tiers.forEach((tier, i) => {
     const suffix = i === 0 ? '' : `__${tier.id}`;
@@ -127,10 +147,14 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         out.push(...urbanWorldLayers());
         urbanPlaced = true;
       }
+      if (!densityPlaced && densityLayers.length && sl === 'landcover') {
+        out.push(...densityLayers);
+        densityPlaced = true;
+      }
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
-    if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
+    if (tier.minzoom < 13) out.push(...railsOf(tier, suffix));
   });
 
   if (inp.railsWorld) out.push(...railWorldLayers());
@@ -139,6 +163,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
   if (!urbanPlaced && inp.urbanWorld) out.push(...urbanWorldLayers());
+  if (!densityPlaced && densityLayers.length) out.push(...densityLayers);
   if (!slopePlaced && slopeLayers.length) out.push(...slopeLayers);
 
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());

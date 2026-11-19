@@ -95,6 +95,8 @@ const server = createServer(async (req, res) => {
   }
 });
 
+let opened = false;
+
 function listen(port, tries = 12) {
   server.once('error', (err) => {
     if (err.code === 'EADDRINUSE' && tries > 0) {
@@ -111,7 +113,10 @@ function listen(port, tries = 12) {
     console.log('  已启动：' + url);
     console.log('  （关闭本窗口即停止服务）');
     console.log('');
-    if (OPEN_BROWSER) spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+    if (OPEN_BROWSER && !opened) {
+      opened = true;
+      spawn('cmd', ['/c', 'start', '', url], { detached: true, stdio: 'ignore' }).unref();
+    }
   });
 }
 

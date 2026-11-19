@@ -16,6 +16,8 @@ import { useStore, store } from './hooks';
 import { markerElement } from './map/markerElement';
 import { bearingLabel, buildReadout, type Readout } from './map/readout';
 import { groupOf } from './data/style/layerGroups';
+
+import { firstJson, getJson, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
 import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
@@ -36,6 +38,7 @@ import {
   loadPmtilesZones,
   registerPmtiles,
   tierBands,
+  tierCaps,
   tierOf,
   zonesInBounds,
   type PmtilesZone,
@@ -51,15 +54,6 @@ const BLANK_STYLE = {
 
 const START = { lon: 9.72, lat: 50.62, zoom: 7 };
 
-async function getJson<T>(url: string): Promise<T | null> {
-  const res = await fetch(url, { cache: 'no-cache' }).catch(() => null);
-  if (!res || !res.ok) return null;
-  try {
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  }
-}
 
 interface SlopeManifest {
   tiles: string;
@@ -68,21 +62,6 @@ interface SlopeManifest {
   bbox: [number, number, number, number];
 }
 
-interface RailsDoc {
-  lines?: [number, number][][];
-}
-
-interface PoiDoc {
-  points?: Array<{ o: number; l: number; k: string }>;
-}
-
-async function firstJson<T>(zones: PmtilesZone[], urlOf: (key: string) => string): Promise<T | null> {
-  for (const z of zones) {
-    const doc = await getJson<T>(urlOf(z.key));
-    if (doc) return doc;
-  }
-  return null;
-}
 
 export function WorldMapLibre(): JSX.Element {
   useStore();
@@ -253,22 +232,19 @@ export function WorldMapLibre(): JSX.Element {
       mountedRef.current = tiersZones.map((z) => z.key).sort().join(',');
       const bands = tierBands(tiersZones);
       const regionBands = bands.filter((b) => b.zone.key !== 'world');
+      const densityMans = await Promise.all(regionBands.map((b) => getJson<DensityDoc>(`/data/density/${b.zone.key}/index.json`)));
+      const densityTiers = densityMans.flatMap((d) => (d && d.tiles ? [{ id: String(d.key ?? ''), tiles: d.tiles, minzoom: d.minzoom ?? 14, maxzoom: d.maxzoom ?? 15, bbox: d.bbox ?? [-180, -85, 180, 85] }] : []));
       const [base, worldMan, regionMans] = await Promise.all([
         loadBaseStyle(tiersZones[tiersZones.length - 1]),
         loadDemManifest('world'),
         Promise.all(regionBands.map((b) => loadDemManifest(b.zone.key))),
       ]);
-      const viewBox = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
-      const covers = (zone: PmtilesZone) =>
-        zone.bbox[0] <= viewBox[0] &&
-        zone.bbox[1] <= viewBox[1] &&
-        zone.bbox[2] >= viewBox[2] &&
-        zone.bbox[3] >= viewBox[3];
+      const viewBox: [number, number, number, number] = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
+      const caps = tierCaps(bands, viewBox);
+      capsRef.current = { bands, caps };
       const tiers = bands.map(({ zone, from }, i) => {
         const tier = tierOf(zone, from);
-        const next = bands[i + 1];
-        const styleMax = next && next.from > from && covers(next.zone) ? next.from : 22;
-        return styleMax === tier.styleMax ? tier : { ...tier, styleMax };
+        return caps[i] === tier.styleMax ? tier : { ...tier, styleMax: caps[i] };
       });
 
       const demTiers: DemTier[] = [];
@@ -302,7 +278,7 @@ export function WorldMapLibre(): JSX.Element {
       const [slopeMans, contoursDoc, railsDoc, poiDoc, dex] = await Promise.all([
         Promise.all(slopeKeys.map((k) => getJson<SlopeManifest>(`/data/slope/${k}/index.json`))),
         firstJson<ContourDoc>(regions, (k) => `/data/contours_${k}.json`),
-        firstJson<RailsDoc>(regions, (k) => `/data/rails_${k}.json`),
+        mergeRails(regions),
         firstJson<PoiDoc>(regions, (k) => `/data/poi_${k}.json`),
         loadCityDex(regions.map((z) => z.key)),
       ]);
@@ -404,6 +380,7 @@ export function WorldMapLibre(): JSX.Element {
         tiers,
         demTiers,
         slopeTiers,
+        densityTiers,
         contours,
         railsLow,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
@@ -467,11 +444,18 @@ export function WorldMapLibre(): JSX.Element {
       const zones = zonesRef.current;
       if (!zones.length) return;
       const b = map.getBounds();
-      const hit = zonesInBounds(zones, [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+      const box: [number, number, number, number] = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
+      const hit = zonesInBounds(zones, box);
+      const key = hit.map((z) => z.key).sort().join(',');
+      if (key !== mountedRef.current) {
+        mountedRef.current = key;
+        setViewEpoch((v) => v + 1);
+        return;
+      }
       const bands = tierBands(hit);
-      const next = `${hit.map((z) => z.key).sort().join(',')}|${bands.map((x) => x.from).join(',')}`;
-      if (next === mountedRef.current) return;
-      mountedRef.current = next;
+      const signature = `${key}|${bands.map((x) => x.from).join(',')}`;
+      if (signature === mountedRef.current) return;
+      mountedRef.current = signature;
       setViewEpoch((v) => v + 1);
     };
     const onMoveEnd = () => {
@@ -486,6 +470,9 @@ export function WorldMapLibre(): JSX.Element {
   }, []);
 
   const appliedRef = useRef<{ epoch: number; map: Record<string, boolean> }>({ epoch: -1, map: {} });
+  const capsRef = useRef<{ bands: Array<{ zone: PmtilesZone; from: number }>; caps: number[] } | null>(null);
+  const epochRef = useRef(0);
+  epochRef.current = viewEpoch;
 
   useEffect(() => {
     const map = mapRef.current;
