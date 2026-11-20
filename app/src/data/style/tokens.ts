@@ -19,7 +19,9 @@ export const URBAN_KINDS = [
   'college',
 ];
 
-export const MAIN_MINZOOM = 10;
+export const MAIN_MINZOOM = 7;
+
+export const MAIN_FULL_MINZOOM = 10;
 
 export const ARTERIAL_MINZOOM = 12;
 

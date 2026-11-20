@@ -87,7 +87,7 @@
     "path": "dem/fulda",
     "kind": "dir",
     "files": 131,
-    "bytes": 16242665
+    "bytes": 16249696
    },
    {
     "path": "contours_fulda.json",
@@ -110,8 +110,8 @@
    {
     "path": "poi_fulda.json",
     "kind": "file",
-    "sha256": "sha256:daa21ad45add7fef5eda1c054be009fe3fbef3a0978d02c221237091693706f7",
-    "bytes": 7390
+    "sha256": "sha256:842df9e47f3e6acb191f174e044d77427091e17d6529630a1b2020d736919fe1",
+    "bytes": 9473
    },
    {
     "path": "slope/fulda",

@@ -1,0 +1,22 @@
+{
+ "key": "world6",
+ "minzoom": 6,
+ "maxzoom": 6,
+ "bbox": [
+  -180.0,
+  -85.0,
+  180.0,
+  85.0
+ ],
+ "tiles": "/data/slope/world6/{z}/{x}/{y}.png",
+ "classes": [
+  3,
+  8,
+  15,
+  25,
+  35
+ ],
+ "attribution": "AWS Terrain Tiles (Terrarium / SRTM, 公有领域)",
+ "sizeMB": 6.71,
+ "generated": "2026-11-20 20:33"
+}

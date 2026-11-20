@@ -59,14 +59,15 @@ cd app && pnpm install && pnpm dev
 | 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z9–13 接管 |
 | 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |
-| 大区晕渲 | dem/europe z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，由 dem/world8 清单别名复用 |
+| 全球 z6 晕渲 | `dem/world6` z6（203 MB） | z6 起全球 2.4 km 级高程；此前跳出中欧就是 z5 的 16–32 倍 overzoom（v1.75 补烘） |
+| 大区晕渲 | dem/europe z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，由 dem/world8 清单别名复用；**europe 档从 z7 接管**，z6 交给 world6 |
 | 区域晕渲 | `dem/germany` z9–z11（520 MB） | 德国全域；z9–10 此前是 z5 的 16–32 倍 overzoom（v1.70 补烘） |
 | 富尔达晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲（现由 germany 档覆盖，保留作回退） |
-| 坡度通行 | `slope/world` z0–z5、`slope/europe` z6–z8、`slope/germany` z9–z11、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色（<3 / 3–8 / 8–15 / 15–25 / 25–35 / >35%），档间互斥（0/6/9）；**地势图默认开启** |
-| 等高线 | `contours_europe.json` / `contours_germany.json` / `contours_fulda.json` | 三档阶梯：500 m（z7–10，中欧 0–20°E）/ 200 m（z10–13，德国）/ 25 m（z13+，富尔达），计曲线 3× 粗 + 沿线上字；一档只画一套 |
-| 分层设色 | `dem/*`（terrarium） | `color-relief` **彩色色阶**：绿（低地）→ 黄 → 橙 → 褐 → 雪线白，共 16 级；三档各按自己的等高距取步长（world 200/500/1000、europe 250/500/750、germany 100/200/300），地势图 0.88 不透明；水系面在设色之上 |
-| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），z10 起出现；次级 z12（城区大路）；生活道路 z11；支路 z12 |
-| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–12 含枕木、按区域裁剪），**z1 起一路有铁路、缩小不会成片消失**；v1.68 重烘：剔除轮渡与北美副本、米制 300 m 容差、不再按长度丢短段 |
+| 坡度通行 | `slope/world` z0–z5、`slope/world6` z6、`slope/europe` z7–z8、`slope/germany` z9–z11、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色（<3 / 3–8 / 8–15 / 15–25 / 25–35 / >35%），档间互斥（0/6/7/9）；**地势图默认开启** |
+| 等高线 | `contours_world.json` / `contours_world_mid.json` / `contours_europe.json` / `contours_germany.json` / `contours_fulda.json` | 四档阶梯：1000 m（z4–10 全球；z7–10 用 world_mid，欧洲 bbox 内挖空让位）/ 500 m（z7–10，中欧 0–20°E）/ 200 m（z10–13，德国）/ 25 m（z13+，富尔达），计曲线 3× 粗 + 沿线上字；一档只画一套；烘焙按 `asinh(tan(lat))` 重采样成线性纬度网格（全球档纬度错位已修） |
+| 分层设色 | `dem/*`（terrarium） | `color-relief` **彩色色阶**：绿（低地）→ 黄 → 橙 → 褐 → 雪线白，共 16 级；各档按自己的等高距取步长（world / world6 200/500/1000、europe 250/500/750、germany 100/200/300），地势图 0.88 不透明；水系面在设色之上 |
+| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷） |
+| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–16 含枕木），**z1 起一路有铁路、缩小不会成片消失、德国之外放大到 z13+ 也还有线**（z12 后降到 0.35→0.25 透明）；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
@@ -130,6 +131,9 @@ node Tools/fetch_basemap.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --nam
 # 3) 全球晕渲（z0–z5，约 86 MB）
 python Tools/bake_dem.py --bbox=-180,-85,180,85 --key=world --zmin=0 --zmax=5
 
+# 3b) 全球 z6 晕渲（z6 单档；z6 以上全球地形不再用 z5 overzoom）
+python Tools/bake_dem.py --bbox=-180,-85,180,85 --key=world6 --zmin=6 --zmax=6
+
 # 4) 区域晕渲（z9–z11，约 15 MB）
 python Tools/bake_dem.py --bbox=8.849,50.240,10.591,51.000 --key=fulda --zmin=9 --zmax=11
 
@@ -137,9 +141,12 @@ python Tools/bake_dem.py --bbox=8.849,50.240,10.591,51.000 --key=fulda --zmin=9 
 python Tools/bake_contours.py --key=fulda --bbox=8.849,50.240,10.591,51.000
 python Tools/bake_contours.py --key=germany --bbox=5.8,47.2,15.1,55.1 --interval=200 --bold=400 --tol=120 --min-km=2 --grid=3000
 python Tools/bake_contours.py --key=europe --bbox=0,44,20,56 --interval=500 --bold=1500 --tol=400 --min-km=6 --grid=2400
+python Tools/bake_contours.py --key=world --dem=world --bbox=-180,-85,180,85 --interval=1000 --bold=2000 --tol=1500 --min-km=20 --grid=3600
+python Tools/bake_contours.py --key=world_mid --dem=world --bbox=-180,-85,180,85 --exclude=0,44,20,56 --interval=1000 --bold=2000 --tol=1500 --min-km=20 --grid=3600
 
 # 6) 坡度通行瓦片（需要对应 DEM 已烘好；产物按分类着色，不是高程）
 python Tools/bake_slope.py --key=world
+python Tools/bake_slope.py --key=world6
 python Tools/bake_slope.py --key=fulda
 
 # 7) 低倍铁路层（底图 z10 以下没有 rail，必须单独烘）
@@ -184,7 +191,7 @@ python Tools/bake_ne_urban.py
 | `app/src/WorldMapLibre.tsx` | 世界地图主体：tier 装配、图层开关、格网、射程圈、读数 |
 | `app/src/data/militaryStyle.ts` | 军事地形样式装配：源与图层的先后顺序、去重 |
 | `app/src/data/style/` | 样式分件：`tokens` 全部色值唯一事实源 / `restyle` 底图改写 / `tier` 分层复制 / `rail` `boundary` `contour` `overlay` / `widths` 线宽插值 |
-| `app/src/data/railsWorld.ts` | NE 全球铁路装载时按区域包 bbox 做分段裁剪（区域外才显示概化线） |
+| `app/src/data/railsWorld.ts` | NE 全球铁路装载时按「有烘焙铁路的区域包」bbox 做分段裁剪（区域外才显示概化线） |
 | `app/src/data/pmtilesBasemap.ts` | Pmtiles 协议、`index.json`、`zonesAt()` / `tierBands()` |
 | `app/src/data/terrain.ts` | DEM 采样（高程 / 坡度 / 坡向） |
 | `app/src/core/geo.ts` | UTM 正算、格网生成、射程圈 |
@@ -208,6 +215,7 @@ python Tools/bake_ne_urban.py
 | `Tools/bake_region.mjs` | 一键区域管线：dem → contours → rail → poi → slope → cities |
 | `Tools/bake_contours.py` | 等高线矢量（marching squares + 折线缝合 + 标注锚点） |
 | `Tools/serve.mjs` | 零依赖静态服务器（含 `.pmtiles` 的 HTTP Range） |
+| `Tools/dev_static.mjs` | dev 静态旁路：`/data/` 与 `/ml-worker.mjs`（worker 原样字节，避免 Vite 注入 HMR） |
 | `Tools/perf_probe.mjs` | 帧率与静态重绘实测（CDP 拖动 + render 间隔统计；`--strict` 可当闸门） |
 | `Tools/check_all.mjs` | 一键自检：无注释 / 行数 / 类型 / 构建 / 首屏 gzip 预算 |
 | `Tools/dev_cdp.mjs` | 三个 dev 脚本共用的 CDP 连接与截图封装 |
@@ -227,7 +235,7 @@ python Tools/bake_ne_urban.py
 1. **跨档停顿**：z7/9/11/13/14 跨档会重建样式，1–4 s；需改成「档位互斥 + 动态 zoom-range」。
 2. **建筑密度瓦片**：目前只烘富尔达核心 z15，铺到德国 z13–14 收益明确。
 3. **全球铁路精度**：NE 1:10m 仍是骨架；若要城际弯曲准确，按国家切 z9–10 包（每国几百 MB）。
-4. **等高线**：三档已覆盖中欧（500 m）/ 德国（200 m）/ 富尔达（25 m）；铺到全球要先补 z8+ 区域 DEM，再按同一阶梯分块烘。
+4. **等高线**：四档已覆盖全球（1000 m，z4–10）/ 中欧（500 m）/ 德国（200 m）/ 富尔达（25 m）；再往上铺 500 m / 200 m 要先补 z8+ 区域 DEM。
 5. 城区影响接进移动/交战解算（单位数值模型落地后）。
 
 ## 接手速览（v1.67）

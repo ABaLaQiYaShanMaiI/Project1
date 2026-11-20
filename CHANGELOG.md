@@ -1884,3 +1884,61 @@ z10 以下一片空白；德国与中欧虽然有 DEM，却从未烘过等高线
   避免「关掉开关后回不到原区间」。
 - 铁路与等高线不在此列：它们本来就分档连续（z1–17 都有），强开会让多档几何叠画成黑块。
 - 判定逻辑落在新文件 `app/src/map/forceDetail.ts`，`WorldMapLibre` 只留一个 effect 调用（行数闸 700 内）。
+
+### v1.74 全球美术扩展：主干公路下探 z7、铁路续到 z16、等高线全球配准
+
+三件「只在德国/富尔达做过的」美术资源改成全球通用：
+
+- **主干公路 minzoom 10 → 7**：瓦片在 z7–10 本来就有 `highway/motorway|trunk|primary`
+  （z8 抽检纽约 227 段、北京 65 段、内罗毕 22 段），此前被 `MAIN_MINZOOM=10` 整类挡掉，
+  z7–9 全世界没有一条主路。现在 `MAIN_MINZOOM=7`（出现）+ `MAIN_FULL_MINZOOM=10`（满强度）：
+  z7 0.45 不透明细线 → z10 回到 0.9；次级公路仍 z12 渐显，生活道路 11、支路 12 不动。
+- **NE 全球铁路细档 maxzoom 12 → 16**（不透明 z12 0.35 → z14 0.3 → z16 0.25）：
+  德国之外放大过 z12 不再整片铁路消失；德国/富尔达 bbox 内仍由烘焙线接管，互不叠影。
+- **NE 裁剪只按有铁路数据的区域包**：`mergeRails` 回传实际命中的 boxes，`WorldMapLibre` 用它裁剪 NE 细档。
+  以前按「所有区域包 bbox」裁，新加一个没烘 `rails_<key>.json` 的区域包就会在 NE 层上挖出空洞。
+- **等高线新增 world_mid 档**：`contours_world_mid.json`（1000 m / 2000 m 计曲线，z7–10，全球但挖掉欧洲 bbox），
+  与 europe 档零重叠；`ContourBand.exclude` 同时用于装配过滤——视口整个落在欧洲时不下载这一档。
+- **全球等高线配准修复（重要）**：`bake_contours.py` 原来把 Mercator DEM 裁剪后直接当线性纬度网格用，
+  小区域（欧洲 12°、德国 8°）误差只有数百米，全球跨度下纬度错位达数十度——旧 `contours_world.json`
+  的 4000 m 以上等高线簇落在 16°N（应在喜马拉雅/安第斯）。新增 `crop_linear()`：横向 LANCZOS 重采样后，
+  按 `asinh(tan(lat))` 反查源行做垂直线性插值，输出真正的线性纬度网格；`--warp=merc` 保留旧行为。
+- 重烘：`contours_world.json` 2.82 MB / 167,484 顶点、`contours_world_mid.json` 2.79 MB / 165,735 顶点；
+  修复后 ≥4000 m 顶点纬度 p5/p50/p95 = −24.9 / 31.9 / 38.6（安第斯—青藏），经度中位 83.7°E。
+- **跨档 zoom range 回写修复（关键）**：`applyForceDetail` 之前在换档窗口里从**旧样式**记录 `[min,max]` 并回写到新图层，
+  把世界瓦片层（world9）的上限从 22 压回旧值 11——德国以外 z11 以上道路与设施气泡全灭，且会随每次跨档累积。
+  现在：`isStyleLoaded()` 未就绪时不写、`forceDetail` 关闭（默认）时完全不写，只在用户开启后记录/恢复。
+  CDP 复核：`roads_highway__detail_world9` 由 9–11 回到 9–22，巴黎 z14 主路恢复；`跨级显示细节` 开关仍可开/还原。
+- 校验：check_all 全绿；样式表达式合法。
+
+### v1.75 全球地形补档：z6 DEM 与坡度、档位互斥修正、产品台账
+
+AWS Terrarium 恢复可访问后补的第一块全球地形：
+
+- 新增 **`dem/world6` z6（4096 瓦片 / 203 MB）**：此前 z6 以上全球地形一直是 `dem/world` z5 的 16–32 倍 overzoom
+  （z10 时 4.8 km/px 的晕渲被硬拉到 300 m/px），跳出中欧就看不清山形。`DEM_BANDS` 加 `world6`（from 6）。
+- **档位互斥修正**：`europe` 的起点从 6 改到 **7**。四档 `from` 必须互不相同——两档同 from 时
+  `styleMax` 公式会给两档都放开到 22，两层晕渲 + 两层设色叠着画（v1.70 修过同样的问题，这次是新增档位带回来的）。
+  europe 瓦片本身是 z6–8，从 7 起不损失原生分辨率；z6 全球由 world6 提供。
+- **坡度同步**：新增 `slope/world6`（z6），档位 0 / 6 / 7 / 9（world / world6 / europe / germany），与 `DEM_BANDS` 同表。
+- 体积：DEM 总量 641 → **844 MB**（CONSTRAINTS §2 的 1 GB 上限还剩约 155 MB；全球 z7 单档约 800 MB，补不了）；
+  `slope/world6` 6.7 MB（入库，与其余 slope 一样跟随 DEM 版本）。
+- **修复 `Tools/restore.mjs` 报错**：v1.0.27 换了 `poi_fulda.json`（9473 B / 新 sha256），`dem/fulda` 也有 7 KB 漂移，
+  但 `Tools/data_manifest.json` 没跟着更新，`restore.mjs` 会对 fulda 报两条 bad。台账已按实际产物校正，复核 2/2 ok。
+- 校验：check_all 9 项全绿；CDP 实测 z6/z7 交界只有一层晕渲 + 一层设色（world 在 6 封顶、world6 在 7 让位、
+  europe 从 7 接管）；伊朗 / 中国等非欧洲点位出图正常，高程读数切到 z6 原生瓦片。
+
+### v1.76 dev 下 worker 被 Vite 注入 HMR：整图只剩栅格
+
+只在 `pnpm dev` 出现：控制台 `Worker failed to load. Check that the worker URL is correct.`，
+画面只剩坡度 PNG + 纸底，矢量 / 晕渲 / 分层设色 / 等高线全空；生产包（`vite build` + `serve.mjs`）正常。
+
+- 根因：`import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'` 在 dev 返回
+  `/node_modules/.pnpm/.../maplibre-gl-worker.mjs`，浏览器再取这个地址时 Vite 当作源码模块 transform，
+  在开头插入 `import { injectQuery } from "/@vite/client"`；worker 里没有 `document`，初始化即抛，
+  MapLibre 只把 worker 的 `error` 事件翻译成「worker URL 不对」，看起来像路径问题。
+- 修法：`Tools/dev_static.mjs` 新增 `serveMlWorker`，`vite.config.ts` 加 `/ml-worker.mjs` 路由**原样吐字节**；
+  `setWorkerUrl(import.meta.env.DEV ? '/ml-worker.mjs' : mapWorkerUrl)`。生产仍走 `?url` 资产（`.mjs` MIME 由 `serve.mjs` 保证）。
+- 复核：dev 下无 console 错误、`map.loaded()=true`、`pmtiles` 206 正常，伊朗 z8 出图含水系与主路；
+  生产端口同样无 worker 报错。
+- `PITFALLS.md` 增 A 级第 6 条（现象 + 判定顺序：先看 worker 错误，再看有没有 206）。

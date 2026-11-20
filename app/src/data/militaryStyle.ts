@@ -9,7 +9,7 @@ import { gridLayers, ringLayers, poiLayers, urbanWorldLayers } from './style/ove
 import type { StyleInputs } from './style/types';
 
 export type { ContourBand, ContourDoc } from './style/contour';
-export { CONTOUR_BANDS, mergeContours } from './style/contour';
+export { CONTOUR_BANDS, contourBandActive, mergeContours } from './style/contour';
 export type { DemTier, FC, SlopeTier, StyleInputs, Tier } from './style/types';
 
 export function militaryStyle(inp: StyleInputs): StyleSpecification {
@@ -171,9 +171,9 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       ...railWorldLayers({
         source: 'rails-world-fine',
         minzoom: 3,
-        maxzoom: 12,
+        maxzoom: 16,
         suffix: '',
-        opacity: ['interpolate', ['linear'], ['zoom'], 3, 0.8, 5, 1, 10, 1, 12, 0.35],
+        opacity: ['interpolate', ['linear'], ['zoom'], 3, 0.8, 5, 1, 10, 1, 12, 0.35, 14, 0.3, 16, 0.25],
         hatch: true,
       }),
     );

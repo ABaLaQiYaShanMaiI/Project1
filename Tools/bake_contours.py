@@ -110,6 +110,51 @@ def crop_bbox(mosaic, bounds, bbox, nx_out):
     return np.asarray(Image.fromarray(sub, "F").resize((nx_out, h), Image.LANCZOS), dtype=np.float32)
 
 
+def crop_linear(mosaic, bounds, bbox, nx_out):
+    lon_l, lat_t, lon_r, lat_b = bounds
+    w, s, e, n = bbox
+    px = mosaic.shape[1] / (lon_r - lon_l)
+    u0 = max(0, int(round((w - lon_l) * px)))
+    u1 = min(mosaic.shape[1], int(round((e - lon_l) * px)))
+    if u1 - u0 < 2:
+        return crop_bbox(mosaic, bounds, bbox, nx_out)
+    band = np.asarray(
+        Image.fromarray(mosaic[:, u0:u1], "F").resize((nx_out, mosaic.shape[0]), Image.LANCZOS),
+        dtype=np.float32,
+    )
+    my_t, my_b = merc(lat_t), merc(lat_b)
+    py = mosaic.shape[0] / (my_t - my_b)
+    lat0 = (s + n) / 2.0
+    span_x = (e - w) * M_PER_DEG_LON * math.cos(math.radians(lat0))
+    span_y = (n - s) * M_PER_DEG_LAT
+    h_out = max(2, int(round(nx_out * span_y / max(1.0, span_x))))
+    lats = np.linspace(n, s, h_out)
+    src = np.clip((my_t - np.array([merc(v) for v in lats])) * py, 0.0, mosaic.shape[0] - 1.001)
+    r0 = np.floor(src).astype(np.int32)
+    fr = (src - r0).astype(np.float32)
+    r1 = np.minimum(r0 + 1, mosaic.shape[0] - 1)
+    return band[r0, :] * (1.0 - fr)[:, None] + band[r1, :] * fr[:, None]
+
+
+def mask_box(grid, bbox, pr, lon0, lat0, excl):
+    span_x = (bbox[2] - bbox[0]) * pr["mPerDegLon"]
+    span_y = (bbox[3] - bbox[1]) * pr["mPerDegLat"]
+    rows, cols = grid.shape
+    cw = span_x / max(1, cols - 1)
+    ch = span_y / max(1, rows - 1)
+    u0 = int(round((excl[0] - lon0) * pr["mPerDegLon"] / cw + (cols - 1) / 2.0))
+    u1 = int(round((excl[2] - lon0) * pr["mPerDegLon"] / cw + (cols - 1) / 2.0))
+    v0 = int(round((lat0 - excl[3]) * pr["mPerDegLat"] / ch + (rows - 1) / 2.0))
+    v1 = int(round((lat0 - excl[1]) * pr["mPerDegLat"] / ch + (rows - 1) / 2.0))
+    u0, u1 = max(0, u0), min(cols, u1)
+    v0, v1 = max(0, v0), min(rows, v1)
+    if u1 <= u0 or v1 <= v0:
+        return grid
+    out = grid.copy()
+    out[v0:v1, u0:u1] = np.nan
+    return out
+
+
 def level_segments(e, x0, y0, cell_w, cell_h, lv):
     a = e[:-1, :-1]
     b = e[:-1, 1:]
@@ -242,7 +287,10 @@ def label_points(lines, spacing, max_per_line):
 def main():
     ap = argparse.ArgumentParser(description="从本地 DEM 生成等高线矢量（计曲线 + 高程标注锚点）")
     ap.add_argument("--key", default="fulda")
+    ap.add_argument("--dem", default="")
     ap.add_argument("--bbox", default="8.849,50.240,10.591,51.000")
+    ap.add_argument("--exclude", default="")
+    ap.add_argument("--warp", default="linear")
     ap.add_argument("--grid", type=int, default=1200)
     ap.add_argument("--interval", type=float, default=25.0)
     ap.add_argument("--bold", type=float, default=0.0)
@@ -257,19 +305,24 @@ def main():
     lon0 = (bbox[0] + bbox[2]) / 2.0
     pr = {"mPerDegLat": M_PER_DEG_LAT, "mPerDegLon": M_PER_DEG_LON * math.cos(math.radians(lat0))}
 
-    mosaic, bounds, z = load_mosaic(args.key, 9, 11, bbox)
-    grid = crop_bbox(mosaic, bounds, bbox, args.grid)
+    mosaic, bounds, z = load_mosaic(args.dem or args.key, 9, 11, bbox)
+    grid = crop_linear(mosaic, bounds, bbox, args.grid) if args.warp == "linear" else crop_bbox(mosaic, bounds, bbox, args.grid)
+    if args.exclude:
+        excl = tuple(float(v) for v in args.exclude.split(","))
+        grid = mask_box(grid, bbox, pr, lon0, lat0, excl)
+    grid_min = float(np.nanmin(grid))
+    grid_max = float(np.nanmax(grid))
     rows, cols = grid.shape
     m_per_px = (bbox[2] - bbox[0]) * pr["mPerDegLon"] / cols
-    log(f"网格 {cols}x{rows} ≈ {m_per_px:.0f} m/px，高程 {grid.min():.0f}–{grid.max():.0f} m")
+    log(f"网格 {cols}x{rows} ≈ {m_per_px:.0f} m/px，高程 {grid_min:.0f}–{grid_max:.0f} m")
 
     interval = args.interval
     if interval <= 0:
-        span = grid.max() - grid.min()
+        span = grid_max - grid_min
         interval = 25.0 if span < 1200 else 50.0
     bold = args.bold if args.bold > 0 else interval * 5
-    levels = np.arange(math.floor(grid.min() / interval) * interval, grid.max() + interval, interval)
-    levels = [float(v) for v in levels if v > grid.min() and v < grid.max() and v >= args.min_elev]
+    levels = np.arange(math.floor(grid_min / interval) * interval, grid_max + interval, interval)
+    levels = [float(v) for v in levels if v > grid_min and v < grid_max and v >= args.min_elev]
     log(f"等高距 {interval:.0f} m，计曲线 {bold:.0f} m，层数 {len(levels)}")
 
     x0 = -((bbox[2] - bbox[0]) * pr["mPerDegLon"]) / 2.0

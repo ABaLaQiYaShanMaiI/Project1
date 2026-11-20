@@ -6,15 +6,20 @@ const FORCE_GROUPS = new Set<string>(['road', 'minor', 'airport', 'poi']);
 export interface ZoomStore {
   epoch: number;
   map: Record<string, [number, number]>;
+  on: boolean;
 }
 
 export function applyForceDetail(map: MLMap, force: boolean, epoch: number, store: ZoomStore): void {
   const style = map.getStyle();
   if (!style || !Array.isArray(style.layers) || style.layers.length <= 1) return;
+  if (!map.isStyleLoaded()) return;
   if (store.epoch !== epoch) {
     store.epoch = epoch;
     store.map = {};
+    store.on = false;
   }
+  if (!force && !store.on) return;
+  store.on = force;
   for (const layer of style.layers) {
     const id = String(layer.id);
     const g = groupOf(id);

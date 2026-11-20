@@ -14,6 +14,7 @@ export interface ContourDoc {
 export interface ContourBand {
   key: string;
   bbox: [number, number, number, number];
+  exclude?: [number, number, number, number];
   minzoom: number;
   maxzoom: number;
   allLabels: boolean;
@@ -21,12 +22,19 @@ export interface ContourBand {
 
 export const CONTOUR_BANDS: ContourBand[] = [
   { key: 'world', bbox: [-180, -85, 180, 85], minzoom: 4, maxzoom: 7, allLabels: false },
+  { key: 'world_mid', bbox: [-180, -85, 180, 85], exclude: [0, 44, 20, 56], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'europe', bbox: [0, 44, 20, 56], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'germany', bbox: [5.8, 47.2, 15.1, 55.1], minzoom: 10, maxzoom: 13, allLabels: false },
   { key: 'fulda', bbox: [8.849, 50.24, 10.591, 51], minzoom: 13, maxzoom: 22, allLabels: true },
 ];
 
 export const CONTOUR_OPACITY: unknown = ['interpolate', ['linear'], ['zoom'], 5, 0.18, 8, 0.3, 11, 0.5, 14, 0.65];
+
+export function contourBandActive(b: ContourBand, view: [number, number, number, number]): boolean {
+  if (!(b.bbox[0] <= view[2] && b.bbox[2] >= view[0] && b.bbox[1] <= view[3] && b.bbox[3] >= view[1])) return false;
+  const ex = b.exclude;
+  return !(ex && view[0] >= ex[0] && view[1] >= ex[1] && view[2] <= ex[2] && view[3] <= ex[3]);
+}
 
 export const CONTOUR_WIDTH: unknown = ['interpolate', ['linear'], ['zoom'], 5, 0.4, 9, 0.65, 13, 1.0];
 

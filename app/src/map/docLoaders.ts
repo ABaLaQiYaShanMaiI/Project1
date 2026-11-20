@@ -22,6 +22,11 @@ export interface RailsDoc {
   lines?: [number, number][][];
 }
 
+export interface MergedRails {
+  lines: [number, number][][];
+  boxes: [number, number, number, number][];
+}
+
 export interface DensityDoc {
   key?: string;
   tiles?: string;
@@ -80,7 +85,7 @@ export function mergePois(docs: Array<PoiDoc | null>): Array<{ o: number; l: num
   return dedupePoiPoints(all);
 }
 
-export async function mergeRails(zones: PmtilesZone[]): Promise<RailsDoc | null> {
+export async function mergeRails(zones: PmtilesZone[]): Promise<MergedRails | null> {
   const ordered = [...zones].sort((a, b) => b.maxzoom - a.maxzoom);
   const docs = await Promise.all(ordered.map((z) => getJson<RailsDoc>(`/data/rails_${z.key}.json`)));
   const lines: [number, number][][] = [];
@@ -94,7 +99,7 @@ export async function mergeRails(zones: PmtilesZone[]): Promise<RailsDoc | null>
     }
     guards.push(ordered[i]);
   }
-  return lines.length ? ({ lines } as RailsDoc) : null;
+  return lines.length ? { lines, boxes: guards.map((g) => g.bbox) } : null;
 }
 
 function lineInside(line: [number, number][], box: [number, number, number, number]): boolean {

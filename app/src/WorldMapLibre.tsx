@@ -31,6 +31,7 @@ import { createCityDamage, damageDiscs, type DamageLayer } from './map/cityDamag
 import { MeasurePanel } from './ui/MeasurePanel';
 import {
   CONTOUR_BANDS,
+  contourBandActive,
   mergeContours,
   militaryStyle,
   type ContourBand,
@@ -50,7 +51,7 @@ import {
   type PmtilesZone,
 } from './data/pmtilesBasemap';
 
-setWorkerUrl(`${mapWorkerUrl}?v=1`);
+setWorkerUrl(`${import.meta.env.DEV ? '/ml-worker.mjs' : mapWorkerUrl}?v=1`);
 
 const BLANK_STYLE = {
   version: 8,
@@ -66,7 +67,8 @@ function boxHit(a: [number, number, number, number], b: [number, number, number,
 
 const DEM_BANDS: Array<{ key: string; from: number; bbox: [number, number, number, number]; ramp: unknown }> = [
   { key: 'world', from: 0, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
-  { key: 'europe', from: 6, bbox: [0, 44, 20, 56], ramp: HYPSOMETRIC_RAMP_MID },
+  { key: 'world6', from: 6, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
+  { key: 'europe', from: 7, bbox: [0, 44, 20, 56], ramp: HYPSOMETRIC_RAMP_MID },
   { key: 'germany', from: 9, bbox: [5.8, 47.2, 15.1, 55.1], ramp: HYPSOMETRIC_RAMP },
 ];
 
@@ -330,8 +332,8 @@ export function WorldMapLibre(): JSX.Element {
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       const slopeBands = DEM_BANDS.map(({ key, from }) => ({ key, from }));
-      const activeBands = CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(({ b }) => boxHit(b.bbox, viewBox));
-      const [slopeMans, contours, railsDoc, dex] = await Promise.all([
+      const activeBands = CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(({ b }) => contourBandActive(b, viewBox));
+      const [slopeMans, contours, mergedRails, dex] = await Promise.all([
         Promise.all(slopeBands.map((s) => getJson<SlopeManifest>(`/data/slope/${s.key}/index.json`))),
         loadContours(activeBands),
         mergeRails(regions),
@@ -353,14 +355,14 @@ export function WorldMapLibre(): JSX.Element {
         });
       });
 
-      const railsLow = railsDoc?.lines?.length
+      const railsLow = mergedRails?.lines?.length
         ? ({
             type: 'FeatureCollection',
             features: [
               {
                 type: 'Feature',
                 properties: {},
-                geometry: { type: 'MultiLineString', coordinates: railsDoc.lines },
+                geometry: { type: 'MultiLineString', coordinates: mergedRails.lines },
               },
             ],
           } as unknown as FC)
@@ -401,7 +403,7 @@ export function WorldMapLibre(): JSX.Element {
             })),
           } as unknown as FC)
         : null;
-      const railBoxes = regions.map((z) => z.bbox);
+      const railBoxes = mergedRails?.boxes ?? [];
       const railsWorldFine = railFc(fineDoc?.lines, railBoxes);
       const railsWorldCoarse = railFc(coarseDoc?.lines, []);
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
@@ -540,7 +542,7 @@ export function WorldMapLibre(): JSX.Element {
     }
   }, [store.version, viewEpoch]);
 
-  const zoomRef = useRef<ZoomStore>({ epoch: -1, map: {} });
+  const zoomRef = useRef<ZoomStore>({ epoch: -1, map: {}, on: false });
 
   useEffect(() => {
     const map = mapRef.current;

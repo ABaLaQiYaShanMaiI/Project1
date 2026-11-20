@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { servePublicRange } from '../Tools/range_serve.mjs';
-import { servePublicFile } from '../Tools/dev_static.mjs';
+import { serveMlWorker, servePublicFile } from '../Tools/dev_static.mjs';
 
 export default defineConfig({
   publicDir: false,
@@ -11,6 +11,7 @@ export default defineConfig({
       name: 'data-static',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
+          if (serveMlWorker(req as never, res as never)) return;
           const url = String((req as unknown as { url?: string }).url ?? '');
           if (!url.startsWith('/data/')) return next();
           if (url.startsWith('/data/tiles/')) {

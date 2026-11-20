@@ -26,6 +26,7 @@ A15. **「要不要重建」的签名与比较字符串不一致 → 每次 move
 3. **PowerShell 写文件会加 BOM**：JSON/TS/Python 带 BOM 直接解析失败（`Unexpected token '﻿'`）。写文件一律 UTF-8 无 BOM（.NET `UTF8Encoding($false)` / Python `io.open(..., 'utf-8')`）。
 4. **换盘符后 `node_modules` 全废**：pnpm junction 记绝对路径，项目挪盘后 `tsc` 报 `Cannot find module`，看起来像「Node 没装」。重跑 `pnpm install` 即可，别先怀疑环境。
 5. **底图 `earth` 没映射进 `groupOf()` 会盖住坡度**：earth 在每个 tier 都存在、不在任何开关组里，静默盖住坡度层，看起来像「坡度没生效」。新增底图层必须补映射；v1.67 起同时检查 `store.ts` 图种强度规则是否需要覆盖新图层。
+6. **dev 下 Maplibre worker 被 Vite 注入 `/@vite/client`，整张图只剩栅格**：`import 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'` 在 dev 拿到的是 `/node_modules/.../maplibre-gl-worker.mjs`，浏览器再请求它时 Vite 会当源码 transform 并插入 HMR 客户端；worker 里没有 `document`，启动即抛，控制台只有一句 `Worker failed to load`，矢量/晕渲全空、坡度 PNG 还在。dev 改走 `/ml-worker.mjs`（`Tools/dev_static.mjs` 原样吐字节），生产仍用 `?url` 资产（v1.76）。
 
 ## B · 浪费半天级
 

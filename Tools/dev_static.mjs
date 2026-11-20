@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 const PUBLIC = fileURLToPath(new URL('../app/public', import.meta.url));
 
+const ML_WORKER = fileURLToPath(new URL('../app/node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url));
+
 const MIME = {
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
@@ -13,6 +15,32 @@ const MIME = {
 
 function etagOf(st) {
   return `"${st.size.toString(36)}-${Math.round(st.mtimeMs).toString(36)}"`;
+}
+
+export function serveMlWorker(req, res) {
+  const url = String(req.url ?? '');
+  if (!url.startsWith('/ml-worker.mjs')) return false;
+  let st;
+  try {
+    st = statSync(ML_WORKER);
+  } catch {
+    return false;
+  }
+  if (!st.isFile()) return false;
+  const etag = etagOf(st);
+  if (req.headers['if-none-match'] === etag) {
+    res.writeHead(304, { etag, 'cache-control': 'no-cache' });
+    res.end();
+    return true;
+  }
+  res.writeHead(200, {
+    'content-type': 'text/javascript; charset=utf-8',
+    'content-length': st.size,
+    'cache-control': 'no-cache',
+    etag,
+  });
+  createReadStream(ML_WORKER).pipe(res);
+  return true;
 }
 
 export function servePublicFile(req, res) {
