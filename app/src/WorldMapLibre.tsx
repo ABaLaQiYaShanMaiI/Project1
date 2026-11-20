@@ -18,7 +18,7 @@ import { markerElement } from './map/markerElement';
 import { bearingLabel, buildReadout, type Readout } from './map/readout';
 import { groupOf, baseIdOf } from './data/style/layerGroups';
 
-import { getJson, mergePois, mergeRails, poiFc, roadsWorldFc, seaLabelFc, type DensityDoc, type PoiDoc, type RoadsWorldDoc, type SeaDoc } from './map/docLoaders';
+import { getJson, mergePois, mergeRails, poiFc, riversWorldFc, roadsWorldFc, seaLabelFc, type DensityDoc, type PoiDoc, type RiversWorldDoc, type RoadsWorldDoc, type SeaDoc } from './map/docLoaders';
 import { clipRailsWorld } from './data/railsWorld';
 import { applyForceDetail, type ZoomStore } from './map/forceDetail';
 import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
@@ -368,7 +368,7 @@ export function WorldMapLibre(): JSX.Element {
           } as unknown as FC)
         : null;
 
-      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc, seaDoc, roadsDoc] = await Promise.all([
+      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc, seaDoc, roadsDoc, riversDoc] = await Promise.all([
         getJson<PoiDoc>('/data/poi_world.json'),
         Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`))),
         getJson<{ polys?: [number, number][][] }>('/data/urban_world.json'),
@@ -376,6 +376,7 @@ export function WorldMapLibre(): JSX.Element {
         getJson<{ lines?: [number, number][][] }>('/data/rails_world_coarse.json'),
         getJson<SeaDoc>('/data/seas_world.json'),
         getJson<RoadsWorldDoc>('/data/roads_world.json'),
+        getJson<RiversWorldDoc>('/data/rivers_world.json'),
       ]);
       const poiPoints = (() => {
         const regionDocs = new Map(regions.map((r, i) => [r.key, poiRegional[i]] as const));
@@ -401,6 +402,7 @@ export function WorldMapLibre(): JSX.Element {
       const railsWorldCoarse = railFc(coarseDoc?.lines, []);
       const seaLabels = seaLabelFc(seaDoc);
       const roadsWorld = roadsWorldFc(roadsDoc);
+      const riversWorld = riversWorldFc(riversDoc);
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
       const grid = buildUtmGrid(buildBounds(map), gridStepFor(Math.round(map.getZoom())));
       if (!alive) return;
@@ -420,6 +422,7 @@ export function WorldMapLibre(): JSX.Element {
         urbanWorld,
         seaLabels,
         roadsWorld,
+        riversWorld,
       });
       if (!alive) return;
       gridStepRef.current = gridStepFor(Math.round(START.zoom));

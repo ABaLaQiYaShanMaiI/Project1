@@ -47,6 +47,11 @@ export interface RoadsWorldDoc {
   cls?: number[];
 }
 
+export interface RiversWorldDoc {
+  lines?: [number, number][][];
+  rank?: number[];
+}
+
 export function poiFc(points: Array<{ o: number; l: number; k: string }>): FC | null {
   if (!points.length) return null;
   return {
@@ -66,6 +71,18 @@ export function roadsWorldFc(doc: RoadsWorldDoc | null): FC | null {
     features: doc.lines.map((line, i) => ({
       type: 'Feature',
       properties: { c: doc.cls?.[i] ?? 2 },
+      geometry: { type: 'LineString', coordinates: line },
+    })),
+  } as unknown as FC;
+}
+
+export function riversWorldFc(doc: RiversWorldDoc | null): FC | null {
+  if (!doc?.lines?.length) return null;
+  return {
+    type: 'FeatureCollection',
+    features: doc.lines.map((line, i) => ({
+      type: 'Feature',
+      properties: { r: doc.rank?.[i] ?? 7 },
       geometry: { type: 'LineString', coordinates: line },
     })),
   } as unknown as FC;

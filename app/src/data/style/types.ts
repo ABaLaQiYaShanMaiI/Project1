@@ -55,6 +55,7 @@ export interface StyleInputs {
   urbanWorld?: FC | null;
   seaLabels?: FC | null;
   roadsWorld?: FC | null;
+  riversWorld?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
 }

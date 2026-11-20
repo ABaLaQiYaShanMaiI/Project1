@@ -1979,3 +1979,17 @@ AWS Terrarium 恢复可访问后补的第一块全球地形：
   新增数据文件后不会「整层静默消失」。
 - 复核：z5 利比亚—埃及实拍可见沿海干线（的黎波里—班加西—托布鲁克—亚历山大）与开罗周边路网；
   z7 交瓦片；check_all 全绿。
+
+### v1.80 低倍全球河网：z3–8 的河流补位
+
+底图 `water_river` 从 **z9** 才出现（`water_stream` z14），所以 z3–8 的亚马逊、尼罗河、伏尔加、长江全是空白——
+地形判读少了主干水系。按铁路/公路同款做法补一层 NE 数据：
+
+- 新增 `rivers_world.json`：NE 1:10m 河网 River + Lake Centerline，**2,252 段 / 3.05 MB**
+  （米制 RDP 300 m；剔除 River (Intermittent) 与 Canal 13 段）。
+- 样式层 `river-world`（`style/water.ts`）：z3–8，淡蓝 `#7fa8bd`，按 `scalerank` 分三档线宽
+  （≤2 主河、≤5 支干、其余细线），z3 0.55 → z8 0.85 不透明；**z9 交瓦片**（`water_river` 起点）。
+- 排序：图层 rank **3.5**（行政界 3 与道路 4 之间），读图次序固定为「面 → 行政界 → 水系 → 道路」；归「水系」叶。
+- 烘焙脚本 `Tools/bake_ne_rivers.py`（与 rails/roads 同款米制投影 + RDP）。
+- 复核：z5 亚马逊实拍 `river-world` 命中 **98 个要素**，河色像素 1,450（水系面 29,223），无 console 错误；
+  check_all 全绿。

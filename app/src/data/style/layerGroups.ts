@@ -15,6 +15,7 @@ const NEW_IDS: Partial<Record<string, LayerKey>> = {
   'sea-label': 'label',
   'road-world': 'road',
   'road-world-casing': 'road',
+  'river-world': 'water',
 };
 
 export function groupOf(id: string): LayerKey | null {

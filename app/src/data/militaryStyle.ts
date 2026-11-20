@@ -7,6 +7,7 @@ import { contourLayers } from './style/contour';
 import { reliefTintLayer } from './style/relief';
 import { gridLayers, ringLayers, poiLayers, seaLabelLayers, urbanWorldLayers } from './style/overlay';
 import { roadWorldLayers } from './style/road';
+import { riverWorldLayers } from './style/water';
 import type { StyleInputs } from './style/types';
 
 export type { ContourBand, ContourDoc } from './style/contour';
@@ -93,6 +94,9 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   }
   if (inp.roadsWorld) {
     sources['roads-world'] = { type: 'geojson', data: inp.roadsWorld };
+  }
+  if (inp.riversWorld) {
+    sources['rivers-world'] = { type: 'geojson', data: inp.riversWorld };
   }
   if (inp.railsWorldFine) {
     sources['rails-world-fine'] = { type: 'geojson', data: inp.railsWorldFine };
@@ -194,6 +198,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
 
   if (inp.seaLabels) out.push(...seaLabelLayers());
   if (inp.roadsWorld) out.push(...roadWorldLayers());
+  if (inp.riversWorld) out.push(...riverWorldLayers());
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
 
   const seen = new Set<string>();
@@ -212,6 +217,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     if (type === 'line') {
       if (id.includes('rail')) return 6;
       if (id.startsWith('boundaries')) return 3;
+      if (id.startsWith('river')) return 3.5;
       if (id.startsWith('grid')) return 8;
       if (id.startsWith('ring')) return 9;
       if (id.startsWith('contour')) return 7;
