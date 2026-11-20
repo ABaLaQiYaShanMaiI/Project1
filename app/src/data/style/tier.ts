@@ -42,7 +42,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
       source: tier.id,
       'source-layer': 'landuse',
       filter: ['in', ['get', 'kind'], ['literal', ['residential', 'commercial', 'retail', 'railway']]],
-      minzoom: 8,
+      minzoom: 7,
       maxzoom: tier.styleMax,
       paint: {
         'fill-color': ['match', ['get', 'kind'], 'residential', LANDUSE.residential, 'commercial', LANDUSE.commercial, 'retail', LANDUSE.retail, LANDUSE.railway],
@@ -108,7 +108,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
     const sl = String(l['source-layer'] ?? '');
     return sl === 'landcover' || sl === 'landuse' ? i : idx;
   }, -1);
-  out.splice(lastGround + 1, 0, ...urbanFills, {
+  const ground: Record<string, unknown>[] = [...urbanFills, {
     id: `landuse_urban_glow${suffix}`,
     type: 'line',
     source: tier.id,
@@ -135,7 +135,15 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
       'line-width': ['interpolate', ['linear'], ['zoom'], 14, 2, 16, 3.2],
       'line-opacity': 0.85,
     },
-  });
+  }];
+  const clipped: Record<string, unknown>[] = [];
+  for (const l of ground) {
+    const own = typeof l.minzoom === 'number' ? l.minzoom : 0;
+    const min = Math.max(own, tier.styleMin);
+    if (min >= tier.styleMax) continue;
+    clipped.push({ ...l, minzoom: min, maxzoom: tier.styleMax });
+  }
+  out.splice(lastGround + 1, 0, ...clipped);
 
   out.push({
     id: `landuse_military${suffix}`,

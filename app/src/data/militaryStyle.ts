@@ -182,9 +182,9 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       ...railWorldLayers({
         source: 'rails-world-fine',
         minzoom: 3,
-        maxzoom: 16,
+        maxzoom: 17,
         suffix: '',
-        opacity: ['interpolate', ['linear'], ['zoom'], 3, 0.8, 5, 1, 10, 1, 12, 0.35, 14, 0.3, 16, 0.25],
+        opacity: 1,
         hatch: true,
       }),
     );

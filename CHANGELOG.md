@@ -2007,3 +2007,21 @@ AWS Terrarium 恢复可访问后补的第一块全球地形：
 - 注记锚点向内缩 2%：正好落在视口边上的锚点会被 MapLibre 丢弃（z7 实测 8 个注记渲染 0 个）。
 - 复核：z3 经纬网 11 线 / 11 注记；z7 8 个注记全部命中（400/500/600/700、5500/5600/5700、32U）；
   z13 里程与带号正常；check_all 全绿。
+
+### v1.82 城区灰块按档裁剪、铁路全球统一符号
+
+用户反馈两件事：城市灰块/建筑没标成灰框、德国之外的铁路和德国不是一套符号。逐项查：
+
+- **灰块断档与叠画**：瓦片里 `landcover` 只有 `world`（z0–6）有，`world8`/`world9`/区域包只有 `landuse`；
+  自定义填充层（`landcover_urban` / `landuse_residential` / `urban_glow` / `buildings_glow`）只写了
+  `maxzoom: tier.styleMax`，`minzoom` 原样保留 → z3–6 同时请求细包、z8–9 两层 residential 叠画、
+  **z7 整档没有任何灰块**（`landuse_residential` 的 minzoom 是 8、世界包上限 7）。
+  修法：统一按 tier 的 `[styleMin, styleMax]` 裁剪，`landuse_residential` minzoom 8 → 7。
+  实测 z7 华沙 residential 0 → 56 个面，z14 巴黎 10 个面 + 11 条城区描边。
+- **建筑轮廓是数据边界**：`buildings` 只有德国 z13 / 富尔达 z14–15 的包里有；其余地区 z14+ 只有灰块面。
+  富尔达 z14 实测 buildings 14 + 63 个面正常出灰框。
+- **铁路统一**：NE 细档 `maxzoom 16 → 17`、**opacity 1**（原 z12 后 0.35→0.25 的淡化只在没有瓦片铁路的地区生效，
+  结果德国之外放大就变淡变细）。现在三层（光晕 5.2 / 墨线 3.4 / 枕木 1.05，枕木 z9–16）与瓦片铁路完全同参，
+  z13 以上不再淡化。复核：z14 巴黎 `rail-world` / `rail-world-halo` 均为 3–17、op 1。
+- 已知边界（未改）：`fulda` 与 `fulda_core` 两个区域档在 z14 同时为 `14–22`（`tierBands` 对同 maxzoom 的相邻包
+  给出相同 from），富尔达镇区灰块会叠一层；属区域包排序的既有问题，单列待办。

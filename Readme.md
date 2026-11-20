@@ -69,13 +69,13 @@ cd app && pnpm install && pnpm dev
 | 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷）；**z4–6 由 NE 1:10m 主干骨架补位**（`roads_world.json`，18,806 段 / 3.4 MB，z7 交瓦片） |
 | 河流（低倍） | `rivers_world.json` | NE 1:10m 河网（River + Lake Centerline，2,252 段 / 3.05 MB），**z3–8 补位**（底图河流 z9 才出现）；按 scalerank 分三档线宽，z9 交瓦片 |
 
-| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–16 含枕木），**z1 起一路有铁路、缩小不会成片消失、德国之外放大到 z13+ 也还有线**（z12 后降到 0.35→0.25 透明）；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
+| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` **z3–17 满不透明**，与瓦片铁路同三层同宽度），**z1 起一路有铁路、缩小不会成片消失、放大到 z17 也不变淡**；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
 | 军用格网 | 运行时 UTM / 经纬网 | **z≥6** 单带 UTM（1/2/5/10/25/50/100/200/500/1000 km 自适应），线端标注里程 km、左上注带号（如 `32U`）；**z<6** 切经纬网（1/2/5/10/15/30°），边注 `45°N` / `15°E`；归「格网」叶 |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
 | 海域名 | `seas_world.json` | 5 大洋 + 32 海 + 21 湾/海峡（人工整理中心点），z3–8 大写 + 字距，随「地名标注」开关 |
 | 全球城区面 | `urban_world.json` | NE 1:10m 建成区面，z4–14 铺在底图上 |
-| 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块（居住/商业/零售/铁路/工业等合并），绿=植被、米=农田、灰=城区 |
+| 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块（居住/商业/零售/铁路/工业等合并），绿=植被、米=农田、灰=城区；**z3–6 用 `landcover urban_area`，z7 起由 `landuse` 居住/商业面接管**（v1.82 起按 tier 裁剪、不再叠画）；建筑轮廓只有区域包有（德国 z13 / 富尔达 z14–15），其余地区是灰块面 |
 | 行政边界 | 底图 `boundaries` | 国界/州/县/乡镇四级，冷灰虚线，按 `kind_detail` 分级 |
 | 城区战损 | 运行时图案 | 1–3 级战损：按街区哈希挑一部分地块叠 rubble 斜纹 + 红虚线；顶部「战损」开关单击标记 |
 | 城区影响 | `data/cities.json` | 光标进城区显示机动/防御/侦察/炮兵/补给修饰，按距离连续衰减，无格子 |
