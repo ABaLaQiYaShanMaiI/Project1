@@ -308,8 +308,11 @@ def main():
     mosaic, bounds, z = load_mosaic(args.dem or args.key, 9, 11, bbox)
     grid = crop_linear(mosaic, bounds, bbox, args.grid) if args.warp == "linear" else crop_bbox(mosaic, bounds, bbox, args.grid)
     if args.exclude:
-        excl = tuple(float(v) for v in args.exclude.split(","))
-        grid = mask_box(grid, bbox, pr, lon0, lat0, excl)
+        for part in args.exclude.split(";"):
+            if not part.strip():
+                continue
+            excl = tuple(float(v) for v in part.split(","))
+            grid = mask_box(grid, bbox, pr, lon0, lat0, excl)
     grid_min = float(np.nanmin(grid))
     grid_max = float(np.nanmax(grid))
     rows, cols = grid.shape

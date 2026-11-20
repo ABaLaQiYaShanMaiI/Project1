@@ -108,17 +108,23 @@ opacity 由 z1 的 0.6 升到 z2.5 的 1；相邻档首尾相接，每档只允�
 | 档 | 数据来源 | 等高距 / 计曲线 | 缩放 | 体积 |
 | --- | --- | --- | --- | --- |
 | world | `contours_world.json`（全球，DEM z5） | 1000 / 2000 m | z4–7 | 2.82 MB / 167k 顶点 |
-| world_mid | `contours_world_mid.json`（全球**挖掉** 0–20°E / 44–56°N） | 1000 / 2000 m | z7–10 | 2.79 MB / 166k 顶点 |
+| world_mid | `contours_world_mid.json`（全球**挖掉** 6 个 500 m 区） | 1000 / 2000 m | z7–10 | 1.96 MB / 116k 顶点 |
+| asia_himal | `contours_asia_himal.json`（65–105°E / 20–45°N，DEM z6） | 500 / 1000 m | z7–10 | 3.57 MB / 238k 顶点 |
+| zagros | `contours_zagros.json`（35–62°E / 25–42°N，DEM z6） | 500 / 1000 m | z7–10 | 0.83 MB / 57k 顶点 |
+| andes | `contours_andes.json`（−80…−58°E / −55…12°N，DEM z6） | 500 / 1000 m | z7–10 | 2.22 MB / 146k 顶点 |
+| rockies | `contours_rockies.json`（−130…−100°E / 25–55°N，DEM z6） | 500 / 1000 m | z7–10 | 1.80 MB / 116k 顶点 |
+| africa_rift | `contours_africa_rift.json`（28–46°E / −15…15°N，DEM z6） | 500 / 1000 m | z7–10 | 0.73 MB / 47k 顶点 |
 | europe | `contours_europe.json`（0–20°E / 44–56°N，DEM z8） | 500 / 1500 m | z7–10 | 1.27 MB / 88k 顶点 |
 | germany | `contours_germany.json`（德国 bbox，DEM z11） | 200 / 400 m | z10–13 | 3.45 MB / 243k 顶点 |
 | fulda | `contours_fulda.json`（富尔达 bbox，DEM z9–11） | 25 / 125 m | z13+ | 1.37 MB / 114k 顶点 |
 
-规则：**一档只画一套等高线**——档区间首尾相接（4–7 / 7–10 / 10–13 / 13+），每层用 `filter` 打 `band` 属性，
-相邻档永不重叠：world_mid 在烘焙时就用 `--exclude` 把欧洲 bbox 置 NaN 挖空（让位给 europe 档），
-`ContourBand.exclude` 同时让装配端在视口整个落在欧洲时不下载这一档。透明度 z5 0.18 → z14 0.65、
-细线 z5 0.4 → z13 1.0 px，地势图再由图种强度抬高。烘焙参数：world 3600 px / 简化 1500 m / 最短 20 km；
-europe 2400 px / 400 m / 6 km；germany 3000 px / 120 m / 2 km；fulda 1200 px / 45 m / 0.6 km；
-`--min-elev 0` 丢掉海平面以下的 DEM 噪声层。
+规则：**一档只画一套等高线**——按缩放首尾相接（4–7 / 7–10 / 10–13 / 13+），每层用 `filter` 打 `band` 属性，
+相邻档永不重叠。z7–10 这一层里**细档（500 m）按山系分区**，粗档 world_mid 在烘焙时就用 `--exclude`
+把这些 bbox 置 NaN 挖空（`;` 分隔多个矩形），于是同一缩放只有一套线；`ContourBand.exclude` 另外让装配端
+在视口整个落进欧洲时不下载 world_mid。透明度 z5 0.18 → z14 0.65、细线 z5 0.4 → z13 1.0 px，
+地势图再由图种强度抬高。烘焙参数：world 3600 px / 简化 1500 m / 最短 20 km；五个山系 2000–2600 px /
+700 m / 6 km（DEM z6，原生 2.4 km/px）；europe 2400 px / 400 m / 6 km；germany 3000 px / 120 m / 2 km；
+fulda 1200 px / 45 m / 0.6 km；`--min-elev 0` 丢掉海平面以下的 DEM 噪声层。
 
 LOD 分层与透明度随缩放淡入见上表：每档只在自身缩放段出现，低倍不再被 25 m 等高线糊住。
 标注：`symbol-placement: 'line'` 沿线上字（不烘固定锚点，避免放大变稀、缩小被碰撞剔除）。
@@ -184,8 +190,8 @@ LOD 分层与透明度随缩放淡入见上表：每档只在自身缩放段出�
    并把裁剪范围扩展成该国的 `rails_<key>.json`。
 2. L1 大区包（欧洲各走廊）实做与观感验证。
 3. 国名 / 海洋名标签补全。
-4. **等高线**：四档已覆盖全球（1000 m，z4–10，world_mid 挖掉欧洲）/ 中欧（500 m）/ 德国（200 m）/ 富尔达（25 m）；
-   继续加密需先补区域 DEM（全球 DEM 只到 z5，z8+ 无高程），再按同一阶梯分块烘（每块 < 4 MB）。
+4. **等高线**：全球 1000 m（z4–10）已铺满，中欧 + 喜马拉雅/扎格罗斯/安第斯/落基山/东非裂谷 500 m（z7–10），
+   德国 200 m、富尔达 25 m；想再加密到 200 m/100 m 需先补 z8+ 区域 DEM（全球 z6 已是预算上限）。
 5. 桥隧、机场、军事用地符号（`roads.is_bridge` / `landuse.aerodrome|military` 属性已可取）。
 
 ## 十一、城区影响（无格设计）

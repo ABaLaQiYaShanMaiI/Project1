@@ -23,6 +23,11 @@ export interface ContourBand {
 export const CONTOUR_BANDS: ContourBand[] = [
   { key: 'world', bbox: [-180, -85, 180, 85], minzoom: 4, maxzoom: 7, allLabels: false },
   { key: 'world_mid', bbox: [-180, -85, 180, 85], exclude: [0, 44, 20, 56], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'asia_himal', bbox: [65, 20, 105, 45], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'zagros', bbox: [35, 25, 62, 42], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'andes', bbox: [-80, -55, -58, 12], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'rockies', bbox: [-130, 25, -100, 55], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'africa_rift', bbox: [28, -15, 46, 15], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'europe', bbox: [0, 44, 20, 56], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'germany', bbox: [5.8, 47.2, 15.1, 55.1], minzoom: 10, maxzoom: 13, allLabels: false },
   { key: 'fulda', bbox: [8.849, 50.24, 10.591, 51], minzoom: 13, maxzoom: 22, allLabels: true },

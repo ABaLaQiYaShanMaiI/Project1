@@ -64,7 +64,7 @@ cd app && pnpm install && pnpm dev
 | 区域晕渲 | `dem/germany` z9–z11（520 MB） | 德国全域；z9–10 此前是 z5 的 16–32 倍 overzoom（v1.70 补烘） |
 | 富尔达晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲（现由 germany 档覆盖，保留作回退） |
 | 坡度通行 | `slope/world` z0–z5、`slope/world6` z6、`slope/europe` z7–z8、`slope/germany` z9–z11、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色（<3 / 3–8 / 8–15 / 15–25 / 25–35 / >35%），档间互斥（0/6/7/9）；**地势图默认开启** |
-| 等高线 | `contours_world.json` / `contours_world_mid.json` / `contours_europe.json` / `contours_germany.json` / `contours_fulda.json` | 四档阶梯：1000 m（z4–10 全球；z7–10 用 world_mid，欧洲 bbox 内挖空让位）/ 500 m（z7–10，中欧 0–20°E）/ 200 m（z10–13，德国）/ 25 m（z13+，富尔达），计曲线 3× 粗 + 沿线上字；一档只画一套；烘焙按 `asinh(tan(lat))` 重采样成线性纬度网格（全球档纬度错位已修） |
+| 等高线 | `contours_world` / `world_mid` / `asia_himal` / `zagros` / `andes` / `rockies` / `africa_rift` / `europe` / `germany` / `fulda` | **五级阶梯**：1000 m（z4–7 全球）/ 1000 m（z7–10 全球，挖掉下面 500 m 区）/ 500 m（z7–10：中欧 + 喜马拉雅 · 扎格罗斯 · 安第斯 · 落基山 · 东非裂谷）/ 200 m（z10–13 德国）/ 25 m（z13+ 富尔达）；计曲线 2–3× 粗 + 沿线上字；一档只画一套；烘焙按 `asinh(tan(lat))` 重采样成线性纬度网格 |
 | 分层设色 | `dem/*`（terrarium） | `color-relief` **彩色色阶**：绿（低地）→ 黄 → 橙 → 褐 → 雪线白，共 16 级；各档按自己的等高距取步长（world / world6 200/500/1000、europe 250/500/750、germany 100/200/300），地势图 0.88 不透明；水系面在设色之上 |
 | 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷） |
 | 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–16 含枕木），**z1 起一路有铁路、缩小不会成片消失、德国之外放大到 z13+ 也还有线**（z12 后降到 0.35→0.25 透明）；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
@@ -142,7 +142,12 @@ python Tools/bake_contours.py --key=fulda --bbox=8.849,50.240,10.591,51.000
 python Tools/bake_contours.py --key=germany --bbox=5.8,47.2,15.1,55.1 --interval=200 --bold=400 --tol=120 --min-km=2 --grid=3000
 python Tools/bake_contours.py --key=europe --bbox=0,44,20,56 --interval=500 --bold=1500 --tol=400 --min-km=6 --grid=2400
 python Tools/bake_contours.py --key=world --dem=world --bbox=-180,-85,180,85 --interval=1000 --bold=2000 --tol=1500 --min-km=20 --grid=3600
-python Tools/bake_contours.py --key=world_mid --dem=world --bbox=-180,-85,180,85 --exclude=0,44,20,56 --interval=1000 --bold=2000 --tol=1500 --min-km=20 --grid=3600
+python Tools/bake_contours.py --key=world_mid --dem=world --bbox=-180,-85,180,85 --exclude=0,44,20,56;65,20,105,45;35,25,62,42;-80,-55,-58,12;-130,25,-100,55;28,-15,46,15 --interval=1000 --bold=2000 --tol=1500 --min-km=20 --grid=3600
+python Tools/bake_contours.py --key=asia_himal --dem=world6 --bbox=65,20,105,45 --interval=500 --bold=1000 --tol=700 --min-km=6 --grid=2600
+python Tools/bake_contours.py --key=zagros --dem=world6 --bbox=35,25,62,42 --interval=500 --bold=1000 --tol=700 --min-km=6 --grid=2400
+python Tools/bake_contours.py --key=andes --dem=world6 --bbox=-80,-55,-58,12 --interval=500 --bold=1000 --tol=700 --min-km=6 --grid=2600
+python Tools/bake_contours.py --key=rockies --dem=world6 --bbox=-130,25,-100,55 --interval=500 --bold=1000 --tol=700 --min-km=6 --grid=2400
+python Tools/bake_contours.py --key=africa_rift --dem=world6 --bbox=28,-15,46,15 --interval=500 --bold=1000 --tol=700 --min-km=6 --grid=2000
 
 # 6) 坡度通行瓦片（需要对应 DEM 已烘好；产物按分类着色，不是高程）
 python Tools/bake_slope.py --key=world
