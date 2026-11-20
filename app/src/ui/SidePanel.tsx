@@ -27,7 +27,16 @@ export function SidePanel(): JSX.Element {
             </button>
           ))}
         </div>
-        {LITE_MODE && <div className="lp-hint">低配模式：晕渲与等高线默认关闭</div>}
+        <label className="lp-item lp-force">
+          <input
+            type="checkbox"
+            checked={store.forceDetail}
+            onChange={(e) => store.setForceDetail(e.target.checked)}
+          />
+          <span>跨级显示细节</span>
+        </label>
+        <div className="lp-hint">开启后：主干/次级道路、跑道与设施气泡不再受起始缩放限制（铁路与等高线本就分档连续）</div>
+        {LITE_MODE && <div className="lp-hint">低配模式：晕渲、坡度与等高线默认关闭</div>}
         <div className="lp-hint">手动改「高级图层」会退出当前图种</div>
       </div>
 

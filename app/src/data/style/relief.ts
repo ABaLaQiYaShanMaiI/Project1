@@ -10,7 +10,7 @@ export function reliefTintLayer(dem: DemTier): Record<string, unknown> {
     maxzoom: dem.styleMax,
     paint: {
       'color-relief-opacity': HYPSOMETRIC_OPACITY,
-      'color-relief-color': HYPSOMETRIC_RAMP,
+      'color-relief-color': dem.ramp ?? HYPSOMETRIC_RAMP,
       resampling: 'linear',
     },
   };

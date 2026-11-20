@@ -36,7 +36,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       type: 'raster',
       source: `${sl.id}-slope`,
       minzoom: Math.max(sl.styleMin, sl.minzoom),
-      maxzoom: 22,
+      maxzoom: sl.styleMax ?? 22,
       paint: { 'raster-opacity': 0.85, 'raster-resampling': 'linear' },
     });
   }

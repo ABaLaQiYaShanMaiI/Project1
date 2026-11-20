@@ -1,6 +1,6 @@
 {
  "key": "germany",
- "minzoom": 11,
+ "minzoom": 9,
  "maxzoom": 11,
  "bbox": [
   5.8,
@@ -17,6 +17,6 @@
   35
  ],
  "attribution": "AWS Terrain Tiles (Terrarium / SRTM, 公有领域)",
- "sizeMB": 25.32,
- "generated": "2026-11-19 22:03"
+ "sizeMB": 33.61,
+ "generated": "2026-11-20 14:05"
 }

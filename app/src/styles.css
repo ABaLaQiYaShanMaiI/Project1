@@ -304,6 +304,10 @@ button {
   border-radius: 6px;
 }
 
+.lp-force {
+  margin-top: 8px;
+}
+
 .lg-items {
   margin-left: 12px;
   padding-left: 9px;

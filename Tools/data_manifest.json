@@ -34,8 +34,8 @@
    {
     "path": "slope/germany",
     "kind": "dir",
-    "files": 3943,
-    "bytes": 48151806
+    "files": 5208,
+    "bytes": 35247242
    },
    {
     "path": "rails_germany.json",
@@ -117,7 +117,7 @@
     "path": "slope/fulda",
     "kind": "dir",
     "files": 131,
-    "bytes": 2140664
+    "bytes": 1210014
    },
    {
     "path": "cities_fulda.json",

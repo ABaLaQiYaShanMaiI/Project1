@@ -225,26 +225,42 @@ export const BOUNDARY_OPACITY = 0.8;
 
 export const HILLSHADE_EXAGGERATION: unknown = ['interpolate', ['linear'], ['zoom'], 4, 1.1, 8, 0.92, 12, 0.72, 16, 0.62];
 
-export const HYPSOMETRIC_RAMP: unknown = [
-  'step',
-  ['elevation'],
-  '#9abd7c',
-  100, '#a9c884',
-  200, '#b8d18e',
-  300, '#c8d996',
-  450, '#d7df9d',
-  600, '#e3e2a1',
-  800, '#ebe0a0',
-  1000, '#efd89b',
-  1300, '#e9c78e',
-  1600, '#e0b581',
-  2000, '#d4a173',
-  2500, '#c78f6b',
-  3000, '#b57f66',
-  4000, '#a17361',
+const HYPSO_LADDER: Array<[number, string]> = [
+  [0, '#9ac98f'],
+  [100, '#aed795'],
+  [200, '#c2e09a'],
+  [300, '#d4e79d'],
+  [400, '#e5eaa2'],
+  [500, '#f1e8a1'],
+  [700, '#f7df97'],
+  [900, '#f5d184'],
+  [1100, '#f0c173'],
+  [1400, '#e8ae65'],
+  [1700, '#df9d5f'],
+  [2000, '#d58c5b'],
+  [2500, '#c77a58'],
+  [3000, '#b86d55'],
+  [3500, '#a89890'],
+  [4000, '#e8e6e2'],
 ];
 
-export const HYPSOMETRIC_OPACITY = 0.45;
+function hypsoRamp(stops: number[]): unknown {
+  const out: unknown[] = ['step', ['elevation'], HYPSO_LADDER[0][1]];
+  for (const s of stops) {
+    let color = HYPSO_LADDER[0][1];
+    for (const [e, c] of HYPSO_LADDER) if (e <= s) color = c;
+    out.push(s, color);
+  }
+  return out;
+}
+
+export const HYPSOMETRIC_RAMP = hypsoRamp([100, 200, 300, 400, 500, 700, 900, 1100, 1400, 1700, 2000, 2500, 3000, 3500, 4000]);
+
+export const HYPSOMETRIC_RAMP_MID = hypsoRamp([250, 500, 750, 1000, 1300, 1600, 2000, 2500, 3000, 3500, 4000]);
+
+export const HYPSOMETRIC_RAMP_COARSE = hypsoRamp([200, 500, 1000, 1500, 2000, 3000, 3500, 4000]);
+
+export const HYPSOMETRIC_OPACITY = 0.8;
 
 export const MILITARY_FILL = '#c8b39c';
 

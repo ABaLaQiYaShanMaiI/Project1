@@ -20,6 +20,8 @@ import { groupOf, baseIdOf } from './data/style/layerGroups';
 
 import { getJson, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
 import { clipRailsWorld } from './data/railsWorld';
+import { applyForceDetail, type ZoomStore } from './map/forceDetail';
+import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
 import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
@@ -62,10 +64,10 @@ function boxHit(a: [number, number, number, number], b: [number, number, number,
   return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
 }
 
-const DEM_BANDS: Array<{ key: string; from: number; bbox: [number, number, number, number] }> = [
-  { key: 'world', from: 0, bbox: [-180, -85, 180, 85] },
-  { key: 'europe', from: 6, bbox: [0, 44, 20, 56] },
-  { key: 'germany', from: 9, bbox: [5.8, 47.2, 15.1, 55.1] },
+const DEM_BANDS: Array<{ key: string; from: number; bbox: [number, number, number, number]; ramp: unknown }> = [
+  { key: 'world', from: 0, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
+  { key: 'europe', from: 6, bbox: [0, 44, 20, 56], ramp: HYPSOMETRIC_RAMP_MID },
+  { key: 'germany', from: 9, bbox: [5.8, 47.2, 15.1, 55.1], ramp: HYPSOMETRIC_RAMP },
 ];
 
 function demKeyAt(zoom: number, lon: number, lat: number): string {
@@ -323,15 +325,16 @@ export function WorldMapLibre(): JSX.Element {
           maxzoom: man.maxzoom,
           bounds: man.bbox,
           styleMin: d.from,
+          ramp: d.ramp,
           styleMax: d.from >= bestFrom ? 22 : bestFrom,
         });
       });
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
-      const slopeKeys = ['world', ...regionBands.map((b) => b.zone.key)];
+      const slopeBands = DEM_BANDS.map(({ key, from }) => ({ key, from }));
       const activeBands = CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(({ b }) => boxHit(b.bbox, viewBox));
       const [slopeMans, contours, railsDoc, dex] = await Promise.all([
-        Promise.all(slopeKeys.map((k) => getJson<SlopeManifest>(`/data/slope/${k}/index.json`))),
+        Promise.all(slopeBands.map((s) => getJson<SlopeManifest>(`/data/slope/${s.key}/index.json`))),
         loadContours(activeBands),
         mergeRails(regions),
         loadCityDex(regions.map((z) => z.key)),
@@ -340,15 +343,15 @@ export function WorldMapLibre(): JSX.Element {
       const slopeTiers: SlopeTier[] = [];
       slopeMans.forEach((man, i) => {
         if (!man?.tiles) return;
-        const key = slopeKeys[i];
-        const band = regionBands.find((b) => b.zone.key === key);
+        const s = slopeBands[i];
         slopeTiers.push({
-          id: key,
+          id: s.key,
           tiles: man.tiles,
           minzoom: man.minzoom,
           maxzoom: man.maxzoom,
           bounds: man.bbox,
-          styleMin: band ? band.from : 0,
+          styleMin: s.from,
+          styleMax: s.from >= bestFrom ? 22 : bestFrom,
         });
       });
 
@@ -534,6 +537,14 @@ export function WorldMapLibre(): JSX.Element {
         }
       }
     }
+  }, [store.version, viewEpoch]);
+
+  const zoomRef = useRef<ZoomStore>({ epoch: -1, map: {} });
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    applyForceDetail(map, store.forceDetail, viewEpoch, zoomRef.current);
   }, [store.version, viewEpoch]);
 
   useEffect(() => {

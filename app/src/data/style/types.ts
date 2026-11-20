@@ -22,6 +22,7 @@ export interface Tier {
 }
 
 export interface SlopeTier {
+  styleMax?: number;
   id: string;
   tiles: string;
   minzoom: number;
@@ -31,6 +32,7 @@ export interface SlopeTier {
 }
 
 export interface DemTier {
+  ramp?: unknown;
   id: string;
   tiles: string;
   minzoom: number;

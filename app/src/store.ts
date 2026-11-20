@@ -45,6 +45,7 @@ function personaLayers(p: Persona): Record<LayerKey, boolean> {
   if (LITE_MODE) {
     base.relief = false;
     base.contour = false;
+    base.slope = false;
   }
   return base;
 }
@@ -67,11 +68,11 @@ export const PERSONAS: Persona[] = [
   {
     key: 'terrain',
     label: '地势·交通图',
-    sub: '分层设色 · 等高线 · 铁路与主干公路',
+    sub: '分层设色 · 坡度 · 等高线 · 铁路与主干公路',
     layers: {
       relief: true,
       contour: true,
-      slope: false,
+      slope: true,
       water: true,
       rail: true,
       road: true,
@@ -89,7 +90,7 @@ export const PERSONAS: Persona[] = [
       poi: false,
     },
     paint: [
-      { id: 'relief-tint', prop: 'color-relief-opacity', value: 0.62 },
+      { id: 'relief-tint', prop: 'color-relief-opacity', value: 0.88 },
       { id: 'contour', prop: 'line-opacity', value: ['interpolate', ['linear'], ['zoom'], 5, 0.35, 8, 0.55, 11, 0.75, 14, 0.9] },
       { id: 'contour', prop: 'line-width', value: ['interpolate', ['linear'], ['zoom'], 5, 0.55, 9, 0.9, 13, 1.25] },
       { id: 'contour-bold', prop: 'line-opacity', value: ['interpolate', ['linear'], ['zoom'], 5, 0.5, 8, 0.75, 11, 0.95, 14, 1] },
@@ -277,6 +278,7 @@ class Store {
 
   layers: Record<LayerKey, boolean> = personaLayers(PERSONAS[0]);
   preset = PERSONAS[0].key;
+  forceDetail = false;
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };
@@ -334,6 +336,12 @@ class Store {
     if (!p) return;
     this.layers = personaLayers(p);
     this.preset = p.key;
+    this.emit();
+  }
+
+  setForceDetail(on: boolean): void {
+    if (this.forceDetail === on) return;
+    this.forceDetail = on;
     this.emit();
   }
 
