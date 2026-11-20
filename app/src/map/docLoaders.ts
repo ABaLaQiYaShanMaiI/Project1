@@ -6,9 +6,11 @@ const jsonCache = new Map<string, unknown>();
 export async function getJson<T>(url: string): Promise<T | null> {
   if (jsonCache.has(url)) return (jsonCache.get(url) as T | null) ?? null;
   try {
-    const res = await fetch(url, { cache: 'force-cache' });
-    const type = res.headers.get('content-type') ?? '';
-    if (!res.ok || !type.includes('json')) return null;
+    let res = await fetch(url, { cache: 'force-cache' });
+    if (res.ok && !(res.headers.get('content-type') ?? '').includes('json')) {
+      res = await fetch(url, { cache: 'no-store' });
+    }
+    if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return null;
     const doc = (await res.json()) as T;
     jsonCache.set(url, doc);
     return doc;

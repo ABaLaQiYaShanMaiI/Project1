@@ -2025,3 +2025,21 @@ AWS Terrarium 恢复可访问后补的第一块全球地形：
   z13 以上不再淡化。复核：z14 巴黎 `rail-world` / `rail-world-halo` 均为 3–17、op 1。
 - 已知边界（未改）：`fulda` 与 `fulda_core` 两个区域档在 z14 同时为 `14–22`（`tierBands` 对同 maxzoom 的相邻包
   给出相同 from），富尔达镇区灰块会叠一层；属区域包排序的既有问题，单列待办。
+
+### v1.83 代码 review：死代码、缓存污染与自愈
+
+本轮只做代码质量，不动观感：
+
+- **删死代码**：`GridSpec` 的 `stepM` / `majorEvery` 字段只有内部使用，`WorldMapLibre` 的 `gridStepRef` 只写不读
+  （连同两处赋值和 `gridStepFor` 导入一起删）。
+- **等高线缓存不再被 null 污染**：`loadContours` 原来把 `getJson` 的 `null` 也写进 `contourCache`
+  （`has()` 判定后永不重试），一次瞬时失败会让该档在整页生命周期内消失；现在只缓存成功解析的文档，
+  且合并结果只在「所有请求档都到齐」时才进 `contourFcCache`。
+- **`getJson` 自愈**：`force-cache` 命中 HTML（文件不存在时 Vite 的 SPA 兜底会给 200）时，
+  再用 `cache: 'no-store'` 取一次；仍然不是 JSON 才返回 null。开发期加数据文件不会再把整层锁死到刷新缓存为止。
+- **格网阈值改 7**：z6 视口约 12°，单带 UTM 在边缘已经出现负里程，`buildGrid` 改用 `zoom >= 7` 才走 UTM。
+  Readme / MAPDESIGN 的阈值同步。
+- **烘焙脚本加前置检查**：`bake_ne_roads.py` / `bake_ne_rivers.py` 缺 shapefile 时直接给出下载与解压路径，
+  不再从 `shapefile.Reader` 抛底层异常。
+- **CONSTRAINTS §2**：`pyshp` 白名单从「仅 bake_ne_rails.py」扩为「`Tools/bake_ne_*.py`」。
+- 校验：tsc 0 error、check_all 9/9；运行期 z6 经纬网 10 注 / z7 UTM 8 注 / 富尔达 z7 灰块 198 面正常。

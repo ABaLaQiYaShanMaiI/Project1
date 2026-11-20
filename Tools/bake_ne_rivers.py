@@ -47,6 +47,8 @@ def rdp(pts, tol):
     return [p for p, k in zip(pts, keep) if k]
 
 
+if not os.path.exists(SHP):
+    sys.exit(f"缺少 shapefile：{SHP}（先下载 ne_10m_rivers_lake_centerlines.zip 并解压到 Tools/.tile-cache/ne_rivers）")
 reader = shapefile.Reader(SHP)
 fields = [f[0] for f in reader.fields[1:]]
 i_cls = fields.index("featurecla")

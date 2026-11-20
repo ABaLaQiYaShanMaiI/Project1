@@ -22,7 +22,7 @@ import { getJson, mergePois, mergeRails, poiFc, riversWorldFc, roadsWorldFc, sea
 import { clipRailsWorld } from './data/railsWorld';
 import { applyForceDetail, type ZoomStore } from './map/forceDetail';
 import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
-import { buildGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
+import { buildGrid, ddText, rangeRing, utmOf, utmText } from './core/geo';
 import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
 import { cityZoneAt, loadCityDex, type CityDex } from './data/cities';
@@ -86,7 +86,7 @@ function viewSig(hit: PmtilesZone[], zoom: number, lon: number, lat: number): st
   return `${hit.map((z) => z.key).sort().join(',')}|${bands.map((b) => b.from).join(',')}|${demKeyAt(zoom, lon, lat)}`;
 }
 
-const contourCache = new Map<string, ContourDoc | null>();
+const contourCache = new Map<string, ContourDoc>();
 const contourFcCache = new Map<string, FC | null>();
 
 async function loadContours(active: Array<{ b: ContourBand; i: number }>): Promise<FC | null> {
@@ -95,13 +95,17 @@ async function loadContours(active: Array<{ b: ContourBand; i: number }>): Promi
   if (contourFcCache.has(sig)) return contourFcCache.get(sig) ?? null;
   const docs = await Promise.all(
     active.map(async ({ b }) => {
-      if (!contourCache.has(b.key)) contourCache.set(b.key, await getJson<ContourDoc>(`/data/contours_${b.key}.json`));
-      return contourCache.get(b.key) ?? null;
+      const hit = contourCache.get(b.key);
+      if (hit) return hit;
+      const doc = await getJson<ContourDoc>(`/data/contours_${b.key}.json`);
+      if (doc?.levels?.length) contourCache.set(b.key, doc);
+      return doc;
     }),
   );
   const items = docs.flatMap((doc, k) => (doc?.levels?.length ? [{ doc, band: active[k].i }] : []));
-  const fc = items.length ? mergeContours(items) : null;
-  contourFcCache.set(sig, fc);
+  if (!items.length) return null;
+  const fc = mergeContours(items);
+  if (items.length === active.length) contourFcCache.set(sig, fc);
   return fc;
 }
 
@@ -135,7 +139,6 @@ export function WorldMapLibre(): JSX.Element {
   const samplerRef = useRef<DemSampler | null>(null);
   const posRef = useRef<{ lat: number; lon: number } | null>(null);
   const resampleRef = useRef<() => void>(() => undefined);
-  const gridStepRef = useRef(0);
 
   const [mapObj, setMapObj] = useState<MLMap | null>(null);
   const [sampler, setSampler] = useState<DemSampler | null>(null);
@@ -425,7 +428,6 @@ export function WorldMapLibre(): JSX.Element {
         riversWorld,
       });
       if (!alive) return;
-      gridStepRef.current = gridStepFor(Math.round(START.zoom));
       map.setStyle(style);
       appliedRef.current = { epoch: viewEpoch, map: {}, paintSig: '' };
 
@@ -563,7 +565,6 @@ export function WorldMapLibre(): JSX.Element {
     if (!map) return;
     const rebuild = () => {
       const g = buildGrid(buildBounds(map), Math.round(map.getZoom()));
-      gridStepRef.current = gridStepFor(Math.round(map.getZoom()));
       const src = map.getSource('grid') as { setData?: (d: unknown) => void } | undefined;
       src?.setData?.({ type: 'FeatureCollection', features: [...g.lines, ...g.labels] });
     };

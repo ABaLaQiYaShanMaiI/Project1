@@ -18,7 +18,7 @@
 | 单个数据文件 | 4 MB（底图 `.pmtiles` 与 DEM 瓦片除外：底图单包 ≤ 6 GB 且总量 ≤ 12 GB、DEM 总量 ≤ 1 GB；v1.56 按实测校准，旧 64 MB / 200 MB 限额早已被 world9（2.99 GB）突破） |
 | 前端首屏 JS（gzip） | 120 KB（世界地图按需加载的 `maplibre-gl` + `pmtiles` 单独成 chunk，不计入首屏） |
 | 生产依赖 | 只允许 `react` `react-dom` `maplibre-gl` `pmtiles`；构建期 `vite` `typescript` `@vitejs/plugin-react` |
-| Python 依赖 | 只允许 `numpy` `Pillow` `requests`；文档构建（`Tools/build_requirements_workbook.py`）允许 `openpyxl`；Natural Earth 底料（`Tools/bake_ne_rails.py`）允许 `pyshp` |
+| Python 依赖 | 只允许 `numpy` `Pillow` `requests`；文档构建（`Tools/build_requirements_workbook.py`）允许 `openpyxl`；Natural Earth 底料（`Tools/bake_ne_*.py`：rails / roads / rivers / urban）允许 `pyshp` |
 
 新增依赖必须在 `DEVLOG.md` 记一条，写清为什么现有依赖做不到。
 

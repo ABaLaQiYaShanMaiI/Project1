@@ -478,6 +478,23 @@ NE 按区域 bbox 裁剪（新 `data/railsWorld.ts`，Liang-Barsky 分段裁剪 
 
 ## 踩坑记录
 
+### v1.83 代码 review：缓存、死代码与自愈
+
+这一轮只做代码质量。四个发现：
+
+1. **`stepM`/`majorEvery` 是死字段**：`GridSpec` 里只有几何与注记被消费，`WorldMapLibre` 的 `gridStepRef`
+   只写不读（两次赋值都没人看）。删掉后 `gridStepFor` 的导入也一并去掉。
+2. **等高线缓存会被 null 污染**：`loadContours` 用 `has()` 判定缓存，但把 `getJson` 的 `null` 也写进去，
+   一次瞬时失败（文件正在写、浏览器缓存了 HTML）就让该档在本页永久消失。改成只缓存成功文档，
+   合并结果也只在「请求档全部到齐」时才缓存——宁可多请求一次，也不要静默少一层。
+3. **`getJson` 需要自愈**：`force-cache` 会命中之前缓存下来的 HTML（Vite SPA 兜底给 200），
+   只判 content-type 会一直返回 null。现在不是 JSON 就再用 `no-store` 取一次，仍不行才放弃。
+4. **格网阈值**：z6 视口约 12°，单带 UTM 在东/西边缘会出现负里程，`buildGrid` 的切换点从 6 改到 7。
+
+另外两个小硬化：两个 NE 烘焙脚本缺 shapefile 时给出明确路径提示（不再抛 pyshp 底层异常）；
+CONSTRAINTS §2 的 `pyshp` 白名单扩到 `Tools/bake_ne_*.py`（原来只写 rails，roads/rivers 已实际使用）。
+
+
 ### v1.82 城区灰块与铁路：一个断档、一个淡化
 
 **灰块**的抱怨来自三处叠加：

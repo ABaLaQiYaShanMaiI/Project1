@@ -78,8 +78,6 @@ export interface GridLabelFeature {
 }
 
 export interface GridSpec {
-  stepM: number;
-  majorEvery: number;
   lines: GridFeature[];
   labels: GridLabelFeature[];
 }
@@ -165,11 +163,11 @@ export function buildUtmGrid(bounds: [number, number, number, number], stepM: nu
     properties: { k: 'label', label: `${zone}${center.band}`, axis: 'z', major: true },
     geometry: { type: 'Point', coordinates: [w + (e - w) * 0.02, n - (n - s) * 0.02] },
   });
-  return { stepM, majorEvery, lines, labels };
+  return { lines, labels };
 }
 
 export function buildGrid(bounds: [number, number, number, number], zoom: number): GridSpec {
-  return zoom >= 6 ? buildUtmGrid(bounds, gridStepFor(zoom)) : buildGraticule(bounds, gratStepFor(zoom));
+  return zoom >= 7 ? buildUtmGrid(bounds, gridStepFor(zoom)) : buildGraticule(bounds, gratStepFor(zoom));
 }
 
 export function buildGraticule(bounds: [number, number, number, number], stepDeg: number): GridSpec {
@@ -193,7 +191,7 @@ export function buildGraticule(bounds: [number, number, number, number], stepDeg
       geometry: { type: 'LineString', coordinates: [[w, lat], [e, lat]] },
     });
   }
-  return { stepM: stepDeg, majorEvery: 4, lines, labels: edgeLabels(lines, true, [w, s, e, n]) };
+  return { lines, labels: edgeLabels(lines, true, [w, s, e, n]) };
 }
 
 function edgeLabels(lines: GridFeature[], all: boolean, bounds: [number, number, number, number]): GridLabelFeature[] {
