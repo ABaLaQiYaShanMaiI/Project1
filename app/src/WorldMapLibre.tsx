@@ -18,7 +18,7 @@ import { markerElement } from './map/markerElement';
 import { bearingLabel, buildReadout, type Readout } from './map/readout';
 import { groupOf, baseIdOf } from './data/style/layerGroups';
 
-import { getJson, mergePois, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
+import { getJson, mergePois, mergeRails, seaLabelFc, type DensityDoc, type PoiDoc, type SeaDoc } from './map/docLoaders';
 import { clipRailsWorld } from './data/railsWorld';
 import { applyForceDetail, type ZoomStore } from './map/forceDetail';
 import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
@@ -368,12 +368,13 @@ export function WorldMapLibre(): JSX.Element {
           } as unknown as FC)
         : null;
 
-      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc] = await Promise.all([
+      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc, seaDoc] = await Promise.all([
         getJson<PoiDoc>('/data/poi_world.json'),
         Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`))),
         getJson<{ polys?: [number, number][][] }>('/data/urban_world.json'),
         getJson<{ lines?: [number, number][][] }>('/data/rails_world_fine.json'),
         getJson<{ lines?: [number, number][][] }>('/data/rails_world_coarse.json'),
+        getJson<SeaDoc>('/data/seas_world.json'),
       ]);
       const poiPoints = (() => {
         const regionDocs = new Map(regions.map((r, i) => [r.key, poiRegional[i]] as const));
@@ -406,6 +407,7 @@ export function WorldMapLibre(): JSX.Element {
       const railBoxes = mergedRails?.boxes ?? [];
       const railsWorldFine = railFc(fineDoc?.lines, railBoxes);
       const railsWorldCoarse = railFc(coarseDoc?.lines, []);
+      const seaLabels = seaLabelFc(seaDoc);
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
       const grid = buildUtmGrid(buildBounds(map), gridStepFor(Math.round(map.getZoom())));
       if (!alive) return;
@@ -423,6 +425,7 @@ export function WorldMapLibre(): JSX.Element {
         railsWorldFine,
         railsWorldCoarse,
         urbanWorld,
+        seaLabels,
       });
       if (!alive) return;
       gridStepRef.current = gridStepFor(Math.round(START.zoom));

@@ -71,6 +71,7 @@ cd app && pnpm install && pnpm dev
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
+| 海域名 | `seas_world.json` | 5 大洋 + 32 海 + 21 湾/海峡（人工整理中心点），z3–8 大写 + 字距，随「地名标注」开关 |
 | 全球城区面 | `urban_world.json` | NE 1:10m 建成区面，z4–14 铺在底图上 |
 | 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块（居住/商业/零售/铁路/工业等合并），绿=植被、米=农田、灰=城区 |
 | 行政边界 | 底图 `boundaries` | 国界/州/县/乡镇四级，冷灰虚线，按 `kind_detail` 分级 |

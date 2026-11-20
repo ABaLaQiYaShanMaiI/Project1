@@ -1,4 +1,5 @@
 import type { PmtilesZone } from '../data/pmtilesBasemap';
+import type { FC } from '../data/style/types';
 
 const jsonCache = new Map<string, unknown>();
 
@@ -37,6 +38,22 @@ export interface DensityDoc {
 
 export interface PoiDoc {
   points?: Array<{ o: number; l: number; k: string }>;
+}
+
+export interface SeaDoc {
+  points?: Array<[number, number, string, number]>;
+}
+
+export function seaLabelFc(doc: SeaDoc | null): FC | null {
+  if (!doc?.points?.length) return null;
+  return {
+    type: 'FeatureCollection',
+    features: doc.points.map(([o, l, n, s]) => ({
+      type: 'Feature',
+      properties: { n, s },
+      geometry: { type: 'Point', coordinates: [o, l] },
+    })),
+  } as unknown as FC;
 }
 
 const POI_DEDUP_M: Record<string, number> = { airport: 6000, port: 4000, station: 900, bridge: 250 };

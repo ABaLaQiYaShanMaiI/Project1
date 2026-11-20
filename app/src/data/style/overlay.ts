@@ -1,4 +1,4 @@
-import { GRID_MAJOR, GRID_MINOR, INK, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY } from './tokens';
+import { GRID_MAJOR, GRID_MINOR, INK, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY, WATER_LABEL_HALO, WATER_LABEL_INK } from './tokens';
 export function gridLayers(): Record<string, unknown>[] {
   return [
     {
@@ -106,6 +106,42 @@ export function ringLayers(): Record<string, unknown>[] {
     },
   ];
 }
+export function seaLabelLayers(): Record<string, unknown>[] {
+  return [
+    {
+      id: 'sea-label',
+      type: 'symbol',
+      source: 'sea-labels',
+      minzoom: 3,
+      maxzoom: 8,
+      layout: {
+        'text-field': ['get', 'n'],
+        'text-font': ['Noto Sans Regular'],
+        'text-transform': 'uppercase',
+        'text-letter-spacing': ['interpolate', ['linear'], ['zoom'], 3, 0.24, 6, 0.14],
+        'text-size': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          3,
+          ['case', ['==', ['get', 's'], 1], 15, ['==', ['get', 's'], 2], 12, 10],
+          6,
+          ['case', ['==', ['get', 's'], 1], 21, ['==', ['get', 's'], 2], 15, 12],
+        ],
+        'text-max-width': 8,
+        'text-padding': 12,
+        'symbol-sort-key': ['get', 's'],
+      },
+      paint: {
+        'text-color': WATER_LABEL_INK,
+        'text-halo-color': WATER_LABEL_HALO,
+        'text-halo-width': 1.6,
+        'text-opacity': 0.9,
+      },
+    },
+  ];
+}
+
 export function urbanWorldLayers(): Record<string, unknown>[] {
   return [
     {

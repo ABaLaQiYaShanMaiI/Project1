@@ -12,6 +12,7 @@ const NEW_IDS: Partial<Record<string, LayerKey>> = {
   'rail-hatch': 'rail',
   'grid-minor': 'grid',
   'grid-major': 'grid',
+  'sea-label': 'label',
 };
 
 export function groupOf(id: string): LayerKey | null {

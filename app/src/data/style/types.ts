@@ -53,6 +53,7 @@ export interface StyleInputs {
   railsWorldFine?: FC | null;
   railsWorldCoarse?: FC | null;
   urbanWorld?: FC | null;
+  seaLabels?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
 }
