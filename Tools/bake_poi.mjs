@@ -18,6 +18,9 @@ const OUT = arg('out', join(ROOT, 'app', 'public', 'data', 'poi_fulda.json'));
 
 const AIR = new Set(['aerodrome', 'airfield']);
 const DECK = new Set(['motorway', 'trunk', 'primary', 'secondary', 'rail']);
+const STATION = new Set(['railway']);
+const STATION_KINDS = new Set(['railway']);
+
 
 const archive = new PMTiles(new FileSource(await openAsBlob(PACK)));
 const head = await archive.getHeader();
@@ -68,6 +71,20 @@ for (let x = tx0; x <= tx1; x++) {
         }
         const [lon, lat] = toLonLat(x, y, sx / ring.length, sy / ring.length);
         push(lon, lat, 'airport');
+      }
+    }
+
+    const pois = layers.get('pois');
+    if (pois) {
+      for (const f of pois.features) {
+        const kind = String(f.props.kind ?? '');
+        const cat = STATION_KINDS.has(kind) ? 'station' : '';
+        if (!cat) continue;
+        const ring = f.rings[0];
+        if (!ring || !ring.length) continue;
+        const mid = ring[0];
+        const [lon, lat] = toLonLat(x, y, mid[0], mid[1]);
+        push(lon, lat, cat);
       }
     }
 

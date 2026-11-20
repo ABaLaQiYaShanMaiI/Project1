@@ -275,11 +275,10 @@ export function WorldMapLibre(): JSX.Element {
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       const slopeKeys = ['world', ...regionBands.map((b) => b.zone.key)];
-      const [slopeMans, contoursDoc, railsDoc, poiDoc, dex] = await Promise.all([
+      const [slopeMans, contoursDoc, railsDoc, dex] = await Promise.all([
         Promise.all(slopeKeys.map((k) => getJson<SlopeManifest>(`/data/slope/${k}/index.json`))),
         firstJson<ContourDoc>(regions, (k) => `/data/contours_${k}.json`),
         mergeRails(regions),
-        firstJson<PoiDoc>(regions, (k) => `/data/poi_${k}.json`),
         loadCityDex(regions.map((z) => z.key)),
       ]);
 
@@ -320,7 +319,11 @@ export function WorldMapLibre(): JSX.Element {
         : null;
 
       const poiBase = await getJson<PoiDoc>('/data/poi_world.json');
-      const poiPoints = [...(poiBase?.points ?? []), ...(poiDoc?.points ?? [])];
+      const poiRegional = await Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`)));
+      const poiPoints = [
+        ...(poiBase?.points ?? []),
+        ...poiRegional.flatMap((doc) => doc?.points ?? []),
+      ];
       const poi = poiPoints.length
         ? ({
             type: 'FeatureCollection',

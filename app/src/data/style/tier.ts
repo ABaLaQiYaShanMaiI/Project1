@@ -1,5 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { AERODROME_MARK_INK, BUILDING_GLOW_INK, LANDUSE, MILITARY_FILL, MILITARY_OUTLINE, URBAN_GREY, URBAN_KINDS } from './tokens';
+import { AERODROME_MARK_INK, STATION_EDGE, STATION_FILL, BUILDING_GLOW_INK, LANDUSE, MILITARY_FILL, MILITARY_OUTLINE, URBAN_GREY, URBAN_KINDS } from './tokens';
 import { restyle } from './restyle';
 import type { Tier } from './types';
 
@@ -47,6 +47,60 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
       paint: {
         'fill-color': ['match', ['get', 'kind'], 'residential', LANDUSE.residential, 'commercial', LANDUSE.commercial, 'retail', LANDUSE.retail, LANDUSE.railway],
         'fill-opacity': 0.92,
+      },
+    },
+    {
+      id: `landuse_hospital${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landuse',
+      filter: ['==', ['get', 'kind'], 'hospital'],
+      minzoom: 13,
+      maxzoom: tier.styleMax,
+      paint: { 'fill-color': '#a8383f', 'fill-opacity': 0.3, 'fill-outline-color': '#7f272d' },
+    },
+    {
+      id: `landuse_aerodrome${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landuse',
+      filter: ['in', ['get', 'kind'], ['literal', ['aerodrome', 'airfield']]],
+      minzoom: 9,
+      maxzoom: tier.styleMax,
+      paint: { 'fill-color': '#6b7f96', 'fill-opacity': 0.26, 'fill-outline-color': '#4f6177' },
+    },
+    {
+      id: `landuse_port${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landuse',
+      filter: ['in', ['get', 'kind'], ['literal', ['harbour', 'port', 'ferry_terminal']]],
+      minzoom: 9,
+      maxzoom: tier.styleMax,
+      paint: { 'fill-color': '#3f7f8c', 'fill-opacity': 0.28, 'fill-outline-color': '#2d5f69' },
+    },
+    {
+      id: `landuse_industry${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landuse',
+      filter: ['==', ['get', 'kind'], 'industrial'],
+      minzoom: 11,
+      maxzoom: tier.styleMax,
+      paint: { 'fill-color': '#7f7f86', 'fill-opacity': 0.2 },
+    },
+    {
+      id: `landuse_station${suffix}`,
+      type: 'fill',
+      source: tier.id,
+      'source-layer': 'landuse',
+      filter: ['in', ['get', 'kind'], ['literal', ['railway', 'platform']]],
+      minzoom: 10,
+      maxzoom: tier.styleMax,
+      paint: {
+        'fill-color': STATION_FILL,
+        'fill-opacity': 0.26,
+        'fill-outline-color': STATION_EDGE,
       },
     },
   ];

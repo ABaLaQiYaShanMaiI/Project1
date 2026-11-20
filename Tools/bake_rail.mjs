@@ -132,24 +132,23 @@ for (let i = 0; i < raw.length; i += 1) {
   if (used[i]) continue;
   used[i] = true;
   const chain = raw[i].slice();
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const atTail of [true, false]) {
-      const endPt = atTail ? chain[chain.length - 1] : chain[0];
-      const j = pick(node(endPt));
-      if (j < 0) continue;
-      const seg = raw[j];
-      const tailKey = node(chain[chain.length - 1]);
-      const headKey = node(chain[0]);
-      if (node(seg[0]) === tailKey) chain.push(...seg.slice(1));
-      else if (node(seg[seg.length - 1]) === tailKey) chain.push(...seg.slice(1).reverse());
-      else if (node(seg[seg.length - 1]) === headKey) chain.unshift(...seg.slice(0, -1));
-      else chain.unshift(...seg.slice(1).reverse());
-      used[j] = true;
-      grew = true;
-      break;
-    }
+  for (;;) {
+    const key = node(chain[chain.length - 1]);
+    const j = pick(key);
+    if (j < 0) break;
+    const seg = raw[j];
+    used[j] = true;
+    if (node(seg[0]) === key) chain.push(...seg.slice(1));
+    else chain.push(...seg.slice(1).reverse());
+  }
+  for (;;) {
+    const key = node(chain[0]);
+    const j = pick(key);
+    if (j < 0) break;
+    const seg = raw[j];
+    used[j] = true;
+    if (node(seg[seg.length - 1]) === key) chain.unshift(...seg.slice(0, -1));
+    else chain.unshift(...seg.slice(1).reverse());
   }
   chains.push(chain);
 }

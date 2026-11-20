@@ -5,7 +5,6 @@ import { railWidth, railNarrow } from './widths';
 import type { Tier } from './types';
 
 const RAIL_MINZOOM = 11;
-const RAIL_LOW_MAXZOOM = 18;
 const RAIL_HATCH_MAXZOOM = 16;
 
 export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
@@ -27,7 +26,7 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       'source-layer': 'roads',
       filter: ['==', ['get', 'kind'], 'rail'],
       minzoom: Math.max(tier.styleMin, RAIL_MINZOOM),
-      maxzoom: Math.min(tier.styleMax, 13),
+      maxzoom: tier.styleMax,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
         'line-color': RAIL_HALO,
@@ -60,7 +59,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-low',
       minzoom: 13,
-      maxzoom: RAIL_LOW_MAXZOOM,
+      maxzoom: 13,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: { 'line-color': RAIL_HALO, 'line-width': railWidth(5.2) },
     },
@@ -69,7 +68,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-low',
       minzoom: 13,
-      maxzoom: RAIL_LOW_MAXZOOM,
+      maxzoom: 13,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: { 'line-color': RAIL_INK, 'line-width': railWidth(3.4), 'line-opacity': 1 },
     },
@@ -78,7 +77,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       type: 'line',
       source: 'rails-low',
       minzoom: 13,
-      maxzoom: RAIL_LOW_MAXZOOM,
+      maxzoom: 13,
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
       paint: { 'line-color': RAIL_TICK, 'line-width': railWidth(1.05), 'line-dasharray': [1.1, 2.1] },
     },

@@ -49,6 +49,20 @@ export function poiLayers(): Record<string, unknown>[] {
       },
     },
     {
+      id: 'poi-station',
+      type: 'circle',
+      source: 'poi',
+      filter: ['==', ['get', 'k'], 'station'],
+      minzoom: 9,
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 1.8, 13, 2.8, 16, 4],
+        'circle-color': RING_INK,
+        'circle-opacity': 0.95,
+        'circle-stroke-color': POI_STROKE,
+        'circle-stroke-width': 1,
+      },
+    },
+    {
       id: 'poi-bridge',
       type: 'circle',
       source: 'poi',

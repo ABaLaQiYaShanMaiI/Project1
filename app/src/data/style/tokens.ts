@@ -222,3 +222,5 @@ export const MILITARY_FILL = '#c8b39c';
 export const MILITARY_OUTLINE = '#8a705a';
 
 export const AERODROME_MARK_INK = '#6f6a86';
+export const STATION_FILL = '#b05340';
+export const STATION_EDGE = '#8d3a2c';

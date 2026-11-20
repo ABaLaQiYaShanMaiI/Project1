@@ -12,8 +12,8 @@ DATA = os.path.join(ROOT, "app", "public", "data")
 SHP = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.environ.get("TEMP", ""), "ne_rail", "ne_10m_railroads.shp")
 OUT = os.path.join(DATA, "rails_world.json")
 
-TOL = 0.01
-MINLEN = 25000.0
+TOL = 0.0035
+MINLEN = 18000.0
 MAXSEG = 80000.0
 
 

@@ -1,5 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { HILLSHADE_ACCENT, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
+import { BUILDING_TIER_MINZOOM, HILLSHADE_ACCENT, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
 import { tierLayers } from './style/tier';
 import { boundaryLayers } from './style/boundary';
 import { railsOf, railLowLayers, railLowCoarseLayers, railWorldLayers } from './style/rail';
@@ -154,7 +154,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
-    if (tier.minzoom < 13) out.push(...railsOf(tier, suffix));
+    if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
   });
 
   if (inp.railsWorld) out.push(...railWorldLayers());
@@ -176,7 +176,29 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     return true;
   });
 
-  style.layers = deduped.filter((layer) => {
+  const rankOf = (layer: Record<string, unknown>): number => {
+    const type = String(layer.type);
+    const id = String(layer.id);
+    if (id === 'background') return 0;
+    if (type === 'fill' || type === 'raster' || type === 'hillshade') return 1;
+    if (type === 'line') {
+      if (id.includes('rail')) return 6;
+      if (id.startsWith('boundaries')) return 3;
+      if (id.startsWith('grid')) return 8;
+      if (id.startsWith('ring')) return 9;
+      if (id.startsWith('contour')) return 7;
+      return 4;
+    }
+    if (type === 'symbol') return 5;
+    if (type === 'circle') return 10;
+    return 11;
+  };
+  const ordered = deduped
+    .map((layer, index) => ({ layer, index, rank: rankOf(layer) }))
+    .sort((a, b) => (a.rank === b.rank ? a.index - b.index : a.rank - b.rank))
+    .map((entry) => entry.layer);
+
+  style.layers = ordered.filter((layer) => {
     const min = (layer as { minzoom?: number }).minzoom;
     const max = (layer as { maxzoom?: number }).maxzoom;
     return min === undefined || max === undefined || min < max;
