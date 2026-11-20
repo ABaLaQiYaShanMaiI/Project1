@@ -1,10 +1,19 @@
 import type { PmtilesZone } from '../data/pmtilesBasemap';
 
+// 静态数据（构建产物）运行期不变：内存缓存避免缩放跨级重建时重复下载/解析大 JSON
+const jsonCache = new Map<string, unknown>();
+
 export async function getJson<T>(url: string): Promise<T | null> {
+  if (jsonCache.has(url)) return (jsonCache.get(url) as T | null) ?? null;
   try {
-    const res = await fetch(url, { cache: 'no-cache' });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
+    const res = await fetch(url, { cache: 'force-cache' });
+    if (!res.ok) {
+      jsonCache.set(url, null);
+      return null;
+    }
+    const doc = (await res.json()) as T;
+    jsonCache.set(url, doc);
+    return doc;
   } catch {
     return null;
   }
@@ -28,16 +37,17 @@ export interface PoiDoc {
 
 export async function mergeRails(zones: PmtilesZone[]): Promise<RailsDoc | null> {
   const ordered = [...zones].sort((a, b) => b.maxzoom - a.maxzoom);
+  const docs = await Promise.all(ordered.map((z) => getJson<RailsDoc>(`/data/rails_${z.key}.json`)));
   const lines: [number, number][][] = [];
   const guards: PmtilesZone[] = [];
-  for (const z of ordered) {
-    const doc = await getJson<RailsDoc>(`/data/rails_${z.key}.json`);
+  for (let i = 0; i < ordered.length; i += 1) {
+    const doc = docs[i];
     if (!doc?.lines?.length) continue;
     for (const line of doc.lines) {
       if (guards.some((g) => lineInside(line, g.bbox))) continue;
       lines.push(line);
     }
-    guards.push(z);
+    guards.push(ordered[i]);
   }
   return lines.length ? ({ lines } as RailsDoc) : null;
 }

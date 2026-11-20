@@ -1,4 +1,5 @@
 import { useStore, store } from '../hooks';
+import { fpsTone } from '../store';
 
 export function TopBar(): JSX.Element {
   useStore();
@@ -26,7 +27,7 @@ export function TopBar(): JSX.Element {
             <i className="dot dot-blue" />
             {store.markers.length} 兵牌
           </span>
-          <span className="seg-btn">
+          <span className={`seg-btn fps fps-${fpsTone(store.perf.fps)}`}>
             <i className="dot dot-amber" />
             {store.perf.fps} FPS
           </span>

@@ -53,10 +53,17 @@ const server = createServer(async (req, res) => {
         res.writeHead(404).end('not found');
         return;
       }
+      const dEtag = `"${dInfo.size.toString(36)}-${Math.round(dInfo.mtimeMs).toString(36)}"`;
+      if (req.headers['if-none-match'] === dEtag) {
+        res.writeHead(304, { etag: dEtag, 'cache-control': 'no-cache' });
+        res.end();
+        return;
+      }
       const dBuf = await readFile(dataFile);
       res.writeHead(200, {
         'content-type': MIME[extname(dataFile).toLowerCase()] ?? 'application/octet-stream',
         'cache-control': 'no-cache',
+        etag: dEtag,
         'content-length': dBuf.length,
       });
       res.end(dBuf);

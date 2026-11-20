@@ -13,7 +13,7 @@ import {
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useStore } from './hooks';
-import { store, PERSONAS, ruleHits, propFits, type Persona } from './store';
+import { store, PERSONAS, ruleHits, propFits, fpsTone, type Persona } from './store';
 import { markerElement } from './map/markerElement';
 import { bearingLabel, buildReadout, type Readout } from './map/readout';
 import { groupOf, baseIdOf } from './data/style/layerGroups';
@@ -368,8 +368,14 @@ export function WorldMapLibre(): JSX.Element {
           } as unknown as FC)
         : null;
 
-      const poiBase = await getJson<PoiDoc>('/data/poi_world.json');
-      const poiRegional = await Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`)));
+      // 全部静态文档一次并行拉取，避免启动瀑布
+      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc] = await Promise.all([
+        getJson<PoiDoc>('/data/poi_world.json'),
+        Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`))),
+        getJson<{ polys?: [number, number][][] }>('/data/urban_world.json'),
+        getJson<{ lines?: [number, number][][] }>('/data/rails_world_fine.json'),
+        getJson<{ lines?: [number, number][][] }>('/data/rails_world_coarse.json'),
+      ]);
       const poiPoints = [
         ...(poiBase?.points ?? []),
         ...poiRegional.flatMap((doc) => doc?.points ?? []),
@@ -384,7 +390,6 @@ export function WorldMapLibre(): JSX.Element {
             })),
           } as unknown as FC)
         : null;
-      const urbanDoc = await getJson<{ polys?: [number, number][][] }>('/data/urban_world.json');
       const urbanWorld = urbanDoc?.polys?.length
         ? ({
             type: 'FeatureCollection',
@@ -395,10 +400,6 @@ export function WorldMapLibre(): JSX.Element {
             })),
           } as unknown as FC)
         : null;
-      const [fineDoc, coarseDoc] = await Promise.all([
-        getJson<{ lines?: [number, number][][] }>('/data/rails_world_fine.json'),
-        getJson<{ lines?: [number, number][][] }>('/data/rails_world_coarse.json'),
-      ]);
       const railBoxes = regions.map((z) => z.bbox);
       const railsWorldFine = railFc(fineDoc?.lines, railBoxes);
       const railsWorldCoarse = railFc(coarseDoc?.lines, []);
@@ -424,7 +425,6 @@ export function WorldMapLibre(): JSX.Element {
       gridStepRef.current = gridStepFor(Math.round(START.zoom));
       map.setStyle(style);
       appliedRef.current = { epoch: viewEpoch, map: {}, paintSig: '' };
-      map.on('sourcedata', () => map.triggerRepaint());
 
       damageRef.current?.destroy();
       damageRef.current = createCityDamage(map, () => [tiers[tiers.length - 1].id]);
@@ -609,7 +609,7 @@ export function WorldMapLibre(): JSX.Element {
         <button className={`btn small ${damageMode ? 'on' : ''}`} onClick={() => setDamageMode((v) => !v)}>
           战损
         </button>
-        <span className="mono dim">{store.perf.fps} FPS</span>
+        <span className={`mono world-fps fps fps-${fpsTone(store.perf.fps)}`}>{store.perf.fps} FPS</span>
       </div>
 
       {loading && <div className="ml-loading">正在载入底图…</div>}

@@ -1,7 +1,7 @@
 import { RAIL_HALO, RAIL_INK, RAIL_TICK } from './tokens';
 import { restyle } from './restyle';
 import { clampZoom } from './tier';
-import { railWidth, railNarrow } from './widths';
+import { railWidth, railDash, railNarrow, railNarrowDash } from './widths';
 import type { Tier } from './types';
 
 const RAIL_MINZOOM = 11;
@@ -10,25 +10,40 @@ const RAIL_LOW_MAXZOOM = 11;
 const RAIL_HATCH_MINZOOM = 9;
 const RAIL_HATCH_MAXZOOM = 16;
 
+const RAIL_FILTER = ['==', ['get', 'kind'], 'rail'] as never;
+const RAIL_MAIN_FILTER = [
+  'all',
+  ['==', ['get', 'kind'], 'rail'],
+  ['!=', ['get', 'kind_detail'], 'narrow_gauge'],
+] as never;
+const RAIL_NARROW_FILTER = [
+  'all',
+  ['==', ['get', 'kind'], 'rail'],
+  ['==', ['get', 'kind_detail'], 'narrow_gauge'],
+] as never;
+
 export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   const rail = restyle({
     id: `roads_rail${suffix}`,
     type: 'line',
     source: tier.id,
     'source-layer': 'roads',
-    filter: ['==', ['get', 'kind'], 'rail'],
+    filter: RAIL_FILTER,
     layout: { visibility: 'visible' },
     paint: {},
   });
   if (!clampZoom(rail, tier)) return [];
+  const min = Math.max(tier.styleMin, RAIL_MINZOOM);
+  // 窄轨走独立虚线符号，主体墨线排除窄轨，避免与黑白杠叠乱
+  rail.filter = RAIL_MAIN_FILTER;
   return [
     {
       id: `rail-halo${suffix}`,
       type: 'line',
       source: tier.id,
       'source-layer': 'roads',
-      filter: ['==', ['get', 'kind'], 'rail'],
-      minzoom: Math.max(tier.styleMin, RAIL_MINZOOM),
+      filter: RAIL_FILTER,
+      minzoom: min,
       maxzoom: tier.styleMax,
       layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: {
@@ -42,14 +57,29 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
       type: 'line',
       source: tier.id,
       'source-layer': 'roads',
-      filter: ['==', ['get', 'kind'], 'rail'],
-      minzoom: Math.max(tier.styleMin, RAIL_MINZOOM),
+      filter: RAIL_MAIN_FILTER,
+      minzoom: min,
       maxzoom: Math.min(tier.styleMax, RAIL_HATCH_MAXZOOM),
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
       paint: {
         'line-color': RAIL_TICK,
-        'line-width': railWidth(1.05, railNarrow()),
-        'line-dasharray': [1.1, 2.1],
+        'line-width': railWidth(1.05),
+        'line-dasharray': railDash(),
+      },
+    },
+    {
+      id: `rail-narrow${suffix}`,
+      type: 'line',
+      source: tier.id,
+      'source-layer': 'roads',
+      filter: RAIL_NARROW_FILTER,
+      minzoom: min,
+      maxzoom: tier.styleMax,
+      layout: { 'line-join': 'round', 'line-cap': 'butt' },
+      paint: {
+        'line-color': RAIL_INK,
+        'line-width': railWidth(2.4),
+        'line-dasharray': railNarrowDash(),
       },
     },
   ];
@@ -82,7 +112,7 @@ export function railLowLayers(): Record<string, unknown>[] {
       minzoom: Math.max(RAIL_LOW_MINZOOM, RAIL_HATCH_MINZOOM),
       maxzoom: Math.min(RAIL_LOW_MAXZOOM, RAIL_HATCH_MAXZOOM),
       layout: { 'line-join': 'round', 'line-cap': 'butt' },
-      paint: { 'line-color': RAIL_TICK, 'line-width': railWidth(1.05), 'line-dasharray': [1.1, 2.1] },
+      paint: { 'line-color': RAIL_TICK, 'line-width': railWidth(1.05), 'line-dasharray': railDash() },
     },
   ];
 }
@@ -133,7 +163,7 @@ export function railWorldLayers(s: WorldRailSpec): Record<string, unknown>[] {
       paint: {
         'line-color': RAIL_TICK,
         'line-width': railWidth(1.05),
-        'line-dasharray': [1.1, 2.1],
+        'line-dasharray': railDash(),
         'line-opacity': opacity,
       },
     });

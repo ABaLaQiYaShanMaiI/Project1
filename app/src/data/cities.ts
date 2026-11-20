@@ -1,4 +1,5 @@
 import { cityMods, urbanWeight, type CityZone } from '../core/cityEffects';
+import { getJson } from '../map/docLoaders';
 
 export interface CityDisc {
   lon: number;
@@ -85,11 +86,9 @@ export function decodeCities(doc: CitiesDoc): CityDisc[] {
 
 export async function loadCityDex(regionKeys: string[]): Promise<CityDex> {
   const names = ['cities.json', ...regionKeys.map((k) => `cities_${k}.json`)];
+  const docs = await Promise.all(names.map((name) => getJson<CitiesDoc>(`/data/${name}`)));
   const points: CityDisc[] = [];
-  for (const name of names) {
-    const res = await fetch(`/data/${name}`, { cache: 'no-cache' }).catch(() => null);
-    if (!res || !res.ok) continue;
-    const doc = (await res.json().catch(() => null)) as CitiesDoc | null;
+  for (const doc of docs) {
     if (!doc || typeof doc.b64 !== 'string') continue;
     points.push(...decodeCities(doc));
   }

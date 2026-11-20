@@ -166,7 +166,10 @@ export function restyle(layer: Record<string, unknown>): Record<string, unknown>
     const size = id === 'places_country' ? 13 : id === 'places_region' ? 11.5 : id === 'places_locality' ? 11.5 : 10.5;
     paint['text-color'] = INK;
     paint['text-halo-color'] = HALO;
-    paint['text-halo-width'] = 1.5;
+    // 光晕随缩放加宽：纸色 shield 把下方铁路/公路墨线"切断"，地名始终可读
+    paint['text-halo-width'] = ['interpolate', ['linear'], ['zoom'], 8, 1.4, 12, 2.2, 14, 2.8, 17, 3.2];
+    // 高倍时把标签沿径向推离城中心（铁路枢纽/车站所在），避免直接压在铁路走廊上
+    layout['text-radial-offset'] = ['interpolate', ['linear'], ['zoom'], 8, 0.4, 13, 0.85, 16, 1.05];
     layout['text-size'] = ['interpolate', ['linear'], ['zoom'], 3, size * 0.8, 10, size * 1.1];
   } else if (sourceLayer === 'roads' && layer.type === 'symbol') {
     paint['text-color'] = ROAD_LABEL_INK;

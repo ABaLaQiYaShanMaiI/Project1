@@ -12,6 +12,10 @@ const TYPES = {
   '.json': 'application/json; charset=utf-8',
 };
 
+function etagOf(info) {
+  return `"${info.size.toString(36)}-${Math.round(info.mtimeMs).toString(36)}"`;
+}
+
 export async function serveRange(root, req, res, prefix = '/data/tiles/') {
   const url = String(req.url ?? '');
   if (!url.startsWith(prefix)) return false;
@@ -26,12 +30,20 @@ export async function serveRange(root, req, res, prefix = '/data/tiles/') {
   if (!info || !info.isFile()) return false;
   const type = TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
   const size = info.size;
+  const etag = etagOf(info);
+  // 协商缓存：内容未变时所有请求（含分段）都走 304，避免重复传输大文件
+  if (req.headers['if-none-match'] === etag) {
+    res.writeHead(304, { etag, 'cache-control': 'no-cache', 'accept-ranges': 'bytes' });
+    res.end();
+    return true;
+  }
   if (req.method === 'HEAD') {
     res.writeHead(200, {
       'content-type': type,
       'content-length': size,
       'accept-ranges': 'bytes',
       'cache-control': 'no-cache',
+      etag,
     });
     res.end();
     return true;
@@ -53,6 +65,7 @@ export async function serveRange(root, req, res, prefix = '/data/tiles/') {
       'content-range': `bytes ${start}-${end}/${size}`,
       'accept-ranges': 'bytes',
       'cache-control': 'no-cache',
+      etag,
     });
     createReadStream(file, { start, end }).pipe(res);
     return true;
@@ -62,6 +75,7 @@ export async function serveRange(root, req, res, prefix = '/data/tiles/') {
     'content-length': size,
     'accept-ranges': 'bytes',
     'cache-control': 'no-cache',
+    etag,
   });
   createReadStream(file).pipe(res);
   return true;

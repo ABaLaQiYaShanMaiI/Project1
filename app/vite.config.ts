@@ -30,7 +30,12 @@ export default defineConfig({
     port: 5183,
     strictPort: false,
     host: '127.0.0.1',
-    watch: { usePolling: true, interval: 350 },
+    watch: {
+      usePolling: true,
+      interval: 350,
+      // 静态数据目录（数 GB 瓦片/JSON）不参与热更新监听，避免 dev 轮询开销
+      ignored: ['**/public/data/**'],
+    },
   },
   build: { target: 'es2022' },
 });

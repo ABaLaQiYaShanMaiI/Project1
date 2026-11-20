@@ -264,6 +264,12 @@ export interface Perf {
   fps: number;
 }
 
+export function fpsTone(fps: number): 'ok' | 'warn' | 'bad' {
+  if (fps >= 48) return 'ok';
+  if (fps >= 28) return 'warn';
+  return 'bad';
+}
+
 class Store {
   loading = true;
   error: string | null = null;
@@ -304,7 +310,10 @@ class Store {
   }
 
   setFps(fps: number): void {
+    if (this.perf.fps === fps) return;
     this.perf = { fps };
+    // 调用方已按 800ms 节流，直接广播刷新读数
+    this.emit();
   }
 
   setCityZone(zone: CityZone | null): void {

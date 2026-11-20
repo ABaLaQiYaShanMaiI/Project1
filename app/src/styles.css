@@ -176,6 +176,24 @@ button {
   border: 0;
   border-radius: 5px;
   color: var(--text-dim);
+  transition: background 0.12s, color 0.12s;
+}
+
+.seg-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.fps-ok {
+  color: var(--good);
+}
+
+.fps-warn {
+  color: var(--accent-bright);
+}
+
+.fps-bad {
+  color: var(--bad);
 }
 
 .seg-btn.active {
@@ -364,6 +382,20 @@ button {
   color: var(--text);
 }
 
+.btn:active {
+  transform: translateY(0.5px);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 1px;
+}
+
+.btn:focus-visible {
+  outline-offset: 0;
+}
+
 .btn.small {
   padding: 4px 9px;
   font-size: 11px;
@@ -452,11 +484,11 @@ button {
   border: 1px solid var(--line-strong);
   border-radius: 9px;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
 }
 
 .world-fps {
   font-size: 10.5px;
-  color: var(--text-dim);
   padding: 3px 8px;
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.05);
@@ -472,6 +504,7 @@ button {
   border: 1px solid var(--line-strong);
   border-radius: 9px;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
 }
 
 .ml-city {
@@ -484,6 +517,7 @@ button {
   border: 1px solid var(--line-strong);
   border-radius: 9px;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
   pointer-events: none;
 }
 
@@ -550,6 +584,7 @@ button {
   padding: 4px 12px;
   border-radius: 7px;
   backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -580,12 +615,33 @@ button {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 9px;
   padding: 11px 18px;
   font-size: 12px;
   background: var(--overlay);
   border: 1px solid var(--line-strong);
   border-radius: 9px;
+  box-shadow: var(--shadow);
   color: var(--text-dim);
+}
+
+.ml-loading::before {
+  content: '';
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid rgba(226, 163, 68, 0.25);
+  border-top-color: var(--accent);
+  animation: ml-spin 0.8s linear infinite;
+}
+
+@keyframes ml-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .ml-fail {
@@ -613,7 +669,7 @@ button {
 
 .ml-measure-btn {
   position: absolute;
-  top: 64px;
+  top: 112px;
   right: 12px;
   z-index: 6;
 }
@@ -629,6 +685,7 @@ button {
   border: 1px solid var(--line-strong);
   border-radius: 10px;
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
   font-size: 11px;
   line-height: 1.65;
 }
