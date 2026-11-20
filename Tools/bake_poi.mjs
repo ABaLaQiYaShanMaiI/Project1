@@ -16,11 +16,12 @@ const PACK = arg('pack', join(ROOT, 'app', 'public', 'data', 'tiles', 'fulda.pmt
 const ZOOM = Number(arg('zoom', '12'));
 const OUT = arg('out', join(ROOT, 'app', 'public', 'data', 'poi_fulda.json'));
 
+const KINDS = new Set((arg('kinds', 'airport,port,station,bridge').split(',')));
+
 const AIR = new Set(['aerodrome', 'airfield']);
 const DECK = new Set(['motorway', 'trunk', 'primary', 'secondary', 'rail']);
 const STATION = new Set(['railway']);
 const STATION_KINDS = new Set(['railway']);
-
 
 const archive = new PMTiles(new FileSource(await openAsBlob(PACK)));
 const head = await archive.getHeader();
@@ -57,7 +58,7 @@ for (let x = tx0; x <= tx1; x++) {
     const layers = decodeTile(Buffer.from(tile.data));
 
     const land = layers.get('landuse');
-    if (land) {
+    if (land && KINDS.has('airport')) {
       for (const f of land.features) {
         const kind = String(f.props.kind ?? '');
         if (!AIR.has(kind)) continue;
@@ -75,7 +76,7 @@ for (let x = tx0; x <= tx1; x++) {
     }
 
     const pois = layers.get('pois');
-    if (pois) {
+    if (pois && KINDS.has('station')) {
       for (const f of pois.features) {
         const kind = String(f.props.kind ?? '');
         const cat = STATION_KINDS.has(kind) ? 'station' : '';
@@ -89,7 +90,7 @@ for (let x = tx0; x <= tx1; x++) {
     }
 
     const roads = layers.get('roads');
-    if (roads) {
+    if (roads && KINDS.has('bridge')) {
       for (const f of roads.features) {
         if (f.props.is_bridge !== true) continue;
         const kind = String(f.props.kind ?? '');
@@ -111,6 +112,44 @@ const doc = {
   count: points.length,
   points,
 };
+
+const DEDUP_M = { airport: 6000, port: 4000, station: 900, bridge: 250 };
+const GRID = 0.25;
+{
+  const buckets = new Map();
+  const kept = [];
+  for (const p of points) {
+    const gx = Math.floor(p.o / GRID);
+    const gy = Math.floor(p.l / GRID);
+    const r = DEDUP_M[p.k] ?? 800;
+    let dup = false;
+    for (let dx = -1; dx <= 1 && !dup; dx++) {
+      for (let dy = -1; dy <= 1 && !dup; dy++) {
+        const arr = buckets.get(`${gx + dx},${gy + dy}`);
+        if (!arr) continue;
+        for (const q of arr) {
+          if (q.k !== p.k) continue;
+          const dLatM = (p.l - q.l) * 111320;
+          const dLonM = (p.o - q.o) * 111320 * Math.cos((((p.l + q.l) / 2) * Math.PI) / 180);
+          if (dLatM * dLatM + dLonM * dLonM < r * r) {
+            dup = true;
+            break;
+          }
+        }
+      }
+    }
+    if (dup) continue;
+    kept.push(p);
+    const key = `${gx},${gy}`;
+    const arr = buckets.get(key);
+    if (arr) arr.push(p);
+    else buckets.set(key, [p]);
+  }
+  points.length = 0;
+  points.push(...kept);
+  doc.count = points.length;
+}
+
 writeFileSync(OUT, JSON.stringify(doc), 'utf8');
 const by = points.reduce((a, p) => ((a[p.k] = (a[p.k] || 0) + 1), a), {});
 console.log(`tiles ${tiles} / points ${points.length} ${JSON.stringify(by)} / ${(statSync(OUT).size / 1024).toFixed(0)} KB`);

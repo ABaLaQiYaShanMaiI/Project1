@@ -32,8 +32,7 @@ export function railWidth(w: number, factor?: unknown): unknown {
   return out;
 }
 
-// line-dasharray 仅支持 step（cross-faded）分档，不支持 interpolate 连续插值；
-// stop 输出的字面数组必须用 ["literal", ...] 包裹
+
 const RAIL_DASH_STOPS: Array<[number, number, number]> = [
   [12, 1.1, 2.1],
   [14, 1.6, 2.9],

@@ -31,7 +31,7 @@ export async function serveRange(root, req, res, prefix = '/data/tiles/') {
   const type = TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream';
   const size = info.size;
   const etag = etagOf(info);
-  // 协商缓存：内容未变时所有请求（含分段）都走 304，避免重复传输大文件
+
   if (req.headers['if-none-match'] === etag) {
     res.writeHead(304, { etag, 'cache-control': 'no-cache', 'accept-ranges': 'bytes' });
     res.end();

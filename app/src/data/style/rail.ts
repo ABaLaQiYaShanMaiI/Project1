@@ -34,7 +34,7 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
   });
   if (!clampZoom(rail, tier)) return [];
   const min = Math.max(tier.styleMin, RAIL_MINZOOM);
-  // 窄轨走独立虚线符号，主体墨线排除窄轨，避免与黑白杠叠乱
+
   rail.filter = RAIL_MAIN_FILTER;
   return [
     {

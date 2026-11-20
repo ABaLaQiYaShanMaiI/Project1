@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { store } from './store';
 import './styles.css';
+import './map-ui.css';
 
 if (import.meta.env.DEV) {
   (window as unknown as { __store: typeof store }).__store = store;

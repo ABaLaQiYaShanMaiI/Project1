@@ -18,7 +18,7 @@ import { markerElement } from './map/markerElement';
 import { bearingLabel, buildReadout, type Readout } from './map/readout';
 import { groupOf, baseIdOf } from './data/style/layerGroups';
 
-import { getJson, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
+import { getJson, mergePois, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
 import { clipRailsWorld } from './data/railsWorld';
 import { applyForceDetail, type ZoomStore } from './map/forceDetail';
 import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
@@ -118,14 +118,12 @@ function railFc(lines: [number, number][][] | undefined, boxes: [number, number,
   return clipRailsWorld(fc, boxes);
 }
 
-
 interface SlopeManifest {
   tiles: string;
   minzoom: number;
   maxzoom: number;
   bbox: [number, number, number, number];
 }
-
 
 export function WorldMapLibre(): JSX.Element {
   useStore();
@@ -368,7 +366,6 @@ export function WorldMapLibre(): JSX.Element {
           } as unknown as FC)
         : null;
 
-      // 全部静态文档一次并行拉取，避免启动瀑布
       const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc] = await Promise.all([
         getJson<PoiDoc>('/data/poi_world.json'),
         Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`))),
@@ -376,10 +373,14 @@ export function WorldMapLibre(): JSX.Element {
         getJson<{ lines?: [number, number][][] }>('/data/rails_world_fine.json'),
         getJson<{ lines?: [number, number][][] }>('/data/rails_world_coarse.json'),
       ]);
-      const poiPoints = [
-        ...(poiBase?.points ?? []),
-        ...poiRegional.flatMap((doc) => doc?.points ?? []),
-      ];
+      const poiPoints = (() => {
+        const regionDocs = new Map(regions.map((r, i) => [r.key, poiRegional[i]] as const));
+
+        const ordered = [...regions]
+          .sort((a, b) => b.maxzoom - a.maxzoom)
+          .map((r) => regionDocs.get(r.key) ?? null);
+        return mergePois([...ordered, poiBase]);
+      })();
       const poi = poiPoints.length
         ? ({
             type: 'FeatureCollection',

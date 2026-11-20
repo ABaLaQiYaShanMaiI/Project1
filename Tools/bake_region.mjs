@@ -47,7 +47,7 @@ const steps = [
   { name: 'contours', bin: PY, args: ['Tools/bake_contours.py', `--key=${KEY}`, `--bbox=${BBOX}`, ...contourArgs] },
   { name: 'rail', bin: process.execPath, args: ['Tools/bake_rail.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, `--out=app/public/data/rails_${KEY}.json`] },
   { name: 'rail-low', bin: process.execPath, args: ['Tools/bake_rail.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, '--tol=0.0012', '--minlen=3000', `--out=app/public/data/rails_${KEY}_low.json`] },
-  { name: 'poi', bin: process.execPath, args: ['Tools/bake_poi.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, `--out=app/public/data/poi_${KEY}.json`] },
+  { name: 'poi', bin: process.execPath, args: ['Tools/bake_poi.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, '--kinds=airport,port,station', `--out=app/public/data/poi_${KEY}.json`] },
   { name: 'slope', bin: PY, args: ['Tools/bake_slope.py', `--key=${KEY}`] },
   { name: 'cities', bin: process.execPath, args: ['Tools/bake_cities.mjs', `--pack=${PACK}`, '--zoom=13', '--kinds=city,town,village', `--out=app/public/data/cities_${KEY}.json`] },
 ];

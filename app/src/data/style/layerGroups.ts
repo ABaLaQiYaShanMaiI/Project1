@@ -18,6 +18,7 @@ export function groupOf(id: string): LayerKey | null {
   const base = baseIdOf(id);
   const fixed = NEW_IDS[base];
   if (fixed) return fixed;
+  if (base.startsWith('contour')) return 'contour';
   if (base === 'urban-world') return 'urban';
   if (base.startsWith('density-')) return 'building';
   if (base === 'relief-tint') return 'relief';

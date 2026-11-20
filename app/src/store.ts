@@ -312,7 +312,7 @@ class Store {
   setFps(fps: number): void {
     if (this.perf.fps === fps) return;
     this.perf = { fps };
-    // 调用方已按 800ms 节流，直接广播刷新读数
+
     this.emit();
   }
 
