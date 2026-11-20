@@ -161,6 +161,37 @@ function checkStyleExpressions() {
   record('样式表达式合法', ok, ok ? 'zoom 仅在顶层 interpolate/step' : bad.slice(0, 3).join(' | '));
   return ok;
 }
+function checkCssStructure() {
+  const files = walk(join(ROOT, 'app/src')).filter((f) => extname(f) === '.css');
+  const bad = [];
+  for (const f of files) {
+    const lines = readFileSync(f, 'utf8').split(/\r?\n/);
+    let depth = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line === '' || line.startsWith('@')) continue;
+      if (line.endsWith('{')) {
+        depth += 1;
+        continue;
+      }
+      if (line === '}') {
+        depth -= 1;
+        if (depth < 0) bad.push(`${f.slice(ROOT.length)}:${i + 1} 多余 }`);
+        continue;
+      }
+      if (depth > 0) {
+        if (line.includes('{')) bad.push(`${f.slice(ROOT.length)}:${i + 1} 规则体内嵌 {`);
+        else if (!line.endsWith(';')) bad.push(`${f.slice(ROOT.length)}:${i + 1} 声明缺分号`);
+      } else if (line.length > 0 && !line.endsWith(',')) {
+        bad.push(`${f.slice(ROOT.length)}:${i + 1} 花括号外散句`);
+      }
+    }
+    if (depth !== 0) bad.push(`${f.slice(ROOT.length)} 花括号未配平 (${depth})`);
+  }
+  const ok = bad.length === 0;
+  record('CSS 结构（配平 / 声明分号）', ok, ok ? 'clean' : bad.slice(0, 3).join(' | '));
+  return ok;
+}
 const steps = [
   checkJsComments,
   checkPyComments,
@@ -170,6 +201,7 @@ const steps = [
   checkBuild,
   checkFirstJs,
   checkStyleExpressions,
+  checkCssStructure,
 ];
 
 for (const step of steps) {

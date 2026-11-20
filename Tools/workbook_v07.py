@@ -31,14 +31,18 @@ rows = [
     ["fulda_core.pmtiles", "z14–15 · 3.2 MB", "城区核心 0.12° × 0.12°"],
     ["", "", ""],
     ["二、旁挂数据", "", ""],
-    ["dem/<key>", "z0–5 全球 + z6–8 中欧 + z9–11 富尔达 + z11 德国 · 506 MB", "Terrarium PNG；高程/坡度/坡向读数与晕渲"],
+    ["dem/<key>", "z0–5 全球 + z6–8 中欧 + z9–11 德国（520 MB）/ 富尔达 · 约 642 MB", "Terrarium PNG；档间互斥（world 0 / europe 6 / germany 9），同一处只叠一层晕渲与分层设色"],
+    ["dem/germany z9–10", "v1.70 补烘", "此前 z9–10 用全球 z5（16–32 倍 overzoom），地形糊"],
     ["slope/<key>", "31 MB", "调色板索引 PNG（6 级坡色 + 1 透明），比 RGBA 省 45%"],
     ["density/fulda", "0.14 MB / 156 张", "建筑密度镜像瓦片（z15），替代独栋建筑轮廓"],
-    ["rails_world.json", "3.3 MB / 11261 线", "Natural Earth 1:10m，z3–12，容差 0.0035°"],
+    ["rails_world_fine.json", "2.21 MB / 15738 段", "Natural Earth 1:10m/1:5m/1:3m，z3–12，米制 300 m 容差"],
+    ["rails_world_coarse.json", "1.71 MB / 8100 段", "NE 1:20m–1:80m 骨架线，z1–3（无光晕、不裁剪）；轮渡与北美副本已剔除"],
     ["poi_world.json", "0.07 MB", "全球机场 893 + 港口 1081"],
     ["poi_<区域>.json", "德国 702 KB / 富尔达 11 KB", "机场、港口、桥隧、车站"],
     ["urban_world.json", "1.8 MB", "NE 1:10m 建成区面，z4–9"],
-    ["contours_fulda.json", "1.37 MB", "25 m / 125 m 两级等高线（仅富尔达）"],
+    ["contours_fulda.json", "1.37 MB", "25 m / 125 m 两级等高线，z13+（富尔达）"],
+    ["contours_germany.json", "3.45 MB / 242823 顶点", "200 m / 400 m 计曲线，z10–13（德国 bbox，DEM z11）"],
+    ["contours_europe.json", "1.27 MB / 88456 顶点", "500 m / 1500 m，z7–10（中欧 0–20°E / 44–56°N）"],
     ["", "", ""],
     ["三、符号与地块（v1.64 定稿）", "", ""],
     ["站场地块", "landuse railway / platform", "砖红 0.26 + 深红描边，z10+"],
@@ -76,6 +80,10 @@ cl = wb["16 变更记录"]
 add = [
     ["v0.7", "2026-11-20", "地图符号收敛：车站不建模备用车道，改「站区面 + 站点」；焦点地块（车站/医院/机场/港口/厂区）改为专属色块并按重要度分层；电厂水厂放弃；气泡仅保留机场/港口/车站。", "本轮讨论 · 见 DEVLOG v1.60–v1.63"],
     ["v0.7", "2026-11-20", "底图分层由「world+europe+fulda」改为「world+world8+world9+germany+germany13+fulda+core」，欧洲包退役。", "DEVLOG v1.52–v1.53"],
+    ["v0.7", "2026-11-20", "NE 铁路重烘：只收 Railroad、剔除轮渡与北美副本、米制 300 m 容差、取消长度门槛，按尺度分 fine(z5–12)/coarse(z3–5) 两档。", "DEVLOG v1.68 · PITFALLS A13"],
+    ["v0.7", "2026-11-20", "地势·交通图改为图册式：新增高程分层设色（绿→黄→褐），城区灰块/建筑/设施面/气泡不再绘制。", "DEVLOG v1.68"],
+    ["v0.7", "2026-11-20", "等高线三档阶梯：中欧 500 m（z7–10）/ 德国 200 m（z10–13）/ 富尔达 25 m（z13+），一档只画一套。", "DEVLOG v1.69 · MAPDESIGN §五"],
+    ["v0.7", "2026-11-20", "地形档互斥（world/europe/germany）+ 德国 z9–10 补烘 DEM + 分层设色改色阶；铁路补 z10–11 断档；修复每次平移都重建样式。", "DEVLOG v1.70 · PITFALLS A15"],
 ]
 for row in add:
     cl.append(row)
@@ -96,6 +104,7 @@ spec_rows = [
     ["军事用地", "landuse military", "既有褐棕面", "8", "保持不变"],
     ["电厂/水厂", "（无数据）", "不表达", "—", "瓦片缺字段，放弃"],
     ["地形晕渲/坡度", "dem / slope/<key>", "栅格，面层最底", "3 / 6", "坡度调色板 PNG"],
+    ["分层设色", "dem/<key>", "color-relief 绿→黄→褐", "3", "地势图 0.62 不透明，归晕渲叶"],
     ["建筑密度", "density/<key>", "栅格，铺在城区面之上", "14", "替代独栋建筑轮廓"],
 ]
 for row in spec_rows:

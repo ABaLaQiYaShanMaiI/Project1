@@ -16,6 +16,8 @@ export function zoomWidth(base: number, factor?: unknown): unknown {
 
 export function railWidth(w: number, factor?: unknown): unknown {
   const stops: Array<[number, number]> = [
+    [1, w * 0.22],
+    [3, w * 0.32],
     [7, w * 0.42],
     [10, w * 0.7],
     [13, w * 0.55],
@@ -30,3 +32,16 @@ export function railWidth(w: number, factor?: unknown): unknown {
 export function railNarrow(): unknown {
   return ['case', ['==', ['get', 'kind_detail'], 'narrow_gauge'], 0.6, 1];
 }
+
+export const WATER_WIDTH: unknown = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  6,
+  ['case', ['==', ['get', 'kind_detail'], 'river'], 0.8, 0.4],
+  10,
+  ['case', ['==', ['get', 'kind_detail'], 'river'], 1.5, 0.7],
+  14,
+  ['case', ['==', ['get', 'kind_detail'], 'river'], 2.6, 1.2],
+];
+

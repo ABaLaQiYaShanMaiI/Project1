@@ -12,12 +12,20 @@ A9. **`buildings` 层删掉后城区会露白**：没有 landuse 覆盖的地方
 A10. **DEM 批量转 WebP 中途被打断会留下 0 字节瓦片**：这些空文件同样触发 `source image could not be decoded`。转换脚本必须幂等、可续跑，转换失败要回滚（`Tools/dem_restore_png.py`）。
 A11. **烘焙铁路的链式拼接极易错接**：端点按网格吸附后若「头/尾扩展」共用一个分支判断，会把不相连的两段接成几十公里的直线，看起来像「曲线变直、断链、跨海」。修好的版本在 `Tools/bake_rail.mjs`，改动前先看 `rails_new_plot` 式的可视化验证。
 
+A12. **CSS 规则体丢失会吞掉文件后半的规则（整页黑屏）**：合并选择器时把某条规则体删丢只剩 `.x {` 开头，浏览器从未闭合块起吞掉后续约一半规则——`.ml-wrap`/`.main` 的布局与背景全部失效，页面只剩深色壳。行数闸不查 CSS 结构（v1.67 实际发生，用户先撞见）；v1.67 起 check_all 第 9 道闸「CSS 结构」拦花括号配平与声明分号。
+
+A13. **NE 铁路烘焙的三个静默过滤器一起毁线网**：① 按长度 `MINLEN 18 km` 丢短段——俄罗斯一屏（49–60°E / 55–61°N）源数据 647 段里删掉 494 段（76%），画面碎成断枝；② RDP 容差用「度」`0.0035°`，58°N 上东西向只有 206 m、南北向 389 m，斜线被拉歪；③ 不读属性表，`featurecla = Railroad ferry`（波罗的海/英吉利/日本/库克海峡的轮渡）画成海上铁路，`part = ne_1d4_north_america_dup` 的 1508 条副本让北美双线。v1.68 起 `bake_ne_rails.py`：属性筛选 + 米制 300 m 容差 + 不设长度门槛 + 按 `disp_scale` 分 fine/coarse。
+
+A14. **图层 `minzoom` 高于相机 `minZoom`，缩小到该值以下整层消失**：铁路全球层原从 z3 起，而相机 `minZoom` 是 1，缩到 z1–2 时一条都没有（看图会以为「铁路数据没加载」）。改分层区间时先把所有相关图层的 min/maxzoom 与相机 `minZoom`/`maxZoom` 对齐，并保证相邻档**首尾相接**；v1.70 起铁路为 z1–3 粗档（全球骨架）/ z3–12 精细档 / z3–11 区域烘焙层 / z11+ 瓦片，且粗档不做区域裁剪（否则 z1–2 在区域包 bbox 内出现空洞）。
+
+A15. **「要不要重建」的签名与比较字符串不一致 → 每次 moveend 都重建整张样式**：`mountedRef` 里存的是 `zones|bandFrom`，而 moveend 回调先拿 `zones` 去比对（永远不等），于是**每次平移结束都全量重建样式**（1–4 s 停顿、图层闪一下），「跨档停顿」只是其中一个表象。v1.70 起两处共用 `viewSig()`（zones|bandFrom|demBand），DEM 换档也纳入签名。
+
 
 1. **`file://` 打开必白屏**：`/src/main.tsx` 绝对路径 + `fetch('/data/...')` 被 CORS 拦。必须走 HTTP（`启动游戏.bat` 或 `npm run dev`）。
 2. **`.mjs` MIME 不对整图不渲染**：模块 worker 依赖正确 MIME，由 `Tools/serve.mjs` 保证；换静态服务器先查这个。
 3. **PowerShell 写文件会加 BOM**：JSON/TS/Python 带 BOM 直接解析失败（`Unexpected token '﻿'`）。写文件一律 UTF-8 无 BOM（.NET `UTF8Encoding($false)` / Python `io.open(..., 'utf-8')`）。
 4. **换盘符后 `node_modules` 全废**：pnpm junction 记绝对路径，项目挪盘后 `tsc` 报 `Cannot find module`，看起来像「Node 没装」。重跑 `pnpm install` 即可，别先怀疑环境。
-5. **底图 `earth` 没映射进 `groupOf()` 会盖住坡度**：earth 在每个 tier 都存在、不在任何开关组里，静默盖住坡度层，看起来像「坡度没生效」。新增底图层必须补映射。
+5. **底图 `earth` 没映射进 `groupOf()` 会盖住坡度**：earth 在每个 tier 都存在、不在任何开关组里，静默盖住坡度层，看起来像「坡度没生效」。新增底图层必须补映射；v1.67 起同时检查 `store.ts` 图种强度规则是否需要覆盖新图层。
 
 ## B · 浪费半天级
 

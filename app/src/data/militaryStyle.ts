@@ -1,14 +1,15 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { BUILDING_TIER_MINZOOM, HILLSHADE_ACCENT, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
+import { BUILDING_TIER_MINZOOM, HILLSHADE_ACCENT, HILLSHADE_EXAGGERATION, HILLSHADE_HIGHLIGHT, HILLSHADE_SHADOW, PAPER } from './style/tokens';
 import { tierLayers } from './style/tier';
 import { boundaryLayers } from './style/boundary';
-import { railsOf, railLowLayers, railLowCoarseLayers, railWorldLayers } from './style/rail';
+import { railsOf, railLowLayers, railWorldLayers } from './style/rail';
 import { contourLayers } from './style/contour';
+import { reliefTintLayer } from './style/relief';
 import { gridLayers, ringLayers, poiLayers, urbanWorldLayers } from './style/overlay';
 import type { StyleInputs } from './style/types';
 
-export type { ContourDoc } from './style/contour';
-export { contourGeoJson } from './style/contour';
+export type { ContourBand, ContourDoc } from './style/contour';
+export { CONTOUR_BANDS, mergeContours } from './style/contour';
 export type { DemTier, FC, SlopeTier, StyleInputs, Tier } from './style/types';
 
 export function militaryStyle(inp: StyleInputs): StyleSpecification {
@@ -52,6 +53,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       bounds: dem.bounds,
       attribution: 'AWS Terrain Tiles（SRTM）',
     };
+    reliefLayers.push(reliefTintLayer(dem));
     reliefLayers.push({
       id: `${dem.id}-relief`,
       type: 'hillshade',
@@ -59,7 +61,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       minzoom: dem.styleMin,
       maxzoom: dem.styleMax,
       paint: {
-        'hillshade-exaggeration': ['interpolate', ['linear'], ['zoom'], 4, 1.05, 8, 0.85, 12, 0.6, 16, 0.52],
+        'hillshade-exaggeration': HILLSHADE_EXAGGERATION,
         'hillshade-illumination-direction': 315,
         'hillshade-shadow-color': HILLSHADE_SHADOW,
         'hillshade-highlight-color': HILLSHADE_HIGHLIGHT,
@@ -82,14 +84,14 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (inp.railsLow) {
     sources['rails-low'] = { type: 'geojson', data: inp.railsLow };
   }
-  if (inp.railsLow2) {
-    sources['rails-low2'] = { type: 'geojson', data: inp.railsLow2 };
-  }
   if (inp.urbanWorld) {
     sources['urban-world'] = { type: 'geojson', data: inp.urbanWorld };
   }
-  if (inp.railsWorld) {
-    sources['rails-world'] = { type: 'geojson', data: inp.railsWorld };
+  if (inp.railsWorldFine) {
+    sources['rails-world-fine'] = { type: 'geojson', data: inp.railsWorldFine };
+  }
+  if (inp.railsWorldCoarse) {
+    sources['rails-world-coarse'] = { type: 'geojson', data: inp.railsWorldCoarse };
   }
 
   const densityLayers: Record<string, unknown>[] = [];
@@ -123,7 +125,6 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   let reliefPlaced = false;
   let slopePlaced = false;
   let urbanPlaced = false;
-  let densityPlaced = false;
   const last = inp.tiers.length - 1;
   inp.tiers.forEach((tier, i) => {
     const suffix = i === 0 ? '' : `__${tier.id}`;
@@ -147,24 +148,42 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
         out.push(...urbanWorldLayers());
         urbanPlaced = true;
       }
-      if (!densityPlaced && densityLayers.length && sl === 'landcover') {
-        out.push(...densityLayers);
-        densityPlaced = true;
-      }
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
     if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
   });
 
-  if (inp.railsWorld) out.push(...railWorldLayers());
-  if (inp.railsLow2) out.push(...railLowCoarseLayers());
+  if (inp.railsWorldCoarse) {
+    out.push(
+      ...railWorldLayers({
+        source: 'rails-world-coarse',
+        minzoom: 1,
+        maxzoom: 3,
+        suffix: '__coarse',
+        haloMin: 3,
+        opacity: ['interpolate', ['linear'], ['zoom'], 1, 0.6, 2.5, 1],
+      }),
+    );
+  }
+  if (inp.railsWorldFine) {
+    out.push(
+      ...railWorldLayers({
+        source: 'rails-world-fine',
+        minzoom: 3,
+        maxzoom: 12,
+        suffix: '',
+        opacity: ['interpolate', ['linear'], ['zoom'], 3, 0.8, 5, 1, 10, 1, 12, 0.35],
+        hatch: true,
+      }),
+    );
+  }
   if (inp.railsLow) out.push(...railLowLayers());
 
   if (!reliefPlaced && reliefLayers.length) out.push(...reliefLayers);
   if (!urbanPlaced && inp.urbanWorld) out.push(...urbanWorldLayers());
-  if (!densityPlaced && densityLayers.length) out.push(...densityLayers);
   if (!slopePlaced && slopeLayers.length) out.push(...slopeLayers);
+  if (densityLayers.length) out.push(...densityLayers);
 
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
 
@@ -180,7 +199,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     const type = String(layer.type);
     const id = String(layer.id);
     if (id === 'background') return 0;
-    if (type === 'fill' || type === 'raster' || type === 'hillshade') return 1;
+    if (type === 'fill' || type === 'raster' || type === 'hillshade' || type === 'color-relief') return 1;
     if (type === 'line') {
       if (id.includes('rail')) return 6;
       if (id.startsWith('boundaries')) return 3;
@@ -189,7 +208,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       if (id.startsWith('contour')) return 7;
       return 4;
     }
-    if (type === 'symbol') return 5;
+    if (type === 'symbol') return id.startsWith('ring') ? 9.5 : 7.5;
     if (type === 'circle') return 10;
     return 11;
   };

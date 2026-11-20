@@ -13,7 +13,7 @@
    12
   ],
   "demZoom": [
-   11,
+   9,
    11
   ],
   "command": "node Tools/add_region.mjs --name=germany --bbox=5.8,47.2,15.1,55.1 --label=\"德国\" --zmin=11 --zmax=12",
@@ -28,14 +28,26 @@
    {
     "path": "dem/germany",
     "kind": "dir",
-    "files": 3943,
-    "bytes": 402688477
+    "files": 5208,
+    "bytes": 544829805
    },
    {
     "path": "slope/germany",
     "kind": "dir",
     "files": 3943,
     "bytes": 48151806
+   },
+   {
+    "path": "rails_germany.json",
+    "kind": "file",
+    "sha256": "sha256:a6e13ab45fea184d32fb69e5f9c52bb8565115d4cef8c30b1b26ea9f2b099724",
+    "bytes": 3731634
+   },
+   {
+    "path": "contours_germany.json",
+    "kind": "file",
+    "sha256": "sha256:53ad82dcce7b1edda3103ef8284a726cc213d7c34851de77cad9007ecdb4807c",
+    "bytes": 3613101
    }
   ]
  },

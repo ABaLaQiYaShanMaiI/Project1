@@ -13,16 +13,24 @@ L1 全球 z7-8  tiles/world8.pmtiles     z7-z8    476 MB    村镇级标注与�
 L1b 全球 z9-10 tiles/world9.pmtiles     z9-z10   3.0 GB    街区级路网与更密地名
 L2 热点      tiles/fulda.pmtiles      z0-z13   42 MB     战术尺度
 L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
-地形        dem/world z0-z5（86 MB） + dem/europe z6-z8（21 MB） + dem/fulda z9-z11（15 MB）
+地形        dem/world z0-z5（86 MB） + dem/europe z6-z8（21 MB） + dem/germany z9-z11（520 MB）
 坡度        slope/world z0-z5（3.6 MB） + slope/europe z6-z8（5.0 MB） + slope/fulda z9-z11（2.0 MB）
 判读        contours_<key>.json、运行时 UTM 格网、射程圈
 ```
 
-富尔达视图内四包同时在场约 305 个 style 图层；世界其余地区只有 world + world8 两包（157 层）。\r\n层预算 MAX_REGION_TIERS = 5，超出按 maxzoom 丢弃最低倍包。\r\ndem/europe 与 slope/europe 的瓦片目录由 dem/world8 / slope/world8 的清单别名复用，不再有独立的 europe 矢量包。
+富尔达视图内四包同时在场约 305 个 style 图层；世界其余地区只有 world + world8 两包（157 层）。
+层预算 MAX_REGION_TIERS = 5，超出按 maxzoom 丢弃最低倍包。
+dem/europe 与 slope/europe 的瓦片目录由 dem/world8 / slope/world8 的清单别名复用，不再有独立的 europe 矢量包。
+
+**地形档互斥（v1.70）**：`DEM_BANDS`（`WorldMapLibre`）只列 world 0 / europe 6 / germany 9 三档，
+按「视口中心 + 当前缩放」选一档，粗档在细档起点封顶——之前 world（z0–5）与区域 DEM 同时开到 z22，
+德国 z11+ 是两层晕渲 + 两层分层设色叠着画（糊且发灰），并且 `dem/europe` 根本没被挂上过。
+z9–10 现在用 germany 的原生 z9–10 瓦片（此前是全球 z5 的 16–32 倍 overzoom）。
 
 装配规则（`data/pmtilesBasemap.ts`）：
 
-- `zonesAt(zones, lon, lat)` 取**命中该坐标的全部区域包**，加上全部全球包，按 `maxzoom` 升序；
+- `zonesAt(zones, lon, lat)` 取**命中该坐标的全部区域包**，加上全部全球包，按 `maxzoom` 升序
+  （并列时 `minzoom` 大者在前——germany13 先于富尔达接管 z13，fulda_core 从 z14 接管）；
 - `tierBands()` 给每层分配接管区间：**后一层的 `styleMin` = 前一层的 `maxzoom + 1`**；
 - 每层都是完整的一套 base 图层（`militaryStyle()` 复制并绑定各自 source），
   所以任何一层缺失都不会导致空白——上一层会继续 overzoom 撑住。
@@ -51,7 +59,8 @@ L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
 
 | 级别 | 依据 | 表现 |
 | --- | --- | --- |
-| 铁路（低倍） | `rails_<key>.json`，z9–11 | 与瓦片铁路同款三层（光晕/墨线/枕木）；z3–10 由全球 NE 铁路层补齐（v1.50），z11 起交瓦片铁路 |
+| 铁路（低倍） | `rails_<key>.json`，z3–11 | 与瓦片铁路同款三层（光晕/墨线/枕木，枕木 z9 起）；多区域合并时细包让位（fulda bbox 内只用 fulda 细线）；z11 起交瓦片铁路（v1.70 前是 z3–10，z10–11 之间德国境内一条都没有）；z1–2 由全球粗档铺（无光晕，细线） |
+| 铁路（全球 NE） | `rails_world_coarse.json` z1–3 / `rails_world_fine.json` z3–12 | 粗档无光晕、只开墨线（薄线 + 0.6→1 透明）；精细档 z3 起就上，避免 z5 以下「大片线消失」；细档 op 0.8→1→(z12)0.35 + 枕木 z9+；**只在 fine 档**按区域 bbox 裁剪 |
 | 铁路（瓦片） | `kind = rail`，z11+ | 纸色光晕 5.2 + 墨色实线 3.4 + 白色枕木 1.05（`[1.1, 2.1]`），宽度随缩放缓慢收敛 |
 | 主干公路 | `motorway / trunk / primary`（含 link），z10+ | **同级不同色**：高速 `#b4553a` / 干线 `#bf7a45` / 主干 `#c49a68`，宽度统一 **1.2**、描边 1.7 |
 | 次级公路 | `secondary / tertiary`，z12+ | 浅米色 `#f0e8d8`、描边 `#cfc6b2`、0.62 折宽——城区里的"大路" |
@@ -59,13 +68,25 @@ L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
 | 支路 | `minor_service / other` | `minzoom 13` |
 | 跑道 / 滑行道 | `runway / taxiway` | 单色 2.0，`minzoom 13` |
 
-规则：**铁路先出、公路后出**——z11 以下只画铁路（低倍烘焙层），z11 起公路与瓦片铁路一起出现；
+规则：**铁路先出、公路后出**——z11 以下只画铁路（低倍烘焙层），主干公路 z10 起出现，z11 起瓦片铁路加入；
 高速与主干同时出现、同时消失（同一 `minzoom`、同一套描边与宽度）；
-铁路永远压在最上层，且比任何公路都粗——它才是"陆路交通"的本体。
+铁路压在所有公路之上，等高线与注记再压铁路（固定顺序见 Readme 接手速览），且比任何公路都粗——它才是"陆路交通"的本体。
 
 **数据现实**：Protomaps 的 `roads` 层只在 **z11 及以上**才带 `kind=rail`（实测 z10 及以下为 0 条）。
-所以低倍铁路用 `bake_rail.mjs` 从区域包 z11 抽出来单独成层（`rails_<key>.json`，富尔达 260 KB），
-z5–11 只画它；全球范围的低倍铁路仍待做（见 §十 待办）。
+所以低倍铁路用 `bake_rail.mjs` 从区域包 z11 抽出来单独成层（`rails_<key>.json`，富尔达 260 KB / 德国 3.6 MB），
+z3–10 只画它；NE 全球层装载时按区域包 bbox 裁剪，只在区域包之外显示（v1.66 起，区域内不再有概化线叠影；
+v1.68 起裁剪只作用于 fine 档 z3–12，粗档 z1–2 不裁，否则缩到 z1–2 时区域包内会出现空洞）。
+
+NE 烘焙的四条硬规则（v1.68，`bake_ne_rails.py`）：只收 `featurecla = Railroad`（轮渡航线会横跨波罗的海/英吉利/
+日本/库克海峡）、剔除 `part = ne_1d4_north_america_dup` 副本（否则北美双线）、RDP 容差用**米制** 300 m（度制
+`0.0035°` 在高纬东西向只剩 206 m、南北向 389 m，斜线会被拉歪）、**不设长度门槛**（`MINLEN 18 km` 曾在俄罗斯
+一屏删掉 76% 的段落，网络碎成断枝）。全球 23838 段分两档：fine 15738 段 / 2.21 MB（z3–12）、
+coarse 8100 段 / 1.71 MB（z1–3）。
+
+低倍连续性规则（v1.68 补）：相机 `minZoom` 是 1，铁路必须铺到 z1 才不「缩小后消失」；
+精细档一路铺 z3–12（若让粗档铺 z4–5，从 z5 缩到 z4 会一下少掉八成线，看起来像整片消失）；
+粗档只负责 z1–3 的全球骨架，无光晕、只开墨线，`railWidth` 为此加 z1 = ×0.22、z3 = ×0.32 两档，
+opacity 由 z1 的 0.6 升到 z2.5 的 1；相邻档首尾相接，每档只允许一套几何。
 
 实现约束：MapLibre **同一属性只允许一个 zoom 插值**，所以宽度写成
 `['*', interpolate(zoom), ['case', isMain, 1, 0.42]]`，不能写两个分支各带插值。
@@ -78,16 +99,24 @@ z5–11 只画它；全球范围的低倍铁路仍待做（见 §十 待办）�
 | --- | --- | --- | --- |
 | 每瓦片烘 PNG（z9-z13） | ~10 MB / 1300+ 文件 | z13 以上糊 | 否 |
 | 浏览器实时 marching squares | 0 | 平移卡顿 | 否 |
-| 烘焙 GeoJSON | 0.21 MB | 无限清晰 | 是 |
+| 烘焙 GeoJSON | 6.1 MB / 3 档 | 无限清晰 | 是 |
 
-代价是低倍太密 -> 用**LOD 分层 + 透明度随缩放淡入**：索引线（125 m）z10.5 起、全部等级（25 m）z12 起，
-透明度 z5 0.15 → z14 0.62；z8–10 只留晕渲，避免 25 m 等高线在 100+ m/px 下糊成一片。
-当前参数：**25 m 等高距 / 125 m 计曲线 / 网格 1200 px（约 103 m/px）/ 简化 45 m / 最短 0.6 km**，
-33 层 / 113,954 顶点 / 1.37 MB。
+等高距按缩放成阶梯（v1.69，`app/src/data/style/contour.ts` 的 `CONTOUR_BANDS` 是唯一事实源）：
 
-标注用 `symbol-placement: 'line'` 沿线上字，而不是烘焙固定锚点——锚点密度不随缩放变化，
-放大后会稀疏、缩小时被碰撞剔除。现在两层：计曲线 z >= 11、全部等级 z >= 13，
-`symbol-spacing` 随 zoom 插值（260 -> 640 px）。
+| 档 | 数据来源 | 等高距 / 计曲线 | 缩放 | 体积 |
+| --- | --- | --- | --- | --- |
+| europe | `contours_europe.json`（0–20°E / 44–56°N，DEM z8） | 500 / 1500 m | z7–10 | 1.27 MB / 88k 顶点 |
+| germany | `contours_germany.json`（德国 bbox，DEM z11） | 200 / 400 m | z10–13 | 3.45 MB / 243k 顶点 |
+| fulda | `contours_fulda.json`（富尔达 bbox，DEM z9–11） | 25 / 125 m | z13+ | 1.37 MB / 114k 顶点 |
+
+规则：**一档只画一套等高线**——档区间首尾相接（7–10 / 10–13 / 13+），每层用 `filter` 打 `band` 属性，
+相邻档永不重叠；装载时只取与视口相交的档。透明度 z5 0.18 → z14 0.65、细线 z5 0.4 → z13 1.0 px，
+地势图再由图种强度抬高。烘焙参数：europe 网格 2400 px / 简化 400 m / 最短 6 km；germany 3000 px / 120 m / 2 km；
+fulda 1200 px / 45 m / 0.6 km；`--min-elev 0` 丢掉海平面以下的 DEM 噪声层。
+
+LOD 分层与透明度随缩放淡入见上表：每档只在自身缩放段出现，低倍不再被 25 m 等高线糊住。
+标注：`symbol-placement: 'line'` 沿线上字（不烘固定锚点，避免放大变稀、缩小被碰撞剔除）。
+每档只出计曲线标注（档内 z+0.5 起），富尔达档 z14 起再叠一层全部等级标注；间距随 zoom 插值（260 → 640 px）。
 
 **地理配准**：DEM 瓦片是 Mercator，裁剪必须用 `asinh(tan(lat))` 做 y 映射，按纬度线性取行会
 在 0.76 度跨度内产生数百米纵向错位。烘焙时把实际投影常量写进 JSON（`mPerDegLat` / `mPerDegLon`），
@@ -135,10 +164,11 @@ z5–11 只画它；全球范围的低倍铁路仍待做（见 §十 待办）�
 
 ## 十、待办
 
-1. **全球低倍铁路层**（z3–z10）：底图 z10 以下没有 rail 几何，可用 Natural Earth 1:10m railroads 或从母包 z12 抽 rail 单独成层。
+1. **欧洲其余地区低倍铁路层**（z3–z10）：德国已入库（v1.66，`rails_germany.json`）；其余地区由 NE 全球层补空白（`rails_world_coarse` z1–3 / `rails_world_fine` z3–12，只在区域包 bbox 之外显示）；z13 起德国之外仍无铁路，需按国家切 z9–10 包。
 2. L1 大区包（欧洲各走廊）实做与观感验证。
 3. 国名 / 海洋名标签补全。
-4. 全球晕渲补到 z6-z8（当前 z5）。
+4. **等高线铺满全球**：现在三档只覆盖 0–20°E / 44–56°N（500 m）、德国（200 m）、富尔达（25 m）；
+   继续铺需先补区域 DEM（全球 DEM 只到 z5，z8+ 无高程），再按同一阶梯分块烘（每块 < 4 MB）。
 5. 桥隧、机场、军事用地符号（`roads.is_bridge` / `landuse.aerodrome|military` 属性已可取）。
 
 ## 十一、城区影响（无格设计）
@@ -233,6 +263,7 @@ z15 单瓦片 **1,807 栋建筑**，tier 系统自动在 z14+ 接管，前端不
 | 判读 | 军用格网 / 射程圈 / 设施气泡 |
 
 树定义在 `store.ts` 的 `LAYER_TREE`；`groupOf()` 把 style 图层映射到叶子，运行时图层（战损、射程圈）走各自的可见性接口。
+v1.67 起树折叠进「高级图层」面板（默认收起），日常切换用图种（§十二）。
 
 ### 6. 界面
 
@@ -257,3 +288,28 @@ z15 单瓦片 **1,807 栋建筑**，tier 系统自动在 z14+ 接管，前端不
 - 不做地块 / 格子 / 单元格（v1.28 的实验已删除，勿复辟）；
 - 不做控制度累积、士气、补给线网络；
 - 不做"按轮廓切多边形"（数据依赖 + 体积 + 不可复现，三样都不划算）。
+
+## 十二、图种（v1.67）
+
+地图按判读目的分两种图种，切换走**差量更新**（可见性 + setPaintProperty 强度），不重建样式、无跨档停顿：
+
+| | 地势·交通图（默认） | 用地·政区图 |
+| --- | --- | --- |
+| 对应传统 | 1:50k 军用地形图：地形与机动判读 | 政区/城市图：居民地、设施、行政 |
+| 底 | **高程分层设色**（`color-relief`，绿→黄→褐，0.62）+ 晕渲加强 + 等高线加强 | 地表全量 + 城区灰块 + 建筑/密度瓦片 |
+| 水系 | 河流线宽 ×1.3 | 基线 |
+| 交通 | 铁路 + 主干公路 + 跑道；次级隐藏 | 铁路 + 全级公路 |
+| 行政 | 国界 0.55，州县乡 0.12 | 四级全开 0.8 |
+| 居民地 | 只留地名：灰块 / 建筑 / 设施面 / 气泡全不画（图册式） | 灰块 + 建筑 + 站场/医院/厂区/机场/港口面 + 气泡 |
+| 判读 | 格网 / 读数 / 射程圈常驻（红线，两档一致） | 同左 |
+
+实现规则：
+
+- 图种 = {可见性表, 强度规则表}，定义在 store.ts 的 PERSONAS；规则按图层 base id 前缀匹配
+  （ruleHits）+ 属性族过滤（propFits：line-*/fill-*/hillshade-*/text-*/circle-*），* 通配晕渲 exaggeration；
+- 基线表达式是唯一样式事实源：tokens/contour/widths 导出基线（CONTOUR_* WATER_WIDTH
+  LANDCOVER_FILL_OPACITY LANDUSE_FILL_OPACITY BOUNDARY_OPACITY HILLSHADE_EXAGGERATION），
+  样式装配与用地图规则引用同一常量——用地图规则 = 基线回填，地势图规则 = 强化值；
+- 强度随 paintSig(key|epoch) 差量应用：跨档重建样式后自动重放；custom 模式强度沿用上一个图种；
+- 分层设色层 id 为 `relief-tint__<dem>`（`color-relief`），归到「晕渲」叶（`groupOf` 认识 `relief-tint`），用地图关晕渲后它一起关；强度规则按 base id `relief-tint` 命中，只改 `color-relief-opacity`；
+- z8 以下用地档自动退化（landuse/建筑本就按 minzoom 出现），两档在小尺度收敛为地势图。

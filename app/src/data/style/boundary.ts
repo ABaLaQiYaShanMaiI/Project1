@@ -1,4 +1,4 @@
-import { BOUNDARY_LEVELS } from './tokens';
+import { BOUNDARY_LEVELS, BOUNDARY_OPACITY } from './tokens';
 import type { Tier } from './types';
 
 export function boundaryLayers(tier: Tier, suffix: string): Record<string, unknown>[] {
@@ -19,7 +19,7 @@ export function boundaryLayers(tier: Tier, suffix: string): Record<string, unkno
         'line-color': lv.color,
         'line-width': stops,
         'line-dasharray': lv.dash,
-        'line-opacity': 0.8,
+        'line-opacity': BOUNDARY_OPACITY,
       },
     });
   }

@@ -27,18 +27,24 @@ export interface PoiDoc {
 }
 
 export async function mergeRails(zones: PmtilesZone[]): Promise<RailsDoc | null> {
+  const ordered = [...zones].sort((a, b) => b.maxzoom - a.maxzoom);
   const lines: [number, number][][] = [];
-  for (const z of zones) {
+  const guards: PmtilesZone[] = [];
+  for (const z of ordered) {
     const doc = await getJson<RailsDoc>(`/data/rails_${z.key}.json`);
-    if (doc?.lines?.length) lines.push(...doc.lines);
+    if (!doc?.lines?.length) continue;
+    for (const line of doc.lines) {
+      if (guards.some((g) => lineInside(line, g.bbox))) continue;
+      lines.push(line);
+    }
+    guards.push(z);
   }
   return lines.length ? ({ lines } as RailsDoc) : null;
 }
 
-export async function firstJson<T>(zones: PmtilesZone[], urlOf: (key: string) => string): Promise<T | null> {
-  for (const z of zones) {
-    const doc = await getJson<T>(urlOf(z.key));
-    if (doc) return doc;
+function lineInside(line: [number, number][], box: [number, number, number, number]): boolean {
+  for (const p of line) {
+    if (p[0] < box[0] || p[0] > box[2] || p[1] < box[1] || p[1] > box[3]) return false;
   }
-  return null;
+  return true;
 }

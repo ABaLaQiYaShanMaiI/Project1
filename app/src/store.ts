@@ -2,6 +2,9 @@ import { newMarker, type Marker, type Side, type UnitKind } from './core/markers
 import type { CityZone } from './core/cityEffects';
 import { loadDamage, saveDamage, type DamageMap } from './data/damageStore';
 import { loadMarkers, saveMarkers } from './data/markerStore';
+import { CONTOUR_BOLD_OPACITY, CONTOUR_BOLD_WIDTH, CONTOUR_OPACITY, CONTOUR_WIDTH } from './data/style/contour';
+import { BOUNDARY_OPACITY, HILLSHADE_EXAGGERATION, LANDCOVER_FILL_OPACITY, LANDUSE_FILL_OPACITY } from './data/style/tokens';
+import { WATER_WIDTH } from './data/style/widths';
 
 export const LAYER_DEFAULT = {
   relief: true,
@@ -37,21 +40,38 @@ export const BASE_LAYERS: Record<LayerKey, boolean> = {
   ...(LITE_MODE ? { relief: false, contour: false } : {}),
 };
 
-export interface StylePreset {
-  key: string;
-  label: string;
-  layers: Partial<Record<LayerKey, boolean>>;
+function personaLayers(p: Persona): Record<LayerKey, boolean> {
+  const base: Record<LayerKey, boolean> = { ...BASE_LAYERS, ...p.layers };
+  if (LITE_MODE) {
+    base.relief = false;
+    base.contour = false;
+  }
+  return base;
 }
 
-export const STYLE_PRESETS: StylePreset[] = [
-  { key: 'city', label: '城区图', layers: {} },
+export interface PersonaPaint {
+  id: string;
+  prop: string;
+  value: unknown;
+}
+
+export interface Persona {
+  key: string;
+  label: string;
+  sub: string;
+  layers: Partial<Record<LayerKey, boolean>>;
+  paint: PersonaPaint[];
+}
+
+export const PERSONAS: Persona[] = [
   {
     key: 'terrain',
-    label: '地形图',
+    label: '地势·交通图',
+    sub: '分层设色 · 等高线 · 铁路与主干公路',
     layers: {
-      relief: false,
+      relief: true,
       contour: true,
-      slope: true,
+      slope: false,
       water: true,
       rail: true,
       road: true,
@@ -68,8 +88,94 @@ export const STYLE_PRESETS: StylePreset[] = [
       rings: false,
       poi: false,
     },
+    paint: [
+      { id: 'relief-tint', prop: 'color-relief-opacity', value: 0.62 },
+      { id: 'contour', prop: 'line-opacity', value: ['interpolate', ['linear'], ['zoom'], 5, 0.35, 8, 0.55, 11, 0.75, 14, 0.9] },
+      { id: 'contour', prop: 'line-width', value: ['interpolate', ['linear'], ['zoom'], 5, 0.55, 9, 0.9, 13, 1.25] },
+      { id: 'contour-bold', prop: 'line-opacity', value: ['interpolate', ['linear'], ['zoom'], 5, 0.5, 8, 0.75, 11, 0.95, 14, 1] },
+      { id: 'contour-bold', prop: 'line-width', value: ['interpolate', ['linear'], ['zoom'], 5, 0.9, 9, 1.3, 13, 1.8] },
+      {
+        id: 'water',
+        prop: 'line-width',
+        value: [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          6,
+          ['case', ['==', ['get', 'kind_detail'], 'river'], 1.1, 0.55],
+          10,
+          ['case', ['==', ['get', 'kind_detail'], 'river'], 2.0, 0.95],
+          14,
+          ['case', ['==', ['get', 'kind_detail'], 'river'], 3.4, 1.6],
+        ],
+      },
+      { id: 'landcover', prop: 'fill-opacity', value: 0.35 },
+      { id: 'landuse', prop: 'fill-opacity', value: 0.35 },
+      { id: 'boundary_country', prop: 'line-opacity', value: 0.55 },
+      { id: 'boundary_region', prop: 'line-opacity', value: 0.12 },
+      { id: 'boundary_county', prop: 'line-opacity', value: 0.12 },
+      { id: 'boundary_muni', prop: 'line-opacity', value: 0.12 },
+      {
+        id: '*',
+        prop: 'hillshade-exaggeration',
+        value: ['interpolate', ['linear'], ['zoom'], 4, 1.2, 8, 0.98, 12, 0.7, 16, 0.6],
+      },
+    ],
+  },
+  {
+    key: 'city',
+    label: '用地·政区图',
+    sub: '用地 · 行政 · 全级路网',
+    layers: {
+      relief: false,
+      contour: false,
+      slope: false,
+      water: true,
+      rail: true,
+      road: true,
+      minor: true,
+      airport: true,
+      urban: true,
+      building: true,
+      label: true,
+      boundary: true,
+      landcover: true,
+      military: false,
+      damage: true,
+      grid: true,
+      rings: false,
+      poi: true,
+    },
+    paint: [
+      { id: 'contour', prop: 'line-opacity', value: CONTOUR_OPACITY },
+      { id: 'contour', prop: 'line-width', value: CONTOUR_WIDTH },
+      { id: 'contour-bold', prop: 'line-opacity', value: CONTOUR_BOLD_OPACITY },
+      { id: 'contour-bold', prop: 'line-width', value: CONTOUR_BOLD_WIDTH },
+      { id: 'water', prop: 'line-width', value: WATER_WIDTH },
+      { id: 'landcover', prop: 'fill-opacity', value: LANDCOVER_FILL_OPACITY },
+      { id: 'landuse', prop: 'fill-opacity', value: LANDUSE_FILL_OPACITY },
+      { id: 'boundary_country', prop: 'line-opacity', value: BOUNDARY_OPACITY },
+      { id: 'boundary_region', prop: 'line-opacity', value: BOUNDARY_OPACITY },
+      { id: 'boundary_county', prop: 'line-opacity', value: BOUNDARY_OPACITY },
+      { id: 'boundary_muni', prop: 'line-opacity', value: BOUNDARY_OPACITY },
+      { id: '*', prop: 'hillshade-exaggeration', value: HILLSHADE_EXAGGERATION },
+    ],
   },
 ];
+
+export function ruleHits(base: string, id: string): boolean {
+  if (id === '*') return true;
+  return base === id || base.startsWith(`${id}-`) || base.startsWith(`${id}_`);
+}
+
+export function propFits(type: string, prop: string): boolean {
+  if (prop.startsWith('line-')) return type === 'line';
+  if (prop.startsWith('fill-')) return type === 'fill';
+  if (prop.startsWith('hillshade-')) return type === 'hillshade';
+  if (prop.startsWith('text-')) return type === 'symbol';
+  if (prop.startsWith('circle-')) return type === 'circle';
+  return true;
+}
 
 export interface LayerItem {
   key: LayerKey;
@@ -169,8 +275,8 @@ class Store {
   cityZone: CityZone | null = null;
   damage: DamageMap = loadDamage();
 
-  layers: Record<LayerKey, boolean> = { ...BASE_LAYERS };
-  preset = 'city';
+  layers: Record<LayerKey, boolean> = personaLayers(PERSONAS[0]);
+  preset = PERSONAS[0].key;
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };
@@ -224,9 +330,9 @@ class Store {
   }
 
   applyPreset(key: string): void {
-    const p = STYLE_PRESETS.find((x) => x.key === key);
+    const p = PERSONAS.find((x) => x.key === key);
     if (!p) return;
-    this.layers = { ...BASE_LAYERS, ...p.layers };
+    this.layers = personaLayers(p);
     this.preset = p.key;
     this.emit();
   }

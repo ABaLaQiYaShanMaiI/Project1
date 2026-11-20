@@ -87,7 +87,7 @@ export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string)
       filter: ['==', ['get', 'kind'], 'industrial'],
       minzoom: 11,
       maxzoom: tier.styleMax,
-      paint: { 'fill-color': '#7f7f86', 'fill-opacity': 0.2 },
+      paint: { 'fill-color': '#7f7f86', 'fill-opacity': 0.22 },
     },
     {
       id: `landuse_station${suffix}`,

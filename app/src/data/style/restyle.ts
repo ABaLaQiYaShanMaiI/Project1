@@ -15,8 +15,10 @@ import {
   INK,
   LANDCOVER,
   LANDCOVER_DEFAULT,
+  LANDCOVER_FILL_OPACITY,
   LANDUSE,
   LANDUSE_DEFAULT,
+  LANDUSE_FILL_OPACITY,
   MAIN_MINZOOM,
   MAIN_ROAD_COLORS,
   MAIN_ROAD_W,
@@ -32,7 +34,7 @@ import {
   WATER_LINE,
   WATER_OUTLINE,
 } from './tokens';
-import { zoomWidth, railWidth, railNarrow } from './widths';
+import { zoomWidth, railWidth, railNarrow, WATER_WIDTH } from './widths';
 
 const MAIN_MINZOOM_MINOR = 11;
 
@@ -70,27 +72,17 @@ export function restyle(layer: Record<string, unknown>): Record<string, unknown>
     for (const [k, v] of Object.entries(LANDCOVER)) match.push(k, v);
     match.push(LANDCOVER_DEFAULT);
     paint['fill-color'] = match;
-    paint['fill-opacity'] = 0.95;
+    paint['fill-opacity'] = LANDCOVER_FILL_OPACITY;
   } else if (sourceLayer === 'landuse') {
     const kind = id.replace('landuse_', '');
     paint['fill-color'] = LANDUSE[kind] ?? LANDUSE_DEFAULT;
-    paint['fill-opacity'] = ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 0.9, 13, 0.96];
+    paint['fill-opacity'] = LANDUSE_FILL_OPACITY;
   } else if (sourceLayer === 'water' && layer.type === 'fill') {
     paint['fill-color'] = WATER_FILL;
     paint['fill-outline-color'] = WATER_OUTLINE;
   } else if (sourceLayer === 'water') {
     paint['line-color'] = WATER_LINE;
-    paint['line-width'] = [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      6,
-      ['case', ['==', ['get', 'kind_detail'], 'river'], 0.8, 0.4],
-      10,
-      ['case', ['==', ['get', 'kind_detail'], 'river'], 1.5, 0.7],
-      14,
-      ['case', ['==', ['get', 'kind_detail'], 'river'], 2.6, 1.2],
-    ];
+    paint['line-width'] = WATER_WIDTH;
     paint['line-opacity'] = 0.9;
   } else if (id === 'buildings') {
     paint['fill-color'] = BUILDING_FILL;

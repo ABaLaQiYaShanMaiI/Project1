@@ -1,4 +1,4 @@
-import { GRID_MAJOR, GRID_MINOR, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY } from './tokens';
+import { GRID_MAJOR, GRID_MINOR, INK, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY } from './tokens';
 export function gridLayers(): Record<string, unknown>[] {
   return [
     {
@@ -56,7 +56,7 @@ export function poiLayers(): Record<string, unknown>[] {
       minzoom: 9,
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 1.8, 13, 2.8, 16, 4],
-        'circle-color': RING_INK,
+        'circle-color': INK,
         'circle-opacity': 0.95,
         'circle-stroke-color': POI_STROKE,
         'circle-stroke-width': 1,

@@ -55,7 +55,7 @@ def tile2deg(x, y, z):
     return lon, lat
 
 
-def load_mosaic(key, zmin, zmax):
+def load_mosaic(key, zmin, zmax, bbox=None):
     root = os.path.join(DATA, "dem", key)
     with open(os.path.join(root, "index.json"), encoding="utf-8") as f:
         man = json.load(f)
@@ -64,6 +64,13 @@ def load_mosaic(key, zmin, zmax):
     w, s, e, n = man["bbox"]
     x0, y0 = deg2tile(n, w, z)
     x1, y1 = deg2tile(s, e, z)
+    if bbox:
+        bx0, by0 = deg2tile(bbox[3], bbox[0], z)
+        bx1, by1 = deg2tile(bbox[1], bbox[2], z)
+        x0 = max(x0, bx0)
+        y0 = max(y0, by0)
+        x1 = min(x1, bx1)
+        y1 = min(y1, by1)
     tx0, ty0 = int(x0), int(y0)
     tx1, ty1 = int(x1), int(y1)
     nx, ny = tx1 - tx0 + 1, ty1 - ty0 + 1
@@ -241,6 +248,7 @@ def main():
     ap.add_argument("--bold", type=float, default=0.0)
     ap.add_argument("--tol", type=float, default=45.0)
     ap.add_argument("--min-km", type=float, default=0.6)
+    ap.add_argument("--min-elev", type=float, default=0.0)
     ap.add_argument("--label-km", type=float, default=3.5)
     args = ap.parse_args()
 
@@ -249,7 +257,7 @@ def main():
     lon0 = (bbox[0] + bbox[2]) / 2.0
     pr = {"mPerDegLat": M_PER_DEG_LAT, "mPerDegLon": M_PER_DEG_LON * math.cos(math.radians(lat0))}
 
-    mosaic, bounds, z = load_mosaic(args.key, 9, 11)
+    mosaic, bounds, z = load_mosaic(args.key, 9, 11, bbox)
     grid = crop_bbox(mosaic, bounds, bbox, args.grid)
     rows, cols = grid.shape
     m_per_px = (bbox[2] - bbox[0]) * pr["mPerDegLon"] / cols
@@ -261,7 +269,7 @@ def main():
         interval = 25.0 if span < 1200 else 50.0
     bold = args.bold if args.bold > 0 else interval * 5
     levels = np.arange(math.floor(grid.min() / interval) * interval, grid.max() + interval, interval)
-    levels = [float(v) for v in levels if v > grid.min() and v < grid.max()]
+    levels = [float(v) for v in levels if v > grid.min() and v < grid.max() and v >= args.min_elev]
     log(f"等高距 {interval:.0f} m，计曲线 {bold:.0f} m，层数 {len(levels)}")
 
     x0 = -((bbox[2] - bbox[0]) * pr["mPerDegLon"]) / 2.0

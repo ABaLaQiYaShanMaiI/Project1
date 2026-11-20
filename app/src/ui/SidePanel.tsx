@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useStore, store } from '../hooks';
 import { SIDE_LABEL, UNIT_LABEL, type Side, type UnitKind } from '../core/markers';
-import { LITE_MODE, LAYER_TREE, STYLE_PRESETS } from '../store';
+import { LITE_MODE, LAYER_TREE, PERSONAS } from '../store';
 
 const UNIT_KINDS: UnitKind[] = ['infantry', 'armor', 'artillery', 'recon', 'hq'];
 const SIDES: Side[] = ['nato', 'wp'];
@@ -8,51 +9,58 @@ const SIDES: Side[] = ['nato', 'wp'];
 export function SidePanel(): JSX.Element {
   useStore();
   const base = store.basemap;
+  const [advanced, setAdvanced] = useState(false);
 
   return (
     <aside className="side">
       <div className="layer-panel">
-        <div className="lp-title">视图</div>
-        <div className="unit-sides">
-          {STYLE_PRESETS.map((p) => (
+        <div className="lp-title">图种</div>
+        <div className="persona-list">
+          {PERSONAS.map((p) => (
             <button
               key={p.key}
-              className={`unit-side ${store.preset === p.key ? 'on' : ''}`}
+              className={`persona ${store.preset === p.key ? 'on' : ''}`}
               onClick={() => store.applyPreset(p.key)}
             >
-              {p.label}
+              <span>{p.label}</span>
+              <span className="persona-sub dim">{p.sub}</span>
             </button>
           ))}
         </div>
         {LITE_MODE && <div className="lp-hint">低配模式：晕渲与等高线默认关闭</div>}
+        <div className="lp-hint">手动改「高级图层」会退出当前图种</div>
       </div>
 
       <div className="layer-panel">
-        <div className="lp-title">图层</div>
-        {LAYER_TREE.map((group) => (
-          <div key={group.key} className="lg">
-            <label className="lg-head">
-              <input
-                type="checkbox"
-                checked={store.groupOn(group.key)}
-                onChange={(e) => store.setGroup(group.key, e.target.checked)}
-              />
-              <span>{group.label}</span>
-            </label>
-            <div className="lg-items">
-              {group.items.map((item) => (
-                <label key={item.key} className="lp-item">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(store.layers[item.key])}
-                    onChange={(e) => store.setLayer(item.key, e.target.checked)}
-                  />
-                  <span>{item.label}</span>
-                </label>
-              ))}
+        <button className="lp-fold" onClick={() => setAdvanced((v) => !v)}>
+          <span className="lp-title">高级图层</span>
+          <span className="lp-caret mono">{advanced ? '▾' : '▸'}</span>
+        </button>
+        {advanced &&
+          LAYER_TREE.map((group) => (
+            <div key={group.key} className="lg">
+              <label className="lg-head">
+                <input
+                  type="checkbox"
+                  checked={store.groupOn(group.key)}
+                  onChange={(e) => store.setGroup(group.key, e.target.checked)}
+                />
+                <span>{group.label}</span>
+              </label>
+              <div className="lg-items">
+                {group.items.map((item) => (
+                  <label key={item.key} className="lp-item">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(store.layers[item.key])}
+                      onChange={(e) => store.setLayer(item.key, e.target.checked)}
+                    />
+                    <span>{item.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <div className="layer-panel">
@@ -112,3 +120,4 @@ export function SidePanel(): JSX.Element {
     </aside>
   );
 }
+

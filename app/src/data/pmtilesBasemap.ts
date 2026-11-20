@@ -65,7 +65,7 @@ export function zonesAt(zones: PmtilesZone[], lon: number, lat: number): Pmtiles
   const worlds = zones.filter((z) => z.kind === 'world').sort((a, b) => a.maxzoom - b.maxzoom);
   const regions = zones
     .filter((z) => z.kind !== 'world' && inside(z.bbox, lon, lat))
-    .sort((a, b) => a.maxzoom - b.maxzoom);
+    .sort((a, b) => a.maxzoom - b.maxzoom || b.minzoom - a.minzoom);
   const out = [...worlds, ...regions];
   return out.length ? out : zones.slice(0, 1);
 }
@@ -77,7 +77,7 @@ export function zonesInBounds(
   const worlds = zones.filter((z) => z.kind === 'world').sort((a, b) => a.maxzoom - b.maxzoom);
   const regions = zones
     .filter((z) => z.kind !== 'world' && overlaps(z.bbox, bounds))
-    .sort((a, b) => a.maxzoom - b.maxzoom);
+    .sort((a, b) => a.maxzoom - b.maxzoom || b.minzoom - a.minzoom);
   const kept = regions.length > MAX_REGION_TIERS ? regions.slice(regions.length - MAX_REGION_TIERS) : regions;
   const out = [...worlds, ...kept];
   return out.length ? out : zones.slice(0, 1);

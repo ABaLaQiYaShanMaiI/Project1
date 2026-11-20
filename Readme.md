@@ -60,11 +60,13 @@ cd app && pnpm install && pnpm dev
 | 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |
 | 大区晕渲 | dem/europe z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，由 dem/world8 清单别名复用 |
-| 区域晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲 |
+| 区域晕渲 | `dem/germany` z9–z11（520 MB） | 德国全域；z9–10 此前是 z5 的 16–32 倍 overzoom（v1.70 补烘） |
+| 富尔达晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲（现由 germany 档覆盖，保留作回退） |
 | 坡度通行 | `slope/world` z0–z5、`slope/europe` z6–z8、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色，默认关闭 |
-| 等高线 | `contours_fulda.json` | 25 m 等高距 / 125 m 计曲线 + 高程标注 |
-| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），z11 起出现；次级 z12（城区大路）；支路 z13 |
-| 铁路 | `rails_fulda.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，最粗、压最上层；z5–11 用烘焙层（底图 z10 以下没有 rail），z11 起用瓦片 |
+| 等高线 | `contours_europe.json` / `contours_germany.json` / `contours_fulda.json` | 三档阶梯：500 m（z7–10，中欧 0–20°E）/ 200 m（z10–13，德国）/ 25 m（z13+，富尔达），计曲线 3× 粗 + 沿线上字；一档只画一套 |
+| 分层设色 | `dem/*`（terrarium） | `color-relief` **色阶**（step：100/200/300/450/600/800/1000/1300/1600/2000/2500/3000/4000 m），绿（低）→ 黄（中）→ 褐（高），地势图 0.6 不透明；地形档 world/europe/germany 互斥，同一处只叠一层 |
+| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），z10 起出现；次级 z12（城区大路）；生活道路 z11；支路 z12 |
+| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–12 含枕木、按区域裁剪），**z1 起一路有铁路、缩小不会成片消失**；v1.68 重烘：剔除轮渡与北美副本、米制 300 m 容差、不再按长度丢短段 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
@@ -84,9 +86,13 @@ cd app && pnpm install && pnpm dev
 - **城区影响**：光标进入城区，右下角出现面板（城名 / 强度 / 半径 / 五项修饰 / 战损级别）；离开即消失；
 - **战损**：顶部「战损」开关，单击城区 +1 级（最高 3 级），Shift+单击清零；存 localStorage；
 - 左下读数：**DD 经纬 / UTM（带号 + 东向 + 北向）/ 高程 / 坡度 / 坡向**；
-- 左侧顶部「视图」两档预设（**城区图 / 地形图**），切换即改一组图层可见性；手动改图层会退出预设；
-  「地形」档：以**坡度通行**为主底（0.85 不透明），叠加等高线 / 水系 / 行政边界 / 地名 / 格网 + 铁路与主干公路，**铁路与主干公路从同一级 z10 同时出现**；城块、建筑、地表填充全部隐藏；
-- 左侧「图层」逐项开关；「兵牌」可在地图放标记（拖动移动、右键删除）。
+- 左侧顶部「图种」两档（**地势·交通图**（默认）/ **用地·政区图**），切换走差量更新
+  （可见性 + 强度参数，几十毫秒、不重建样式）；地势档走图册式：**高程分层设色（绿→黄→褐）**
+  + 晕渲加强 + 等高线加强 + 河流加粗 + 铁路/主干公路，**城区灰块、建筑、设施面与气泡全部不画**，
+  次级道路隐藏，国界弱化；
+  用地档：地表全量 + 灰块建筑 + 全级路网 + 四级行政界 + 设施气泡，等高线默认关；
+- 「高级图层」折叠面板逐项开关（18 叶，默认收起），手动改会退出当前图种；
+  「兵牌」可在地图放标记（拖动移动、右键删除）。
 
 ## 数据管线
 
@@ -125,8 +131,10 @@ python Tools/bake_dem.py --bbox=-180,-85,180,85 --key=world --zmin=0 --zmax=5
 # 4) 区域晕渲（z9–z11，约 15 MB）
 python Tools/bake_dem.py --bbox=8.849,50.240,10.591,51.000 --key=fulda --zmin=9 --zmax=11
 
-# 5) 等高线矢量（需要该区域 DEM 已烘好）
+# 5) 等高线矢量（需要该区域 DEM 已烘好；等高距按缩放的阶梯见 MAPDESIGN §五）
 python Tools/bake_contours.py --key=fulda --bbox=8.849,50.240,10.591,51.000
+python Tools/bake_contours.py --key=germany --bbox=5.8,47.2,15.1,55.1 --interval=200 --bold=400 --tol=120 --min-km=2 --grid=3000
+python Tools/bake_contours.py --key=europe --bbox=0,44,20,56 --interval=500 --bold=1500 --tol=400 --min-km=6 --grid=2400
 
 # 6) 坡度通行瓦片（需要对应 DEM 已烘好；产物按分类着色，不是高程）
 python Tools/bake_slope.py --key=world
@@ -174,6 +182,7 @@ python Tools/bake_ne_urban.py
 | `app/src/WorldMapLibre.tsx` | 世界地图主体：tier 装配、图层开关、格网、射程圈、读数 |
 | `app/src/data/militaryStyle.ts` | 军事地形样式装配：源与图层的先后顺序、去重 |
 | `app/src/data/style/` | 样式分件：`tokens` 全部色值唯一事实源 / `restyle` 底图改写 / `tier` 分层复制 / `rail` `boundary` `contour` `overlay` / `widths` 线宽插值 |
+| `app/src/data/railsWorld.ts` | NE 全球铁路装载时按区域包 bbox 做分段裁剪（区域外才显示概化线） |
 | `app/src/data/pmtilesBasemap.ts` | Pmtiles 协议、`index.json`、`zonesAt()` / `tierBands()` |
 | `app/src/data/terrain.ts` | DEM 采样（高程 / 坡度 / 坡向） |
 | `app/src/core/geo.ts` | UTM 正算、格网生成、射程圈 |
@@ -216,10 +225,10 @@ python Tools/bake_ne_urban.py
 1. **跨档停顿**：z7/9/11/13/14 跨档会重建样式，1–4 s；需改成「档位互斥 + 动态 zoom-range」。
 2. **建筑密度瓦片**：目前只烘富尔达核心 z15，铺到德国 z13–14 收益明确。
 3. **全球铁路精度**：NE 1:10m 仍是骨架；若要城际弯曲准确，按国家切 z9–10 包（每国几百 MB）。
-4. **等高线**：只有富尔达；全球 DEM 到 z5，z8+ 需补区域 DEM。
+4. **等高线**：三档已覆盖中欧（500 m）/ 德国（200 m）/ 富尔达（25 m）；铺到全球要先补 z8+ 区域 DEM，再按同一阶梯分块烘。
 5. 城区影响接进移动/交战解算（单位数值模型落地后）。
 
-## 接手速览（v1.64）
+## 接手速览（v1.67）
 
 ```
 读 PITFALLS.md（坑）→ DEVLOG 顶部 v1.64（状态快照）→ 本文「现在有什么」→ MAPDESIGN（设计）

@@ -19,6 +19,18 @@ const PACK = arg('pack', join(ROOT, 'app', 'public', 'data', 'tiles', `${KEY}.pm
 const DRY = process.argv.includes('--dry-run');
 const SKIP = new Set(arg('skip', '').split(',').filter(Boolean));
 const PY = arg('python', 'python');
+const CI = arg('contour-interval', '');
+const CB = arg('contour-bold', '');
+const CT = arg('contour-tol', '');
+const CM = arg('contour-min-km', '');
+const CG = arg('contour-grid', '');
+const contourArgs = [
+  ...(CI ? [`--interval=${CI}`] : []),
+  ...(CB ? [`--bold=${CB}`] : []),
+  ...(CT ? [`--tol=${CT}`] : []),
+  ...(CM ? [`--min-km=${CM}`] : []),
+  ...(CG ? [`--grid=${CG}`] : []),
+];
 
 if (!KEY) {
   console.error('用法: node Tools/bake_region.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 [--zmin=9 --zmax=11] [--skip=dem,slope] [--dry-run]');
@@ -32,7 +44,7 @@ if (!existsSync(PACK)) {
 
 const steps = [
   { name: 'dem', bin: PY, args: ['Tools/bake_dem.py', `--bbox=${BBOX}`, `--key=${KEY}`, `--zmin=${ZMIN}`, `--zmax=${ZMAX}`] },
-  { name: 'contours', bin: PY, args: ['Tools/bake_contours.py', `--key=${KEY}`, `--bbox=${BBOX}`] },
+  { name: 'contours', bin: PY, args: ['Tools/bake_contours.py', `--key=${KEY}`, `--bbox=${BBOX}`, ...contourArgs] },
   { name: 'rail', bin: process.execPath, args: ['Tools/bake_rail.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, `--out=app/public/data/rails_${KEY}.json`] },
   { name: 'rail-low', bin: process.execPath, args: ['Tools/bake_rail.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, '--tol=0.0012', '--minlen=3000', `--out=app/public/data/rails_${KEY}_low.json`] },
   { name: 'poi', bin: process.execPath, args: ['Tools/bake_poi.mjs', `--pack=${PACK}`, `--zoom=${ZMAX}`, `--out=app/public/data/poi_${KEY}.json`] },

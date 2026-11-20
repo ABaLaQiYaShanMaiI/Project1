@@ -217,6 +217,35 @@ export const RING_LABEL_HALO = '#f6f0e4';
 
 export const BUILDING_GLOW_INK = '#b6b0a4';
 
+export const LANDCOVER_FILL_OPACITY = 0.95;
+
+export const LANDUSE_FILL_OPACITY: unknown = ['interpolate', ['linear'], ['zoom'], 6, 0.6, 10, 0.9, 13, 0.96];
+
+export const BOUNDARY_OPACITY = 0.8;
+
+export const HILLSHADE_EXAGGERATION: unknown = ['interpolate', ['linear'], ['zoom'], 4, 1.1, 8, 0.92, 12, 0.72, 16, 0.62];
+
+export const HYPSOMETRIC_RAMP: unknown = [
+  'step',
+  ['elevation'],
+  '#9abd7c',
+  100, '#a9c884',
+  200, '#b8d18e',
+  300, '#c8d996',
+  450, '#d7df9d',
+  600, '#e3e2a1',
+  800, '#ebe0a0',
+  1000, '#efd89b',
+  1300, '#e9c78e',
+  1600, '#e0b581',
+  2000, '#d4a173',
+  2500, '#c78f6b',
+  3000, '#b57f66',
+  4000, '#a17361',
+];
+
+export const HYPSOMETRIC_OPACITY = 0.45;
+
 export const MILITARY_FILL = '#c8b39c';
 
 export const MILITARY_OUTLINE = '#8a705a';

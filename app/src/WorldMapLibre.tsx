@@ -12,12 +12,14 @@ import {
 } from 'maplibre-gl';
 import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useStore, store } from './hooks';
+import { useStore } from './hooks';
+import { store, PERSONAS, ruleHits, propFits, type Persona } from './store';
 import { markerElement } from './map/markerElement';
 import { bearingLabel, buildReadout, type Readout } from './map/readout';
-import { groupOf } from './data/style/layerGroups';
+import { groupOf, baseIdOf } from './data/style/layerGroups';
 
-import { firstJson, getJson, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
+import { getJson, mergeRails, type DensityDoc, type PoiDoc } from './map/docLoaders';
+import { clipRailsWorld } from './data/railsWorld';
 import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
 import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
@@ -26,8 +28,10 @@ import { cityKey } from './data/damageStore';
 import { createCityDamage, damageDiscs, type DamageLayer } from './map/cityDamage';
 import { MeasurePanel } from './ui/MeasurePanel';
 import {
-  contourGeoJson,
+  CONTOUR_BANDS,
+  mergeContours,
   militaryStyle,
+  type ContourBand,
   type ContourDoc,
   type DemTier,
   type SlopeTier,
@@ -53,6 +57,64 @@ const BLANK_STYLE = {
 } as unknown as StyleSpecification;
 
 const START = { lon: 9.72, lat: 50.62, zoom: 7 };
+
+function boxHit(a: [number, number, number, number], b: [number, number, number, number]): boolean {
+  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
+}
+
+const DEM_BANDS: Array<{ key: string; from: number; bbox: [number, number, number, number] }> = [
+  { key: 'world', from: 0, bbox: [-180, -85, 180, 85] },
+  { key: 'europe', from: 6, bbox: [0, 44, 20, 56] },
+  { key: 'germany', from: 9, bbox: [5.8, 47.2, 15.1, 55.1] },
+];
+
+function demKeyAt(zoom: number, lon: number, lat: number): string {
+  let key = 'world';
+  for (const d of DEM_BANDS) {
+    if (d.from > zoom) continue;
+    if (boxHit(d.bbox, [lon, lat, lon, lat])) key = d.key;
+  }
+  return key;
+}
+
+function viewSig(hit: PmtilesZone[], zoom: number, lon: number, lat: number): string {
+  const bands = tierBands(hit);
+  return `${hit.map((z) => z.key).sort().join(',')}|${bands.map((b) => b.from).join(',')}|${demKeyAt(zoom, lon, lat)}`;
+}
+
+const contourCache = new Map<string, ContourDoc | null>();
+const contourFcCache = new Map<string, FC | null>();
+
+async function loadContours(active: Array<{ b: ContourBand; i: number }>): Promise<FC | null> {
+  if (!active.length) return null;
+  const sig = active.map(({ i }) => i).join(',');
+  if (contourFcCache.has(sig)) return contourFcCache.get(sig) ?? null;
+  const docs = await Promise.all(
+    active.map(async ({ b }) => {
+      if (!contourCache.has(b.key)) contourCache.set(b.key, await getJson<ContourDoc>(`/data/contours_${b.key}.json`));
+      return contourCache.get(b.key) ?? null;
+    }),
+  );
+  const items = docs.flatMap((doc, k) => (doc?.levels?.length ? [{ doc, band: active[k].i }] : []));
+  const fc = items.length ? mergeContours(items) : null;
+  contourFcCache.set(sig, fc);
+  return fc;
+}
+
+function railFc(lines: [number, number][][] | undefined, boxes: [number, number, number, number][]): FC | null {
+  if (!lines?.length) return null;
+  const fc = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'MultiLineString', coordinates: lines },
+      },
+    ],
+  } as unknown as FC;
+  return clipRailsWorld(fc, boxes);
+}
 
 
 interface SlopeManifest {
@@ -229,15 +291,14 @@ export function WorldMapLibre(): JSX.Element {
       zonesRef.current = zones;
       const vb = map.getBounds();
       const tiersZones = zonesInBounds(zones, [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()]);
-      mountedRef.current = tiersZones.map((z) => z.key).sort().join(',');
+      mountedRef.current = viewSig(tiersZones, map.getZoom(), map.getCenter().lng, map.getCenter().lat);
       const bands = tierBands(tiersZones);
       const regionBands = bands.filter((b) => b.zone.key !== 'world');
       const densityMans = await Promise.all(regionBands.map((b) => getJson<DensityDoc>(`/data/density/${b.zone.key}/index.json`)));
       const densityTiers = densityMans.flatMap((d) => (d && d.tiles ? [{ id: String(d.key ?? ''), tiles: d.tiles, minzoom: d.minzoom ?? 14, maxzoom: d.maxzoom ?? 15, bbox: d.bbox ?? [-180, -85, 180, 85] }] : []));
-      const [base, worldMan, regionMans] = await Promise.all([
+      const [base, demMans] = await Promise.all([
         loadBaseStyle(tiersZones[tiersZones.length - 1]),
-        loadDemManifest('world'),
-        Promise.all(regionBands.map((b) => loadDemManifest(b.zone.key))),
+        Promise.all(DEM_BANDS.map((d) => loadDemManifest(d.key))),
       ]);
       const viewBox: [number, number, number, number] = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
       const caps = tierCaps(bands, viewBox);
@@ -247,37 +308,31 @@ export function WorldMapLibre(): JSX.Element {
         return caps[i] === tier.styleMax ? tier : { ...tier, styleMax: caps[i] };
       });
 
+      const zoomNow = map.getZoom();
+      const center = map.getCenter();
+      const bestDem = demKeyAt(zoomNow, center.lng, center.lat);
+      const bestFrom = DEM_BANDS.find((d) => d.key === bestDem)?.from ?? 0;
       const demTiers: DemTier[] = [];
-      if (worldMan) {
+      DEM_BANDS.forEach((d, i) => {
+        const man = demMans[i];
+        if (!man?.tiles) return;
         demTiers.push({
-          id: 'world-dem',
-          tiles: worldMan.tiles,
-          minzoom: worldMan.minzoom,
-          maxzoom: worldMan.maxzoom,
-          bounds: worldMan.bbox,
-          styleMin: 0,
-          styleMax: 22,
-        });
-      }
-      regionBands.forEach((band, i) => {
-        const man = regionMans[i];
-        if (!man) return;
-        demTiers.push({
-          id: `${band.zone.key}-dem`,
+          id: `${d.key}-dem`,
           tiles: man.tiles,
           minzoom: man.minzoom,
           maxzoom: man.maxzoom,
           bounds: man.bbox,
-          styleMin: band.from,
-          styleMax: 22,
+          styleMin: d.from,
+          styleMax: d.from >= bestFrom ? 22 : bestFrom,
         });
       });
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       const slopeKeys = ['world', ...regionBands.map((b) => b.zone.key)];
-      const [slopeMans, contoursDoc, railsDoc, dex] = await Promise.all([
+      const activeBands = CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(({ b }) => boxHit(b.bbox, viewBox));
+      const [slopeMans, contours, railsDoc, dex] = await Promise.all([
         Promise.all(slopeKeys.map((k) => getJson<SlopeManifest>(`/data/slope/${k}/index.json`))),
-        firstJson<ContourDoc>(regions, (k) => `/data/contours_${k}.json`),
+        loadContours(activeBands),
         mergeRails(regions),
         loadCityDex(regions.map((z) => z.key)),
       ]);
@@ -296,14 +351,6 @@ export function WorldMapLibre(): JSX.Element {
           styleMin: band ? band.from : 0,
         });
       });
-
-      const contours = contoursDoc?.levels
-        ? contourGeoJson(
-            contoursDoc,
-            contoursDoc.mPerDegLon ?? 111320 * Math.cos((contoursDoc.origin[1] * Math.PI) / 180),
-            contoursDoc.mPerDegLat ?? 110540,
-          )
-        : null;
 
       const railsLow = railsDoc?.lines?.length
         ? ({
@@ -345,35 +392,13 @@ export function WorldMapLibre(): JSX.Element {
             })),
           } as unknown as FC)
         : null;
-      const worldDoc = await getJson<{ lines?: [number, number][][] }>('/data/rails_world.json');
-      const railsWorld = worldDoc?.lines?.length
-        ? ({
-            type: 'FeatureCollection',
-            features: [
-              {
-                type: 'Feature',
-                properties: {},
-                geometry: { type: 'MultiLineString', coordinates: worldDoc.lines },
-              },
-            ],
-          } as unknown as FC)
-        : null;
-      let railsLow2: FC | null = null;
-      for (const r of regions) {
-        const doc = await getJson<{ lines?: [number, number][][] }>(`/data/rails_${r.key}_low.json`);
-        if (!Array.isArray(doc?.lines) || !doc.lines.length) continue;
-        railsLow2 = {
-          type: 'FeatureCollection',
-          features: [
-            {
-              type: 'Feature',
-              properties: {},
-              geometry: { type: 'MultiLineString', coordinates: doc.lines },
-            },
-          ],
-        } as unknown as FC;
-        break;
-      }
+      const [fineDoc, coarseDoc] = await Promise.all([
+        getJson<{ lines?: [number, number][][] }>('/data/rails_world_fine.json'),
+        getJson<{ lines?: [number, number][][] }>('/data/rails_world_coarse.json'),
+      ]);
+      const railBoxes = regions.map((z) => z.bbox);
+      const railsWorldFine = railFc(fineDoc?.lines, railBoxes);
+      const railsWorldCoarse = railFc(coarseDoc?.lines, []);
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
       const grid = buildUtmGrid(buildBounds(map), gridStepFor(Math.round(map.getZoom())));
       if (!alive) return;
@@ -388,13 +413,14 @@ export function WorldMapLibre(): JSX.Element {
         railsLow,
         grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
         poi,
-        railsLow2,
-        railsWorld,
+        railsWorldFine,
+        railsWorldCoarse,
         urbanWorld,
       });
       if (!alive) return;
       gridStepRef.current = gridStepFor(Math.round(START.zoom));
       map.setStyle(style);
+      appliedRef.current = { epoch: viewEpoch, map: {}, paintSig: '' };
       map.on('sourcedata', () => map.triggerRepaint());
 
       damageRef.current?.destroy();
@@ -449,14 +475,8 @@ export function WorldMapLibre(): JSX.Element {
       const b = map.getBounds();
       const box: [number, number, number, number] = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
       const hit = zonesInBounds(zones, box);
-      const key = hit.map((z) => z.key).sort().join(',');
-      if (key !== mountedRef.current) {
-        mountedRef.current = key;
-        setViewEpoch((v) => v + 1);
-        return;
-      }
-      const bands = tierBands(hit);
-      const signature = `${key}|${bands.map((x) => x.from).join(',')}`;
+      const c = map.getCenter();
+      const signature = viewSig(hit, map.getZoom(), c.lng, c.lat);
       if (signature === mountedRef.current) return;
       mountedRef.current = signature;
       setViewEpoch((v) => v + 1);
@@ -472,7 +492,8 @@ export function WorldMapLibre(): JSX.Element {
     };
   }, []);
 
-  const appliedRef = useRef<{ epoch: number; map: Record<string, boolean> }>({ epoch: -1, map: {} });
+  const appliedRef = useRef<{ epoch: number; map: Record<string, boolean>; paintSig: string }>({ epoch: -1, map: {}, paintSig: '' });
+  const personaRef = useRef<Persona | null>(null);
   const capsRef = useRef<{ bands: Array<{ zone: PmtilesZone; from: number }>; caps: number[] } | null>(null);
   const epochRef = useRef(0);
   epochRef.current = viewEpoch;
@@ -481,7 +502,7 @@ export function WorldMapLibre(): JSX.Element {
     const map = mapRef.current;
     const style = map ? map.getStyle() : null;
     if (!map || !style || !Array.isArray(style.layers) || style.layers.length <= 1) return;
-    if (appliedRef.current.epoch !== viewEpoch) appliedRef.current = { epoch: viewEpoch, map: {} };
+    if (appliedRef.current.epoch !== viewEpoch) appliedRef.current = { epoch: viewEpoch, map: {}, paintSig: '' };
     const applied = appliedRef.current.map;
     for (const layer of style.layers) {
       const g = groupOf(layer.id);
@@ -495,27 +516,25 @@ export function WorldMapLibre(): JSX.Element {
         continue;
       }
     }
-  }, [store.version, viewEpoch]);
-
-  const railRangeRef = useRef<{ epoch: number; preset: string }>({ epoch: -1, preset: '' });
-
-  useEffect(() => {
-    const map = mapRef.current;
-    const style = map ? map.getStyle() : null;
-    if (!map || !style || !Array.isArray(style.layers)) return;
-    const range = railRangeRef.current;
-    if (range.epoch === viewEpoch && range.preset === store.preset) return;
-    railRangeRef.current = { epoch: viewEpoch, preset: store.preset };
-    const from = store.preset === 'terrain' ? 10 : 5;
+    const found = PERSONAS.find((p) => p.key === store.preset);
+    if (found) personaRef.current = found;
+    const persona = personaRef.current ?? PERSONAS[0];
+    const sig = `${persona.key}|${viewEpoch}`;
+    if (appliedRef.current.paintSig === sig) return;
+    appliedRef.current.paintSig = sig;
     for (const layer of style.layers) {
-      if (!String(layer.id).startsWith('rail-low')) continue;
-      try {
-        map.setLayerZoomRange(String(layer.id), from, 12);
-      } catch {
-        continue;
+      const base = baseIdOf(String(layer.id));
+      for (const rule of persona.paint) {
+        if (!ruleHits(base, rule.id)) continue;
+        if (!propFits(String(layer.type), rule.prop)) continue;
+        try {
+          map.setPaintProperty(String(layer.id), rule.prop as never, rule.value as never);
+        } catch {
+          continue;
+        }
       }
     }
-  }, [store.preset, viewEpoch]);
+  }, [store.version, viewEpoch]);
 
   useEffect(() => {
     damageRef.current?.refresh(damageDiscs(store.damage));
@@ -579,12 +598,7 @@ export function WorldMapLibre(): JSX.Element {
         <button className={`btn small ${damageMode ? 'on' : ''}`} onClick={() => setDamageMode((v) => !v)}>
           战损
         </button>
-        {store.basemap && (
-          <span className="zone-count">
-            {store.basemap.tiers.join(' + ')} · {store.basemap.sizeMB} MB
-          </span>
-        )}
-        <span className="zone-count mono">{store.perf.fps} FPS</span>
+        <span className="mono dim">{store.perf.fps} FPS</span>
       </div>
 
       {loading && <div className="ml-loading">正在载入底图…</div>}

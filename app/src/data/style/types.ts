@@ -48,8 +48,8 @@ export interface StyleInputs {
   densityTiers?: DensityTier[];
   contours?: FC | null;
   railsLow?: FC | null;
-  railsLow2?: FC | null;
-  railsWorld?: FC | null;
+  railsWorldFine?: FC | null;
+  railsWorldCoarse?: FC | null;
   urbanWorld?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
