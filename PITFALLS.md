@@ -5,6 +5,14 @@
 
 ## A · 白屏 / 全灭级
 
+A6. **调色板 PNG 的 `tRNS` 写错会让整张样式被拒**：PIL 对 P 模式若把 `info['transparency']` 设成 bytes 列表，写出的 tRNS 规范，浏览器报 `InvalidStateError: The source image could not be decoded`，MapLibre 直接放弃整张样式（只剩 4 个图层），看起来像「所有图层都没了」。正确写法是**单索引整数**（`info['transparency'] = 索引号`），且所有透明像素必须落在同一个索引上。
+A7. **样式表达式里 `zoom` 只能出现在顶层 `interpolate`/`step`**：嵌进 `case` 或乘法里会抛 `"zoom" expression may only be used as input to a top-level ...`，同样整图不渲染，而 `tsc`/`vite build` 全绿。已加第 8 道闸 `Tools/style_lint.mjs` 拦截。
+A8. **同一个已加载样式里，各 tier 的图层区间会重叠**：MapLibre 的 `maxzoom` 在这里是包含式，`germany(11–12)` 与 `germany13(13)` 会在 z13 同时可见，于是铁路/道路叠画成黑块。跨档时重建样式（当前做法）比动态调区间可靠。
+A9. **`buildings` 层删掉后城区会露白**：没有 landuse 覆盖的地方直接显示纸底；删层同时要保留一层浅建筑填充或密度瓦片，否则「灰块没盖住」会被当成 bug。
+A10. **DEM 批量转 WebP 中途被打断会留下 0 字节瓦片**：这些空文件同样触发 `source image could not be decoded`。转换脚本必须幂等、可续跑，转换失败要回滚（`Tools/dem_restore_png.py`）。
+A11. **烘焙铁路的链式拼接极易错接**：端点按网格吸附后若「头/尾扩展」共用一个分支判断，会把不相连的两段接成几十公里的直线，看起来像「曲线变直、断链、跨海」。修好的版本在 `Tools/bake_rail.mjs`，改动前先看 `rails_new_plot` 式的可视化验证。
+
+
 1. **`file://` 打开必白屏**：`/src/main.tsx` 绝对路径 + `fetch('/data/...')` 被 CORS 拦。必须走 HTTP（`启动游戏.bat` 或 `npm run dev`）。
 2. **`.mjs` MIME 不对整图不渲染**：模块 worker 依赖正确 MIME，由 `Tools/serve.mjs` 保证；换静态服务器先查这个。
 3. **PowerShell 写文件会加 BOM**：JSON/TS/Python 带 BOM 直接解析失败（`Unexpected token '﻿'`）。写文件一律 UTF-8 无 BOM（.NET `UTF8Encoding($false)` / Python `io.open(..., 'utf-8')`）。
