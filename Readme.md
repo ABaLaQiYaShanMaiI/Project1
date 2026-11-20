@@ -70,7 +70,7 @@ cd app && pnpm install && pnpm dev
 | 河流（低倍） | `rivers_world.json` | NE 1:10m 河网（River + Lake Centerline，2,252 段 / 3.05 MB），**z3–8 补位**（底图河流 z9 才出现）；按 scalerank 分三档线宽，z9 交瓦片 |
 
 | 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–16 含枕木），**z1 起一路有铁路、缩小不会成片消失、德国之外放大到 z13+ 也还有线**（z12 后降到 0.35→0.25 透明）；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
-| 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
+| 军用格网 | 运行时 UTM / 经纬网 | **z≥6** 单带 UTM（1/2/5/10/25/50/100/200/500/1000 km 自适应），线端标注里程 km、左上注带号（如 `32U`）；**z<6** 切经纬网（1/2/5/10/15/30°），边注 `45°N` / `15°E`；归「格网」叶 |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
 | 海域名 | `seas_world.json` | 5 大洋 + 32 海 + 21 湾/海峡（人工整理中心点），z3–8 大写 + 字距，随「地名标注」开关 |

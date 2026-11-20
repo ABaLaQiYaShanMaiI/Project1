@@ -71,24 +71,41 @@ export interface GridFeature {
   geometry: { type: 'LineString'; coordinates: [number, number][] };
 }
 
+export interface GridLabelFeature {
+  type: 'Feature';
+  properties: { k: 'label'; label: string; axis: 'e' | 'n' | 'z'; major: boolean };
+  geometry: { type: 'Point'; coordinates: [number, number] };
+}
+
 export interface GridSpec {
   stepM: number;
   majorEvery: number;
   lines: GridFeature[];
+  labels: GridLabelFeature[];
 }
 
-const STEPS = [1000, 2000, 5000, 10000, 25000, 50000, 100000];
+const STEPS = [1000, 2000, 5000, 10000, 25000, 50000, 100000, 200000, 500000, 1000000];
+
+const STEPS_DEG = [1, 2, 5, 10, 15, 30];
 
 export function gridStepFor(zoom: number): number {
-  const px20 = 2 ** zoom;
-  const mPerPx = (156543.03392 * Math.cos((50 * Math.PI) / 180)) / px20;
+  const px = 2 ** zoom;
+  const mPerPx = (78271.51696 * Math.cos((50 * Math.PI) / 180)) / px;
   const want = mPerPx * 130;
   return STEPS.find((s) => s >= want) ?? STEPS[STEPS.length - 1];
 }
 
+export function gratStepFor(zoom: number): number {
+  const want = (360 / (512 * 2 ** zoom)) * 130;
+  return STEPS_DEG.find((s) => s >= want) ?? STEPS_DEG[STEPS_DEG.length - 1];
+}
+
 export function buildUtmGrid(bounds: [number, number, number, number], stepM: number, samples = 24): GridSpec {
   const [w, s, e, n] = bounds;
-  const corners = [utmOf(s, w), utmOf(s, e), utmOf(n, w), utmOf(n, e)];
+  const center = utmOf((s + n) / 2, (w + e) / 2);
+  const zone = center.zone;
+  const at = (lat: number, lon: number): Utm => utmIn(zone, lat, lon);
+  const corners = [at(s, w), at(s, e), at(n, w), at(n, e)];
   const e0 = Math.min(...corners.map((c) => c.easting));
   const e1 = Math.max(...corners.map((c) => c.easting));
   const n0 = Math.min(...corners.map((c) => c.northing));
@@ -101,7 +118,7 @@ export function buildUtmGrid(bounds: [number, number, number, number], stepM: nu
     let hi = e;
     for (let i = 0; i < 40; i++) {
       const mid = (lo + hi) / 2;
-      if (utmOf(lat, mid).easting < easting) lo = mid;
+      if (at(lat, mid).easting < easting) lo = mid;
       else hi = mid;
     }
     return (lo + hi) / 2;
@@ -112,7 +129,7 @@ export function buildUtmGrid(bounds: [number, number, number, number], stepM: nu
     let hi = n;
     for (let i = 0; i < 40; i++) {
       const mid = (lo + hi) / 2;
-      if (utmOf(mid, lon).northing < northing) lo = mid;
+      if (at(mid, lon).northing < northing) lo = mid;
       else hi = mid;
     }
     return (lo + hi) / 2;
@@ -142,7 +159,62 @@ export function buildUtmGrid(bounds: [number, number, number, number], stepM: nu
       geometry: { type: 'LineString', coordinates: coords },
     });
   }
-  return { stepM, majorEvery, lines };
+  const labels = edgeLabels(lines, stepM >= 100000, [w, s, e, n]);
+  labels.push({
+    type: 'Feature',
+    properties: { k: 'label', label: `${zone}${center.band}`, axis: 'z', major: true },
+    geometry: { type: 'Point', coordinates: [w + (e - w) * 0.02, n - (n - s) * 0.02] },
+  });
+  return { stepM, majorEvery, lines, labels };
+}
+
+export function buildGrid(bounds: [number, number, number, number], zoom: number): GridSpec {
+  return zoom >= 6 ? buildUtmGrid(bounds, gridStepFor(zoom)) : buildGraticule(bounds, gratStepFor(zoom));
+}
+
+export function buildGraticule(bounds: [number, number, number, number], stepDeg: number): GridSpec {
+  const [w, s, e, n] = bounds;
+  const lines: GridFeature[] = [];
+
+  const lonLabel = (v: number): string => `${Math.abs(v)}°${v < 0 ? 'W' : v > 0 ? 'E' : ''}`;
+  const latLabel = (v: number): string => `${Math.abs(v)}°${v < 0 ? 'S' : v > 0 ? 'N' : ''}`;
+
+  for (let lon = Math.ceil(w / stepDeg) * stepDeg; lon <= e; lon += stepDeg) {
+    lines.push({
+      type: 'Feature',
+      properties: { v: lon, axis: 'e', major: Math.round(lon / stepDeg) % 4 === 0, label: lonLabel(lon) },
+      geometry: { type: 'LineString', coordinates: [[lon, s], [lon, n]] },
+    });
+  }
+  for (let lat = Math.ceil(s / stepDeg) * stepDeg; lat <= n; lat += stepDeg) {
+    lines.push({
+      type: 'Feature',
+      properties: { v: lat, axis: 'n', major: Math.round(lat / stepDeg) % 4 === 0, label: latLabel(lat) },
+      geometry: { type: 'LineString', coordinates: [[w, lat], [e, lat]] },
+    });
+  }
+  return { stepM: stepDeg, majorEvery: 4, lines, labels: edgeLabels(lines, true, [w, s, e, n]) };
+}
+
+function edgeLabels(lines: GridFeature[], all: boolean, bounds: [number, number, number, number]): GridLabelFeature[] {
+  const [w, s, e, n] = bounds;
+  const dx = (e - w) * 0.02;
+  const dy = (n - s) * 0.02;
+  const out: GridLabelFeature[] = [];
+  for (const f of lines) {
+    if (!all && !f.properties.major) continue;
+    const coords = f.geometry.coordinates;
+    if (coords.length < 2) continue;
+    const anchor = f.properties.axis === 'e' ? coords[coords.length - 1] : coords[0];
+    const px = f.properties.axis === 'e' ? anchor[0] : anchor[0] + dx;
+    const py = f.properties.axis === 'e' ? anchor[1] - dy : anchor[1];
+    out.push({
+      type: 'Feature',
+      properties: { k: 'label', label: f.properties.label, axis: f.properties.axis, major: true },
+      geometry: { type: 'Point', coordinates: [px, py] },
+    });
+  }
+  return out;
 }
 
 export function rangeRing(center: [number, number], radiusKm: number, segments = 96): [number, number][] {

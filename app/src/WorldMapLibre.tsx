@@ -22,7 +22,7 @@ import { getJson, mergePois, mergeRails, poiFc, riversWorldFc, roadsWorldFc, sea
 import { clipRailsWorld } from './data/railsWorld';
 import { applyForceDetail, type ZoomStore } from './map/forceDetail';
 import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
-import { buildUtmGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
+import { buildGrid, ddText, gridStepFor, rangeRing, utmOf, utmText } from './core/geo';
 import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
 import { DemSampler, loadDemManifest } from './data/terrain';
 import { cityZoneAt, loadCityDex, type CityDex } from './data/cities';
@@ -404,7 +404,7 @@ export function WorldMapLibre(): JSX.Element {
       const roadsWorld = roadsWorldFc(roadsDoc);
       const riversWorld = riversWorldFc(riversDoc);
       const focus = regions[0] ?? tiersZones[tiersZones.length - 1];
-      const grid = buildUtmGrid(buildBounds(map), gridStepFor(Math.round(map.getZoom())));
+      const grid = buildGrid(buildBounds(map), Math.round(map.getZoom()));
       if (!alive) return;
       dexRef.current = dex;
       const style = militaryStyle({
@@ -415,7 +415,7 @@ export function WorldMapLibre(): JSX.Element {
         densityTiers,
         contours,
         railsLow,
-        grid: { type: 'FeatureCollection', features: grid.lines } as unknown as FC,
+        grid: { type: 'FeatureCollection', features: [...grid.lines, ...grid.labels] } as unknown as FC,
         poi,
         railsWorldFine,
         railsWorldCoarse,
@@ -562,13 +562,10 @@ export function WorldMapLibre(): JSX.Element {
     const map = mapRef.current;
     if (!map) return;
     const rebuild = () => {
-      const step = gridStepFor(Math.round(map.getZoom()));
-      gridStepRef.current = step;
+      const g = buildGrid(buildBounds(map), Math.round(map.getZoom()));
+      gridStepRef.current = gridStepFor(Math.round(map.getZoom()));
       const src = map.getSource('grid') as { setData?: (d: unknown) => void } | undefined;
-      src?.setData?.({
-        type: 'FeatureCollection',
-        features: buildUtmGrid(buildBounds(map), step).lines,
-      });
+      src?.setData?.({ type: 'FeatureCollection', features: [...g.lines, ...g.labels] });
     };
     map.on('moveend', rebuild);
     return () => {

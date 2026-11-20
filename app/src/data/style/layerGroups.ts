@@ -12,6 +12,7 @@ const NEW_IDS: Partial<Record<string, LayerKey>> = {
   'rail-hatch': 'rail',
   'grid-minor': 'grid',
   'grid-major': 'grid',
+  'grid-label': 'grid',
   'sea-label': 'label',
   'road-world': 'road',
   'road-world-casing': 'road',

@@ -1,4 +1,4 @@
-import { GRID_MAJOR, GRID_MINOR, INK, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY, WATER_LABEL_HALO, WATER_LABEL_INK } from './tokens';
+import { GRID_MAJOR, GRID_MINOR, HALO, INK, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY, WATER_LABEL_HALO, WATER_LABEL_INK } from './tokens';
 export function gridLayers(): Record<string, unknown>[] {
   return [
     {
@@ -14,6 +14,20 @@ export function gridLayers(): Record<string, unknown>[] {
       source: 'grid',
       filter: ['==', ['get', 'major'], true],
       paint: { 'line-color': GRID_MAJOR, 'line-opacity': 0.42, 'line-width': 1.1 },
+    },
+    {
+      id: 'grid-label',
+      type: 'symbol',
+      source: 'grid',
+      filter: ['all', ['==', ['get', 'k'], 'label'], ['==', ['get', 'major'], true]],
+      layout: {
+        'text-field': ['get', 'label'],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 10, 9.5, 14, 10.5],
+        'text-padding': 2,
+        'text-allow-overlap': false,
+      },
+      paint: { 'text-color': GRID_MAJOR, 'text-halo-color': HALO, 'text-halo-width': 1.4 },
     },
   ];
 }
