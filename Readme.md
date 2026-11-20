@@ -66,7 +66,7 @@ cd app && pnpm install && pnpm dev
 | 坡度通行 | `slope/world` z0–z5、`slope/world6` z6、`slope/europe` z7–z8、`slope/germany` z9–z11、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色（<3 / 3–8 / 8–15 / 15–25 / 25–35 / >35%），档间互斥（0/6/7/9）；**地势图默认开启** |
 | 等高线 | `contours_world` / `world_mid` / `asia_himal` / `zagros` / `andes` / `rockies` / `africa_rift` / `europe` / `germany` / `fulda` | **五级阶梯**：1000 m（z4–7 全球）/ 1000 m（z7–10 全球，挖掉下面 500 m 区）/ 500 m（z7–10：中欧 + 喜马拉雅 · 扎格罗斯 · 安第斯 · 落基山 · 东非裂谷）/ 200 m（z10–13 德国）/ 25 m（z13+ 富尔达）；计曲线 2–3× 粗 + 沿线上字；一档只画一套；烘焙按 `asinh(tan(lat))` 重采样成线性纬度网格 |
 | 分层设色 | `dem/*`（terrarium） | `color-relief` **彩色色阶**：绿（低地）→ 黄 → 橙 → 褐 → 雪线白，共 16 级；各档按自己的等高距取步长（world / world6 200/500/1000、europe 250/500/750、germany 100/200/300），地势图 0.88 不透明；水系面在设色之上 |
-| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷） |
+| 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷）；**z4–6 由 NE 1:10m 主干骨架补位**（`roads_world.json`，18,806 段 / 3.4 MB，z7 交瓦片） |
 | 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` z3–16 含枕木），**z1 起一路有铁路、缩小不会成片消失、德国之外放大到 z13+ 也还有线**（z12 后降到 0.35→0.25 透明）；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
 | 军用格网 | 运行时 UTM | 随缩放切 1/2/5/10/25/50 km |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
@@ -168,8 +168,9 @@ node Tools/bake_cities.mjs --pack=app/public/data/tiles/fulda.pmtiles --zoom=13 
 # 10) 设施气泡（机场 / 桥隧点位，判读组可开关）
 node Tools/bake_poi.mjs --zoom=12
 
-# 11) 全球铁路 / 机场 / 港口 / 城区面（Natural Earth 1:10m，一次性）
+# 11) 全球铁路 / 主干道路 / 机场 / 港口 / 城区面（Natural Earth 1:10m，一次性）
 python Tools/bake_ne_rails.py
+python Tools/bake_ne_roads.py
 python Tools/bake_ne_urban.py
 ```
 
@@ -210,6 +211,7 @@ python Tools/bake_ne_urban.py
 | `Tools/bake_cities.mjs` | 从 PMTiles 的 `places` 点烘城镇索引 |
 | `Tools/mvt.mjs` | 零依赖 MVT 解码（烘焙期用，zigzag 几何） |
 | `Tools/bake_rail.mjs` | 从区域包抽低倍铁路线（RDP 简化 + 去重） |
+| `Tools/bake_ne_roads.py` | 从 Natural Earth 1:10m 道路抽全球主干骨架（Major/Secondary，米制 300 m 容差） |
 | `Tools/bake_poi.mjs` | 从区域包抽机场/桥隧点位（设施气泡） |
 | `Tools/fetch_basemap.mjs` | 取 CLI → 裁 bbox 或全球 → 出 style / 字形 / index |
 | `Tools/add_region.mjs` | 一条命令新增区域：矢量裁剪 + 7 步烘焙 + 失败回滚 + manifest 登记 |

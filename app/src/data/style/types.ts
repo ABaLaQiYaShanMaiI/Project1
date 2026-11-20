@@ -54,6 +54,7 @@ export interface StyleInputs {
   railsWorldCoarse?: FC | null;
   urbanWorld?: FC | null;
   seaLabels?: FC | null;
+  roadsWorld?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
 }

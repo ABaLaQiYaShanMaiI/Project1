@@ -40,6 +40,9 @@ app/dist/data/zones.json
 *.log
 npm-debug.log*
 pnpm-debug.log*
+vite.err
+.edge-tmp/
+
 .DS_Store
 Thumbs.db
 desktop.ini

@@ -1964,3 +1964,18 @@ AWS Terrarium 恢复可访问后补的第一块全球地形：
   `symbol-sort-key` 让大洋先排，碰撞交给 MapLibre（同屏只留放得下的），归「地名标注」叶，两个图种都可见。
 - 接入：`docLoaders.seaLabelFc()` 把紧凑数组转 GeoJSON；`militaryStyle` 只在数据存在时建源与图层（缺失不报错）。
 - 复核：大西洋 z4 实拍「ATLANTIC OCEAN」大字距小号落在洋面，与底图国名/城市名不打架；z8 起自动退场；无 console 错误。
+
+### v1.79 全球低倍主干公路骨架：z4–6 不再只有铁路
+
+德国/富尔达之外，z4–6 一直只有 NE 铁路与等高线，公路要等到 z7（瓦片主路）。补一层 NE 主干骨架：
+
+- 新增 `roads_world.json`：NE 1:10m 的 **Major Highway 9,771 段 + Secondary Highway 9,035 段**（共 18,806 段 /
+  **3.40 MB**；米制 RDP 300 m；剔除 Road/Track/Ferry Route 等 37,823 段）。
+- 样式层 `road-world` / `road-world-casing`（`style/road.ts`）：z4–6，干线橙 / 主干米，与瓦片主路同色系；
+  z4 0.5 → z6 0.8 不透明，z7 交瓦片（同缩放不叠影）。归「主干公路」叶，随开关一起走。
+- 烘焙脚本 `Tools/bake_ne_roads.py`（与 `bake_ne_rails.py` 同款：米制投影 + RDP + 分段），
+  pyshp 已在 CONSTRAINTS §2 白名单内。
+- 顺带加固 `getJson()`：只有 `content-type` 含 `json` 才解析并缓存，404/HTML 不再被当数据缓存——
+  新增数据文件后不会「整层静默消失」。
+- 复核：z5 利比亚—埃及实拍可见沿海干线（的黎波里—班加西—托布鲁克—亚历山大）与开罗周边路网；
+  z7 交瓦片；check_all 全绿。

@@ -13,6 +13,8 @@ const NEW_IDS: Partial<Record<string, LayerKey>> = {
   'grid-minor': 'grid',
   'grid-major': 'grid',
   'sea-label': 'label',
+  'road-world': 'road',
+  'road-world-casing': 'road',
 };
 
 export function groupOf(id: string): LayerKey | null {

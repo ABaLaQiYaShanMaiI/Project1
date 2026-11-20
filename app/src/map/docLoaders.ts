@@ -7,10 +7,8 @@ export async function getJson<T>(url: string): Promise<T | null> {
   if (jsonCache.has(url)) return (jsonCache.get(url) as T | null) ?? null;
   try {
     const res = await fetch(url, { cache: 'force-cache' });
-    if (!res.ok) {
-      jsonCache.set(url, null);
-      return null;
-    }
+    const type = res.headers.get('content-type') ?? '';
+    if (!res.ok || !type.includes('json')) return null;
     const doc = (await res.json()) as T;
     jsonCache.set(url, doc);
     return doc;
@@ -42,6 +40,35 @@ export interface PoiDoc {
 
 export interface SeaDoc {
   points?: Array<[number, number, string, number]>;
+}
+
+export interface RoadsWorldDoc {
+  lines?: [number, number][][];
+  cls?: number[];
+}
+
+export function poiFc(points: Array<{ o: number; l: number; k: string }>): FC | null {
+  if (!points.length) return null;
+  return {
+    type: 'FeatureCollection',
+    features: points.map((p) => ({
+      type: 'Feature',
+      properties: { k: p.k },
+      geometry: { type: 'Point', coordinates: [p.o, p.l] },
+    })),
+  } as unknown as FC;
+}
+
+export function roadsWorldFc(doc: RoadsWorldDoc | null): FC | null {
+  if (!doc?.lines?.length) return null;
+  return {
+    type: 'FeatureCollection',
+    features: doc.lines.map((line, i) => ({
+      type: 'Feature',
+      properties: { c: doc.cls?.[i] ?? 2 },
+      geometry: { type: 'LineString', coordinates: line },
+    })),
+  } as unknown as FC;
 }
 
 export function seaLabelFc(doc: SeaDoc | null): FC | null {

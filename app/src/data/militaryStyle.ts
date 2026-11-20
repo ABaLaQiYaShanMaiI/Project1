@@ -6,6 +6,7 @@ import { railsOf, railLowLayers, railWorldLayers } from './style/rail';
 import { contourLayers } from './style/contour';
 import { reliefTintLayer } from './style/relief';
 import { gridLayers, ringLayers, poiLayers, seaLabelLayers, urbanWorldLayers } from './style/overlay';
+import { roadWorldLayers } from './style/road';
 import type { StyleInputs } from './style/types';
 
 export type { ContourBand, ContourDoc } from './style/contour';
@@ -89,6 +90,9 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   }
   if (inp.seaLabels) {
     sources['sea-labels'] = { type: 'geojson', data: inp.seaLabels };
+  }
+  if (inp.roadsWorld) {
+    sources['roads-world'] = { type: 'geojson', data: inp.roadsWorld };
   }
   if (inp.railsWorldFine) {
     sources['rails-world-fine'] = { type: 'geojson', data: inp.railsWorldFine };
@@ -189,6 +193,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (densityLayers.length) out.push(...densityLayers);
 
   if (inp.seaLabels) out.push(...seaLabelLayers());
+  if (inp.roadsWorld) out.push(...roadWorldLayers());
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
 
   const seen = new Set<string>();
