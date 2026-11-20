@@ -69,7 +69,7 @@ cd app && pnpm install && pnpm dev
 | 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷）；**z4–6 由 NE 1:10m 主干骨架补位**（`roads_world.json`，18,806 段 / 3.4 MB，z7 交瓦片） |
 | 河流（低倍） | `rivers_world.json` | NE 1:10m 河网（River + Lake Centerline，2,252 段 / 3.05 MB），**z3–8 补位**（底图河流 z9 才出现）；按 scalerank 分三档线宽，z9 交瓦片 |
 
-| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` **z3–17 满不透明**，与瓦片铁路同三层同宽度），**z1 起一路有铁路、缩小不会成片消失、放大到 z17 也不变淡**；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
+| 铁路 | `rails_fulda.json` + `rails_germany.json` + 底图 `roads:kind=rail` | **陆路交通核心**：墨色实线 + 白色枕木，压所有公路之上；z3–11 用烘焙层（germany 全境 + fulda 细档，合并时细包让位），z11 起用瓦片；NE 全球层分两档（`rails_world_coarse` z1–3 无光晕 / `rails_world_fine` **z3–17 满不透明**，与瓦片铁路同三层同宽度），**z1 起一路有铁路、缩小不会成片消失、放大到 z17 也不变淡**；NE 细档按端点串联 + 400 m 桥接重烘（8,411 段 / 平均 21 点），并画在等高线之上；NE 裁剪只按真有 `rails_<key>.json` 的区域包 |
 | 军用格网 | 运行时 UTM / 经纬网 | **z≥7** 单带 UTM（1/2/5/10/25/50/100/200/500/1000 km 自适应），线端标注里程 km、左上注带号（如 `32U`）；**z<7** 切经纬网（1/2/5/10/15/30°），边注 `45°N` / `15°E`；归「格网」叶 |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |

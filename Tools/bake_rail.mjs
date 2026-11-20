@@ -66,10 +66,19 @@ const archive = new PMTiles(new FileSource(await openAsBlob(PACK)));
 const head = await archive.getHeader();
 const z = ZOOM;
 const n = 2 ** z;
-const tx0 = Math.max(0, Math.floor(((head.minLon + 180) / 360) * n));
-const tx1 = Math.min(n - 1, Math.floor(((head.maxLon + 180) / 360) * n));
-const ty0 = Math.max(0, Math.floor(((1 - Math.log(Math.tan((head.maxLat * Math.PI) / 180) + 1 / Math.cos((head.maxLat * Math.PI) / 180)) / Math.PI) / 2) * n));
-const ty1 = Math.min(n - 1, Math.floor(((1 - Math.log(Math.tan((head.minLat * Math.PI) / 180) + 1 / Math.cos((head.minLat * Math.PI) / 180)) / Math.PI) / 2) * n));
+const BOX = arg('bbox', '');
+const mercY = (lat) => (1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2;
+let tx0 = Math.max(0, Math.floor(((head.minLon + 180) / 360) * n));
+let tx1 = Math.min(n - 1, Math.floor(((head.maxLon + 180) / 360) * n));
+let ty0 = Math.max(0, Math.floor(mercY(head.maxLat) * n));
+let ty1 = Math.min(n - 1, Math.floor(mercY(head.minLat) * n));
+if (BOX) {
+  const [w, s, e, nb] = BOX.split(',').map(Number);
+  tx0 = Math.max(tx0, Math.floor(((w + 180) / 360) * n));
+  tx1 = Math.min(tx1, Math.floor(((e + 180) / 360) * n));
+  ty0 = Math.max(ty0, Math.floor(mercY(nb) * n));
+  ty1 = Math.min(ty1, Math.floor(mercY(s) * n));
+}
 
 const seen = new Set();
 const raw = [];

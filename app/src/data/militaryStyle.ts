@@ -215,7 +215,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     if (id === 'background') return 0;
     if (type === 'fill' || type === 'raster' || type === 'hillshade' || type === 'color-relief') return 1;
     if (type === 'line') {
-      if (id.includes('rail')) return 6;
+      if (id.includes('rail')) return 7.2;
       if (id.startsWith('boundaries')) return 3;
       if (id.startsWith('river')) return 3.5;
       if (id.startsWith('grid')) return 8;
