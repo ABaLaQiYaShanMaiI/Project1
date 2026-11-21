@@ -143,7 +143,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   sources.rings = { type: 'geojson', data: { type: 'FeatureCollection', features: [] } };
   sources.poi = { type: 'geojson', data: inp.poi ?? { type: 'FeatureCollection', features: [] } };
 
-  const contours = inp.contours ? contourLayers() : [];
+  const contours = inp.contours ? contourLayers(inp.contourBandIds) : [];
 
   let reliefPlaced = false;
   let slopePlaced = false;

@@ -50,6 +50,7 @@ export interface StyleInputs {
   slopeTiers?: SlopeTier[];
   densityTiers?: DensityTier[];
   contours?: FC | null;
+  contourBandIds?: number[];
   railsLow?: FC | null;
   railsWorldFine?: FC | null;
   railsWorldCoarse?: FC | null;

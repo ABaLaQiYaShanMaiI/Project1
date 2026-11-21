@@ -2267,12 +2267,14 @@ v1.77 只有 5 条山系 + 中欧有 500 m 档。这一轮用本地 `dem/world6`
   | 指标 | 前 | 后 |
   | --- | --- | --- |
   | 样式体积 | 43.1 / 38.4 / 29.4 MB | **21.6 / 8.0 / 8.0 MB** |
-  | style 层数 | 521 / 447 / 306 | **511 / 364 / 227** |
-  | 启动（dev） | 8.1 s | **5.8 s** |
+  | style 层数 | 521 / 447 / 306 | **445 / 364 / 227** |
+  | 启动（dev / 生产） | 8.1 s / — | **5.8 s / 4.6 s** |
+  | 交互 FPS（生产） | — | **58.7** |
 
   - 200 个区的启动 HEAD 校验全部删除（直接信任 `tiles/index.json`）；
   - 全球 GeoJSON 按缩放门控：roadsWorld ≤7、rivers/seaLabels ≤9、urban ≤10、rails coarse ≤4；
-  - 等高线改成「bbox + 当前缩放」双条件，z13 富尔达只装 germany + fulda 两档；
+  - 等高线改成「bbox + 当前缩放」双条件，且**只为活跃档生成图层**（z13 富尔达只剩 germany+fulda 两档，
+    比全量 57 层省 51 层）；
   - 核心包 tier 跳过 earth/landcover/places_region/country；
   - `store.layerRev` 把可见性与图种拆成两个 effect，FPS 每秒更新不再扫全图层；
   - `groupOf()` 加缓存。

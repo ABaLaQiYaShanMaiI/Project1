@@ -377,6 +377,7 @@ export function WorldMapLibre(): JSX.Element {
         slopeTiers,
         densityTiers,
         contours,
+        contourBandIds: activeBands.map((a) => a.i),
         railsLow,
         grid: { type: 'FeatureCollection', features: [...grid.lines, ...grid.labels] } as unknown as FC,
         poi,

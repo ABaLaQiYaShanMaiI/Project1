@@ -67,9 +67,12 @@ function bandFilter(band: number, bold: number | null): unknown {
   return f;
 }
 
-export function contourLayers(): Record<string, unknown>[] {
+export function contourLayers(active?: number[]): Record<string, unknown>[] {
   const out: Record<string, unknown>[] = [];
-  CONTOUR_BANDS.forEach((b, i) => {
+  const order = active ?? CONTOUR_BANDS.map((_, i) => i);
+  for (const i of order) {
+    const b = CONTOUR_BANDS[i];
+    if (!b) continue;
     out.push({
       id: `contour-${b.key}`,
       type: 'line',
@@ -139,7 +142,7 @@ export function contourLayers(): Record<string, unknown>[] {
         paint: { 'text-color': CONTOUR_LABEL_ALL_INK, 'text-halo-color': CONTOUR_LABEL_ALL_HALO, 'text-halo-width': 1.5 },
       });
     }
-  });
+  }
   return out;
 }
 
