@@ -23,6 +23,7 @@ const BBOX = arg('bbox', '');
 const SOURCE = arg('source', 'E:/PersonalGame/v4.pmtiles');
 const PY = arg('python', 'python');
 const FORCE = process.argv.includes('--force') || arg('force', '') === '1';
+const FAST = process.argv.includes('--fast');
 const USAGE =
   '用法: node Tools/add_country.mjs --key=austria --label=奥地利 --label-en=Austria --bbox=9.5,46.3,17.2,49.1 [--source=E:/PersonalGame/v4.pmtiles] [--python=python] [--force]';
 
@@ -77,18 +78,19 @@ try {
     console.log(`\n=== extract z11-12 ${KEY} ===`);
     run(BIN, ['extract', SOURCE, PACK, `--bbox=${BBOX}`, '--minzoom=11', '--maxzoom=12']);
   }
-  console.log(`\n=== rail / poi ${KEY} ===`);
-  run(process.execPath, [
-    'Tools/bake_region.mjs',
-    `--key=${KEY}`,
-    `--bbox=${BBOX}`,
-    '--zmax=12',
-    '--skip=dem,contours,slope,cities',
-    `--python=${PY}`,
-  ]);
-  console.log(`\n=== cities ${KEY} ===`);
-  run(process.execPath, ['Tools/bake_cities.mjs', `--pack=${PACK}`, '--zoom=12', '--kinds=city,town,village', `--out=${CITIES}`]);
-  const ladder = [
+  if (!FAST) {
+    console.log(`\n=== rail / poi ${KEY} ===`);
+    run(process.execPath, [
+      'Tools/bake_region.mjs',
+      `--key=${KEY}`,
+      `--bbox=${BBOX}`,
+      '--zmax=12',
+      '--skip=dem,contours,slope,cities',
+      `--python=${PY}`,
+    ]);
+    console.log(`\n=== cities ${KEY} ===`);
+    run(process.execPath, ['Tools/bake_cities.mjs', `--pack=${PACK}`, '--zoom=12', '--kinds=city,town,village', `--out=${CITIES}`]);
+    const ladder = [
     [0.00015, 1200],
     [0.0003, 1600],
     [0.0006, 2400],
@@ -115,6 +117,7 @@ try {
       doc.lines = doc.lines.map((line) => line.map(([x, y]) => [q(x), q(y)]));
       writeFileSync(RAILS, JSON.stringify(doc), 'utf8');
     }
+  }
   }
 } catch (e) {
   rollback();
@@ -160,7 +163,7 @@ const entries = [
   { path: `rails_${KEY}_low.json`, file: RAILS_LOW },
   { path: `poi_${KEY}.json`, file: POI },
   { path: `cities_${KEY}.json`, file: CITIES },
-];
+].filter((e) => existsSync(e.file));
 manifest = manifest.filter((m) => m.name !== KEY);
 manifest.push({
   name: KEY,

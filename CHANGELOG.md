@@ -2236,3 +2236,23 @@ v1.77 只有 5 条山系 + 中欧有 500 m 档。这一轮用本地 `dem/world6`
   `Tools/add_country.mjs` 的兜底改为「容差阶梯（5 档）+ 坐标量化」两级，后续国家自动处理。
 - 西班牙 3.83 MB、意大利经阶梯后 3.0 MB、葡萄牙无需处理。
 - 校验：check_all **9/9**（133 个 JSON，最大 3.83 MB）；法/西/葡/意 4 条台账逐一一致。
+
+### v1.95 全球国家包：目录、批量构建器、美术重建器
+
+目标从「13 国」改成「全球任一位置都有 z11–12 细节」，因此把国家包做成流水线：
+
+- **`Tools/build_catalog.mjs`** → `Tools/country_catalog.json`：从 Natural Earth 110m 生成
+  **200 片**（177 国，最大陆块 bbox；>6M km² 自动切 2–4 片：`china_1..4` / `russia_1..4` /
+  `united_states_1..4` / `canada_1..4` / `brazil_1..4` / `australia_1..4` 等）；别名表把
+  `people_s_republic_of_china` 之类的官方全名收敛成 `china` / `united_states` / `dr_congo` 等。
+- **`Tools/build_world.mjs`**：按目录顺序（欧洲 → 亚洲 → 北美 → 南美 → 非洲 → 大洋洲）批量调用
+  `add_country`，**断点续跑**（已存在的包跳过），预算守卫（默认 100 GB，保留 3 GB）。
+- **`Tools/art_refresh.mjs`**：只重烘「烘焙时着色」的派生素材——全量 slope（约 40 s）+ 每个
+  城市 core 的 density（每城数秒），**不触碰任何 pmtiles**。美术打磨走这条路。
+- **CONSTRAINTS §2 放开**：底图单包 6 → **12 GB**、总量 12 → **100 GB**（DEM 仍 1 GB）；
+  需要约 100 GB 磁盘余量。
+- 命名固定英文 slug（`france.pmtiles` / `rails_france.json` / `poi_france.json` / `cities_france.json`），
+  中英文只影响 `index.json` 的 `name` / `name_en`，换语言不重命名文件。
+
+**返工边界**：加国家 = 一条命令；改配色/线型 = 改 `tokens.ts`，零数据重烘；改坡度/密度配色 =
+`art_refresh.mjs` 数十秒；只有改「数据规格」（图层属性、缩放档、bbox）才需要重切国家包。

@@ -12,7 +12,7 @@ L0 全球      tiles/world.pmtiles      z0-z6    42 MB     全世界始终有图
 L1 全球 z7-8  tiles/world8.pmtiles     z7-z8    476 MB    村镇级标注与路网
 L1b 全球 z9-10 tiles/world9.pmtiles     z9-z10   3.0 GB    街区级路网与更密地名
 L2 热点      tiles/fulda.pmtiles      z0-z13   42 MB     战术尺度
-L2b 国家     tiles/<country>.pmtiles z11-z12  3.03 GB   13 国：上述九国 + 法/西/葡/意
+L2b 国家     tiles/<country>.pmtiles z11-z12  目标 ≤100 GB  全球 200 片（目录见 Tools/country_catalog.json）
 L3 城区核心  tiles/<city>_core.pmtiles z14-z15 118 MB   13 城真实建筑
 地形        dem/world z0-z5（86 MB） + dem/world6 z6（约 200 MB） + dem/europe z6-z9（151 MB） + dem/germany z9-z11（520 MB）
 坡度        slope/world z0-z5（3.6 MB） + slope/world6 z6（约 6 MB） + slope/europe z6-z9（9.2 MB） + slope/germany z9-z11（35 MB）
@@ -29,9 +29,22 @@ dem/europe 与 slope/europe 的瓦片目录由 dem/world8 / slope/world8 的清�
 **四档的 `from` 必须互不相同**：早期 world 与 europe 都从 6 起，`styleMax` 公式会给两档都放开到 22，叠画出灰底；
 v1.75 起 z6 交给 world6、europe 从 7 接管（europe 瓦片本身是 z6–8，从 7 起不损失原生分辨率）。
 z9–10 用 germany 的原生 z9–10 瓦片（此前是全球 z5 的 16–32 倍 overzoom）。
+**国家包约定（v1.95）**：目录由 `Tools/build_catalog.mjs` 从 Natural Earth 110m 生成
+（`Tools/country_catalog.json`，**200 片**）：取每国**最大陆块**的 bbox（海外属地不计），
+bbox 面积 > 6M km² 的国家按经度切 2–4 片（`china_1..4` / `russia_1..4` / `united_states_1..4` …）。
+构建走 `node Tools/build_world.mjs [--limit-gb=100] [--only=Europe] [--count=N]`，**断点续跑**（已存在的包跳过）。
+命名固定 `<key>.pmtiles` + `rails_<key>.json` + `poi_<key>.json` + `cities_<key>.json`（英文 slug，不随语言变）。
+预算：单包 ≤ 12 GB、总量 ≤ 100 GB；国家包**不带 DEM/等高线**——地形由 europe z9 兜底
+（要原生 z9–11 得另立 DEM 预算）。矩形 bbox 会在边境多加载空 tier，属已知取舍。
+
+**美术改动的影响面（v1.95）**：颜色/线型/字重全在 `data/style/tokens.ts` 与底图样式模板，
+改完热更新即可，**不碰任何数据包**；坡度/密度这类「烘焙时着色」的派生素材用
+`node Tools/art_refresh.mjs` 重烘（slope 全量约 40 s，density 每城数秒），仍不需要重切国家包。
+只有改「数据规格」（图层属性、缩放档位、bbox）才需要重烘国家包。
+
+
 
 装配规则（`data/pmtilesBasemap.ts`）：
-
 - `zonesAt(zones, lon, lat)` 取**命中该坐标的全部区域包**，加上全部全球包，按 `maxzoom` 升序
   （并列时 `minzoom` 大者在前——germany13 先于富尔达接管 z13，fulda_core 从 z14 接管）；
 - `tierBands()` 给每层分配接管区间：**后一层的 `styleMin` = 前一层的 `maxzoom + 1`**；

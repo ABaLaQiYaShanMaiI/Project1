@@ -1207,5 +1207,4655 @@
     "bytes": 980621
    }
   ]
+ },
+ {
+  "name": "russia_1",
+  "label": "俄罗斯·1",
+  "bbox": [
+   27.138,
+   41.001,
+   65.391,
+   77.848
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=russia_1 --label=\"俄罗斯·1\" --label-en=\"Russia (1/4)\" --bbox=27.138,41.001,65.391,77.848",
+  "recordedAt": "2026-11-21 04:50",
+  "products": [
+   {
+    "path": "tiles/russia_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:10f0d2b18f1025288cf22733e29e263411413303386eb91a316302fea3d65e4e",
+    "bytes": 1322200510
+   }
+  ]
+ },
+ {
+  "name": "russia_2",
+  "label": "俄罗斯·2",
+  "bbox": [
+   65.391,
+   41.001,
+   103.644,
+   77.848
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=russia_2 --label=\"俄罗斯·2\" --label-en=\"Russia (2/4)\" --bbox=65.391,41.001,103.644,77.848",
+  "recordedAt": "2026-11-21 04:51",
+  "products": [
+   {
+    "path": "tiles/russia_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:0a672c575c0dcf943e2ca93eb49d7b1c6781942e0ff9e13ddf2ad1eb7893b52b",
+    "bytes": 361264063
+   }
+  ]
+ },
+ {
+  "name": "russia_3",
+  "label": "俄罗斯·3",
+  "bbox": [
+   103.644,
+   41.001,
+   141.897,
+   77.848
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=russia_3 --label=\"俄罗斯·3\" --label-en=\"Russia (3/4)\" --bbox=103.644,41.001,141.897,77.848",
+  "recordedAt": "2026-11-21 04:51",
+  "products": [
+   {
+    "path": "tiles/russia_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c284bbac733cc26f71f39cfbead6eff05e9d28b6adc255086202e31b0d8c285f",
+    "bytes": 242719662
+   }
+  ]
+ },
+ {
+  "name": "russia_4",
+  "label": "俄罗斯·4",
+  "bbox": [
+   141.897,
+   41.001,
+   180.15,
+   77.848
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=russia_4 --label=\"俄罗斯·4\" --label-en=\"Russia (4/4)\" --bbox=141.897,41.001,180.15,77.848",
+  "recordedAt": "2026-11-21 04:52",
+  "products": [
+   {
+    "path": "tiles/russia_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:fa2410450764132496c7d85e597c07ff2e0af7e1064b132e3e70e9f86baf0b3e",
+    "bytes": 112653926
+   }
+  ]
+ },
+ {
+  "name": "norway",
+  "label": "挪威",
+  "bbox": [
+   4.842,
+   57.929,
+   31.443,
+   71.335
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=norway --label=\"挪威\" --label-en=\"Norway\" --bbox=4.842,57.929,31.443,71.335",
+  "recordedAt": "2026-11-21 04:53",
+  "products": [
+   {
+    "path": "tiles/norway.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:80d14a1cba7835d3fe386c9d7781c0c66176f7062170075b9b8d458d2309b670",
+    "bytes": 866430495
+   }
+  ]
+ },
+ {
+  "name": "ukraine",
+  "label": "乌克兰",
+  "bbox": [
+   21.936,
+   45.143,
+   40.231,
+   52.485
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=ukraine --label=\"乌克兰\" --label-en=\"Ukraine\" --bbox=21.936,45.143,40.231,52.485",
+  "recordedAt": "2026-11-21 04:54",
+  "products": [
+   {
+    "path": "tiles/ukraine.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7356b2f98b5caea6917702997221cc61b38d04797d4b84ce66fee27b56ed56b4",
+    "bytes": 420136246
+   }
+  ]
+ },
+ {
+  "name": "sweden",
+  "label": "瑞典",
+  "bbox": [
+   10.877,
+   55.212,
+   24.053,
+   69.256
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=sweden --label=\"瑞典\" --label-en=\"Sweden\" --bbox=10.877,55.212,24.053,69.256",
+  "recordedAt": "2026-11-21 04:54",
+  "products": [
+   {
+    "path": "tiles/sweden.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2e9369eb98fe5221af00e6522d4483479f97f7a982081893daa9536d99018bcb",
+    "bytes": 508748113
+   }
+  ]
+ },
+ {
+  "name": "finland",
+  "label": "芬兰",
+  "bbox": [
+   20.496,
+   59.696,
+   31.666,
+   70.314
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=finland --label=\"芬兰\" --label-en=\"Finland\" --bbox=20.496,59.696,31.666,70.314",
+  "recordedAt": "2026-11-21 04:55",
+  "products": [
+   {
+    "path": "tiles/finland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e2196944beb656091f2dfc2331c57d40acf6f181bd7a91abe4e967dfacc88364",
+    "bytes": 308404256
+   }
+  ]
+ },
+ {
+  "name": "united_kingdom",
+  "label": "英国",
+  "bbox": [
+   -6.3,
+   49.81,
+   1.832,
+   58.785
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=united_kingdom --label=\"英国\" --label-en=\"United Kingdom\" --bbox=-6.3,49.81,1.832,58.785",
+  "recordedAt": "2026-11-21 04:55",
+  "products": [
+   {
+    "path": "tiles/united_kingdom.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3a271cbb6b73760a805ef728c88dc73601387f5afe6af281fbfbfe36620ab5f6",
+    "bytes": 239058888
+   }
+  ]
+ },
+ {
+  "name": "romania",
+  "label": "罗马尼亚",
+  "bbox": [
+   20.07,
+   43.538,
+   29.777,
+   48.371
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=romania --label=\"罗马尼亚\" --label-en=\"Romania\" --bbox=20.07,43.538,29.777,48.371",
+  "recordedAt": "2026-11-21 04:56",
+  "products": [
+   {
+    "path": "tiles/romania.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d1448b0e764d4a4bd5f174cedeced6ef848090f2a2941bbb370093175748a13b",
+    "bytes": 146157461
+   }
+  ]
+ },
+ {
+  "name": "greece",
+  "label": "希腊",
+  "bbox": [
+   20,
+   36.26,
+   26.754,
+   41.977
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=greece --label=\"希腊\" --label-en=\"Greece\" --bbox=20,36.26,26.754,41.977",
+  "recordedAt": "2026-11-21 04:56",
+  "products": [
+   {
+    "path": "tiles/greece.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:cc9c747ac8904eda96e7a32120642177cce4d9dd3c297a7db46997348361a8e3",
+    "bytes": 68262382
+   }
+  ]
+ },
+ {
+  "name": "belarus",
+  "label": "白俄罗斯",
+  "bbox": [
+   23.049,
+   51.17,
+   32.844,
+   56.319
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=belarus --label=\"白俄罗斯\" --label-en=\"Belarus\" --bbox=23.049,51.17,32.844,56.319",
+  "recordedAt": "2026-11-21 04:56",
+  "products": [
+   {
+    "path": "tiles/belarus.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:35f63264718bb6394b7da6841f0f03791d881c0d1dc8ed2a481a7eed70dc4bf0",
+    "bytes": 171592892
+   }
+  ]
+ },
+ {
+  "name": "croatia",
+  "label": "克罗地亚",
+  "bbox": [
+   13.507,
+   42.33,
+   19.54,
+   46.654
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=croatia --label=\"克罗地亚\" --label-en=\"Croatia\" --bbox=13.507,42.33,19.54,46.654",
+  "recordedAt": "2026-11-21 04:56",
+  "products": [
+   {
+    "path": "tiles/croatia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:dd38ba22a06b626fb715a4bddb9aee7562a955b66e71884464b3757748975ac9",
+    "bytes": 159616995
+   }
+  ]
+ },
+ {
+  "name": "bulgaria",
+  "label": "保加利亚",
+  "bbox": [
+   22.231,
+   41.084,
+   28.708,
+   44.385
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=bulgaria --label=\"保加利亚\" --label-en=\"Bulgaria\" --bbox=22.231,41.084,28.708,44.385",
+  "recordedAt": "2026-11-21 04:56",
+  "products": [
+   {
+    "path": "tiles/bulgaria.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:4529ada1ad0788b30c602e2f763341a0a4a044aee872174cba36f5ee579d9e4c",
+    "bytes": 62206977
+   }
+  ]
+ },
+ {
+  "name": "iceland",
+  "label": "冰岛",
+  "bbox": [
+   -24.476,
+   63.346,
+   -13.46,
+   66.677
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=iceland --label=\"冰岛\" --label-en=\"Iceland\" --bbox=-24.476,63.346,-13.46,66.677",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/iceland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ef21f8f1864204c481d7c7edb8e2aa9763fd29e87496587a6ca00131dafa35fa",
+    "bytes": 34535300
+   }
+  ]
+ },
+ {
+  "name": "serbia",
+  "label": "塞尔维亚",
+  "bbox": [
+   18.68,
+   42.095,
+   23.136,
+   46.322
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=serbia --label=\"塞尔维亚\" --label-en=\"Serbia\" --bbox=18.68,42.095,23.136,46.322",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/serbia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6d723b365872bb68410bccd7b067bd6a0dedb5e9ebdfb6cda761b1b260c0bd02",
+    "bytes": 78343725
+   }
+  ]
+ },
+ {
+  "name": "latvia",
+  "label": "拉脱维亚",
+  "bbox": [
+   20.906,
+   55.465,
+   28.327,
+   58.12
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=latvia --label=\"拉脱维亚\" --label-en=\"Latvia\" --bbox=20.906,55.465,28.327,58.12",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/latvia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b3a069eabc78c136d7313f93a779ac159307ba49aab1ea05448438a6de7a32b9",
+    "bytes": 62804773
+   }
+  ]
+ },
+ {
+  "name": "ireland",
+  "label": "爱尔兰",
+  "bbox": [
+   -10.127,
+   51.519,
+   -5.883,
+   55.282
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=ireland --label=\"爱尔兰\" --label-en=\"Ireland\" --bbox=-10.127,51.519,-5.883,55.282",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/ireland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2a60b1f92837edaffdf099ba117c10c35c970e8456d62c04e5873f53a92767ec",
+    "bytes": 53149868
+   }
+  ]
+ },
+ {
+  "name": "lithuania",
+  "label": "立陶宛",
+  "bbox": [
+   20.906,
+   53.756,
+   26.738,
+   56.523
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=lithuania --label=\"立陶宛\" --label-en=\"Lithuania\" --bbox=20.906,53.756,26.738,56.523",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/lithuania.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f51d37a45b7482f06861377aa2b88cb61b665aded544d0b79c239232399379b5",
+    "bytes": 76766028
+   }
+  ]
+ },
+ {
+  "name": "bosnia_and_herzegovina",
+  "label": "波斯尼亚和黑塞哥维那",
+  "bbox": [
+   15.6,
+   42.5,
+   19.75,
+   45.384
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=bosnia_and_herzegovina --label=\"波斯尼亚和黑塞哥维那\" --label-en=\"Bosnia and Herzegovina\" --bbox=15.6,42.5,19.75,45.384",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/bosnia_and_herzegovina.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:4be524f68502c1cde8552cdb47f354f3f519d7450c4e05f1e5b414487ee65aff",
+    "bytes": 68422993
+   }
+  ]
+ },
+ {
+  "name": "moldova",
+  "label": "摩尔多瓦",
+  "bbox": [
+   26.469,
+   45.338,
+   30.175,
+   48.617
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=moldova --label=\"摩尔多瓦\" --label-en=\"Moldova\" --bbox=26.469,45.338,30.175,48.617",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/moldova.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:cd2f36115c7d179fe947034f1b8dd07298f822fe007d3836b056947777e1aa9c",
+    "bytes": 36623071
+   }
+  ]
+ },
+ {
+  "name": "estonia",
+  "label": "爱沙尼亚",
+  "bbox": [
+   23.19,
+   57.325,
+   28.282,
+   59.761
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=estonia --label=\"爱沙尼亚\" --label-en=\"Estonia\" --bbox=23.19,57.325,28.282,59.761",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/estonia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:daf3de0757d4b2dbbd65f92b417d6158df90910a195df5332d13d3d65daa7199",
+    "bytes": 30535300
+   }
+  ]
+ },
+ {
+  "name": "albania",
+  "label": "阿尔巴尼亚",
+  "bbox": [
+   19.154,
+   39.475,
+   21.17,
+   42.838
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=albania --label=\"阿尔巴尼亚\" --label-en=\"Albania\" --bbox=19.154,39.475,21.17,42.838",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/albania.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:da9dee6695aa58609abf79e93703fb76beea194c37648e5058638e221d1f9da9",
+    "bytes": 20071254
+   }
+  ]
+ },
+ {
+  "name": "slovenia",
+  "label": "斯洛文尼亚",
+  "bbox": [
+   13.548,
+   45.302,
+   16.715,
+   47.002
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=slovenia --label=\"斯洛文尼亚\" --label-en=\"Slovenia\" --bbox=13.548,45.302,16.715,47.002",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/slovenia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f3564c3468777bb88216cf76a4206e54675a1c68851c55ec7237bd2fc92b781b",
+    "bytes": 80584025
+   }
+  ]
+ },
+ {
+  "name": "north_macedonia",
+  "label": "北马其顿",
+  "bbox": [
+   20.313,
+   40.693,
+   23.102,
+   42.47
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=north_macedonia --label=\"北马其顿\" --label-en=\"North Macedonia\" --bbox=20.313,40.693,23.102,42.47",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/north_macedonia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c681d60f3e8dd45557916bcc828ae7e2c01db91f743f10371d6007cb5565a8c7",
+    "bytes": 15913996
+   }
+  ]
+ },
+ {
+  "name": "montenegro",
+  "label": "黑山",
+  "bbox": [
+   18.3,
+   41.728,
+   20.49,
+   43.674
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=montenegro --label=\"黑山\" --label-en=\"Montenegro\" --bbox=18.3,41.728,20.49,43.674",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/montenegro.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b2091c002fd83ce5669832f5029a2362c1e3283e7c4e00ed3f8027cd771b645a",
+    "bytes": 18087689
+   }
+  ]
+ },
+ {
+  "name": "kosovo",
+  "label": "科索沃",
+  "bbox": [
+   19.921,
+   41.697,
+   21.925,
+   43.422
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=kosovo --label=\"科索沃\" --label-en=\"Kosovo\" --bbox=19.921,41.697,21.925,43.422",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/kosovo.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:23d3c47ffcf1ece154a8f7721dd64b207de0f7e195344e54d274cf0841b15c14",
+    "bytes": 13649457
+   }
+  ]
+ },
+ {
+  "name": "luxembourg",
+  "label": "卢森堡",
+  "bbox": [
+   5.524,
+   49.293,
+   6.393,
+   50.278
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=luxembourg --label=\"卢森堡\" --label-en=\"Luxembourg\" --bbox=5.524,49.293,6.393,50.278",
+  "recordedAt": "2026-11-21 04:57",
+  "products": [
+   {
+    "path": "tiles/luxembourg.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ffe8e8357354d20da12b06239cba7e10a56365d8cc77eeb3f0e9008847a93357",
+    "bytes": 16191372
+   }
+  ]
+ },
+ {
+  "name": "kazakhstan",
+  "label": "哈萨克斯坦",
+  "bbox": [
+   46.316,
+   40.512,
+   87.51,
+   55.535
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=kazakhstan --label=\"哈萨克斯坦\" --label-en=\"Kazakhstan\" --bbox=46.316,40.512,87.51,55.535",
+  "recordedAt": "2026-11-21 04:58",
+  "products": [
+   {
+    "path": "tiles/kazakhstan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:8a4d5330328ff4bafed1f988c55fc099d7a8428b8e69aa27779a7902ac9017f6",
+    "bytes": 299965539
+   }
+  ]
+ },
+ {
+  "name": "china_1",
+  "label": "中华人民共和国·1",
+  "bbox": [
+   73.525,
+   20.132,
+   88.938,
+   53.609
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=china_1 --label=\"中华人民共和国·1\" --label-en=\"People's Republic of China (1/4)\" --bbox=73.525,20.132,88.938,53.609",
+  "recordedAt": "2026-11-21 04:59",
+  "products": [
+   {
+    "path": "tiles/china_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:9eae0f486c499a5b22f6e68511993a189ef70df811b642be59a718e548dcb98a",
+    "bytes": 350433501
+   }
+  ]
+ },
+ {
+  "name": "china_2",
+  "label": "中华人民共和国·2",
+  "bbox": [
+   88.938,
+   20.132,
+   104.351,
+   53.609
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=china_2 --label=\"中华人民共和国·2\" --label-en=\"People's Republic of China (2/4)\" --bbox=88.938,20.132,104.351,53.609",
+  "recordedAt": "2026-11-21 04:59",
+  "products": [
+   {
+    "path": "tiles/china_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:10eacb257dba7128b9fb610138dbe0a84d2d683bdbfa90ec2c1e26bfbbfd80bb",
+    "bytes": 193073419
+   }
+  ]
+ },
+ {
+  "name": "china_3",
+  "label": "中华人民共和国·3",
+  "bbox": [
+   104.351,
+   20.132,
+   119.764,
+   53.609
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=china_3 --label=\"中华人民共和国·3\" --label-en=\"People's Republic of China (3/4)\" --bbox=104.351,20.132,119.764,53.609",
+  "recordedAt": "2026-11-21 05:00",
+  "products": [
+   {
+    "path": "tiles/china_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:413a60e0dbab03f7f8bddfa3bd6a35aacb21d713541785999598fb2b36f84a95",
+    "bytes": 408618986
+   }
+  ]
+ },
+ {
+  "name": "china_4",
+  "label": "中华人民共和国·4",
+  "bbox": [
+   119.764,
+   20.132,
+   135.176,
+   53.609
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=china_4 --label=\"中华人民共和国·4\" --label-en=\"People's Republic of China (4/4)\" --bbox=119.764,20.132,135.176,53.609",
+  "recordedAt": "2026-11-21 05:00",
+  "products": [
+   {
+    "path": "tiles/china_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e805a97dac9df153c9a543ecbcbf5f305b2463b7364d6d87fd8485785b8f8264",
+    "bytes": 285047127
+   }
+  ]
+ },
+ {
+  "name": "saudi_arabia",
+  "label": "沙特阿拉伯",
+  "bbox": [
+   34.482,
+   16.198,
+   55.817,
+   32.311
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=saudi_arabia --label=\"沙特阿拉伯\" --label-en=\"Saudi Arabia\" --bbox=34.482,16.198,55.817,32.311",
+  "recordedAt": "2026-11-21 05:00",
+  "products": [
+   {
+    "path": "tiles/saudi_arabia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:341f0a6635a8dce07dce251e693878a015c7ab28faf773bf0b39f318f5d7a03b",
+    "bytes": 85978757
+   }
+  ]
+ },
+ {
+  "name": "iran",
+  "label": "伊朗",
+  "bbox": [
+   43.959,
+   24.928,
+   63.467,
+   39.863
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=iran --label=\"伊朗\" --label-en=\"Iran\" --bbox=43.959,24.928,63.467,39.863",
+  "recordedAt": "2026-11-21 05:01",
+  "products": [
+   {
+    "path": "tiles/iran.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:63818aa25d44c61dfd0a20f668025218d3365fa7a28099b0b586504d92ccda7b",
+    "bytes": 116163425
+   }
+  ]
+ },
+ {
+  "name": "mongolia",
+  "label": "蒙古国",
+  "bbox": [
+   87.601,
+   41.447,
+   119.923,
+   52.197
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mongolia --label=\"蒙古国\" --label-en=\"Mongolia\" --bbox=87.601,41.447,119.923,52.197",
+  "recordedAt": "2026-11-21 05:01",
+  "products": [
+   {
+    "path": "tiles/mongolia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:83788635e633ac49f06803f42951c66ad18c0b4ac7bfc7ab5e7cb06318c3ecab",
+    "bytes": 58262597
+   }
+  ]
+ },
+ {
+  "name": "pakistan",
+  "label": "巴基斯坦",
+  "bbox": [
+   60.724,
+   23.542,
+   77.987,
+   37.283
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=pakistan --label=\"巴基斯坦\" --label-en=\"Pakistan\" --bbox=60.724,23.542,77.987,37.283",
+  "recordedAt": "2026-11-21 05:01",
+  "products": [
+   {
+    "path": "tiles/pakistan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:a53032c7b88e14313f120d7286c7e737fcaa866a658fa6eb921b2acc658d9d76",
+    "bytes": 143065945
+   }
+  ]
+ },
+ {
+  "name": "india_1",
+  "label": "印度·1",
+  "bbox": [
+   68.027,
+   7.816,
+   75.408,
+   35.644
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=india_1 --label=\"印度·1\" --label-en=\"India (1/4)\" --bbox=68.027,7.816,75.408,35.644",
+  "recordedAt": "2026-11-21 05:01",
+  "products": [
+   {
+    "path": "tiles/india_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:1b899fdd4be73c9707005083c555783deca920b32aa43668a5ce78a45a1fb6dc",
+    "bytes": 109148199
+   }
+  ]
+ },
+ {
+  "name": "india_2",
+  "label": "印度·2",
+  "bbox": [
+   75.408,
+   7.816,
+   82.79,
+   35.644
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=india_2 --label=\"印度·2\" --label-en=\"India (2/4)\" --bbox=75.408,7.816,82.79,35.644",
+  "recordedAt": "2026-11-21 05:01",
+  "products": [
+   {
+    "path": "tiles/india_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f7f1e1334eb27d4e4b41268d0f80ac278597891a9ea6197f9da663b6be3123e5",
+    "bytes": 221071605
+   }
+  ]
+ },
+ {
+  "name": "india_3",
+  "label": "印度·3",
+  "bbox": [
+   82.79,
+   7.816,
+   90.171,
+   35.644
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=india_3 --label=\"印度·3\" --label-en=\"India (3/4)\" --bbox=82.79,7.816,90.171,35.644",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/india_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:1ec9da99a690cdf887cc824112cab2d46ddfec7929122fce73aabc3629f76efb",
+    "bytes": 114280401
+   }
+  ]
+ },
+ {
+  "name": "india_4",
+  "label": "印度·4",
+  "bbox": [
+   90.171,
+   7.816,
+   97.553,
+   35.644
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=india_4 --label=\"印度·4\" --label-en=\"India (4/4)\" --bbox=90.171,7.816,97.553,35.644",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/india_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:79a9ef335ef49e7646ef7713f86bec92771e208a8ffc58c2fcb40a2d3412f69e",
+    "bytes": 83951909
+   }
+  ]
+ },
+ {
+  "name": "myanmar",
+  "label": "缅甸",
+  "bbox": [
+   92.153,
+   9.783,
+   101.33,
+   28.486
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=myanmar --label=\"缅甸\" --label-en=\"Myanmar\" --bbox=92.153,9.783,101.33,28.486",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/myanmar.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6c31cc9500cdb2e5ba970ea55fde125089a8d3b28d570a9fb742a0dd1ccf09b4",
+    "bytes": 115076310
+   }
+  ]
+ },
+ {
+  "name": "indonesia",
+  "label": "印度尼西亚",
+  "bbox": [
+   95.143,
+   -6.023,
+   106.259,
+   5.63
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=indonesia --label=\"印度尼西亚\" --label-en=\"Indonesia\" --bbox=95.143,-6.023,106.259,5.63",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/indonesia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:afe146a8fc426d9aeb7d529286d1d2d7d98a35233bab1dfee40938e047c37690",
+    "bytes": 48927705
+   }
+  ]
+ },
+ {
+  "name": "thailand",
+  "label": "泰国",
+  "bbox": [
+   97.226,
+   5.541,
+   105.739,
+   20.568
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=thailand --label=\"泰国\" --label-en=\"Thailand\" --bbox=97.226,5.541,105.739,20.568",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/thailand.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bbb33024dc8f6d629ba490971d59416feb229ea21f367256d61c7d43399022cf",
+    "bytes": 92572546
+   }
+  ]
+ },
+ {
+  "name": "afghanistan",
+  "label": "阿富汗",
+  "bbox": [
+   60.378,
+   29.169,
+   75.308,
+   38.636
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=afghanistan --label=\"阿富汗\" --label-en=\"Afghanistan\" --bbox=60.378,29.169,75.308,38.636",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/afghanistan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d94ecfe1362241bec4efe8cecd13457c0e91ed9b7d5196c7d05c6483fe409618",
+    "bytes": 75017920
+   }
+  ]
+ },
+ {
+  "name": "uzbekistan",
+  "label": "乌兹别克斯坦",
+  "bbox": [
+   55.779,
+   36.995,
+   73.205,
+   45.737
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=uzbekistan --label=\"乌兹别克斯坦\" --label-en=\"Uzbekistan\" --bbox=55.779,36.995,73.205,45.737",
+  "recordedAt": "2026-11-21 05:02",
+  "products": [
+   {
+    "path": "tiles/uzbekistan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:558f71f952336ab64376055ccd5c801d17ae3931245f8a156442667e4eac9b32",
+    "bytes": 50953109
+   }
+  ]
+ },
+ {
+  "name": "japan",
+  "label": "日本",
+  "bbox": [
+   129.258,
+   30.88,
+   142.064,
+   41.529
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=japan --label=\"日本\" --label-en=\"Japan\" --bbox=129.258,30.88,142.064,41.529",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/japan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5656526b3ee8dff2d6c9b8621df291b7b66043d51221ff373e2f56ed9f087145",
+    "bytes": 187156129
+   }
+  ]
+ },
+ {
+  "name": "vietnam",
+  "label": "越南",
+  "bbox": [
+   102.02,
+   8.45,
+   109.485,
+   23.502
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=vietnam --label=\"越南\" --label-en=\"Vietnam\" --bbox=102.02,8.45,109.485,23.502",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/vietnam.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f8e3fdd4bffbc908fbb38df469ce3253badcb55c4e3b2871f65ec18e6ebf2f4d",
+    "bytes": 91655758
+   }
+  ]
+ },
+ {
+  "name": "turkey",
+  "label": "土耳其",
+  "bbox": [
+   26.021,
+   35.672,
+   44.944,
+   42.19
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=turkey --label=\"土耳其\" --label-en=\"Turkey\" --bbox=26.021,35.672,44.944,42.19",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/turkey.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5fd25f88f5ade5265e8e82e59f89dc323fe2af1ce41f1a27623f4e08be4a7eaa",
+    "bytes": 178681978
+   }
+  ]
+ },
+ {
+  "name": "turkmenistan",
+  "label": "土库曼斯坦",
+  "bbox": [
+   52.352,
+   35.121,
+   66.696,
+   42.902
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=turkmenistan --label=\"土库曼斯坦\" --label-en=\"Turkmenistan\" --bbox=52.352,35.121,66.696,42.902",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/turkmenistan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:06441f87a81e6c341a806e9ff4ad431de607a2a05ec63dc13ba1216582cb1528",
+    "bytes": 25754652
+   }
+  ]
+ },
+ {
+  "name": "iraq",
+  "label": "伊拉克",
+  "bbox": [
+   38.642,
+   28.949,
+   48.718,
+   37.535
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=iraq --label=\"伊拉克\" --label-en=\"Iraq\" --bbox=38.642,28.949,48.718,37.535",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/iraq.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bc72d2802f75855157e149159a5e1170e70e6d2138d6c38c3b3249fa7d52498c",
+    "bytes": 50069004
+   }
+  ]
+ },
+ {
+  "name": "yemen",
+  "label": "也门",
+  "bbox": [
+   42.455,
+   12.436,
+   53.259,
+   19.15
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=yemen --label=\"也门\" --label-en=\"Yemen\" --bbox=42.455,12.436,53.259,19.15",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/yemen.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5efbb8b30982d9e7acb31c31cd1876d069ca4a29425a9276d719eb918996e9f3",
+    "bytes": 19757422
+   }
+  ]
+ },
+ {
+  "name": "laos",
+  "label": "老挝",
+  "bbox": [
+   99.966,
+   13.731,
+   107.715,
+   22.615
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=laos --label=\"老挝\" --label-en=\"Laos\" --bbox=99.966,13.731,107.715,22.615",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/laos.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ca08d8d910f627e98dfc85e91afc885ead0421c228cd67b2b98e7d6a5dd837e1",
+    "bytes": 74516763
+   }
+  ]
+ },
+ {
+  "name": "oman",
+  "label": "阿曼",
+  "bbox": [
+   51.85,
+   16.501,
+   59.958,
+   25.075
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=oman --label=\"阿曼\" --label-en=\"Oman\" --bbox=51.85,16.501,59.958,25.075",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/oman.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3e591f8ac76c45df480305fec73d46bd90e6dfd3c0c12409626f9f6778122872",
+    "bytes": 10180874
+   }
+  ]
+ },
+ {
+  "name": "malaysia",
+  "label": "马来西亚",
+  "bbox": [
+   109.513,
+   0.623,
+   119.332,
+   7.078
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=malaysia --label=\"马来西亚\" --label-en=\"Malaysia\" --bbox=109.513,0.623,119.332,7.078",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/malaysia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7932e949cac04da96dc594f0070f7fcc5caa860813aebe6e357044c197480f7a",
+    "bytes": 14459518
+   }
+  ]
+ },
+ {
+  "name": "kyrgyzstan",
+  "label": "吉尔吉斯斯坦",
+  "bbox": [
+   69.315,
+   39.129,
+   80.41,
+   43.448
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=kyrgyzstan --label=\"吉尔吉斯斯坦\" --label-en=\"Kyrgyzstan\" --bbox=69.315,39.129,80.41,43.448",
+  "recordedAt": "2026-11-21 05:03",
+  "products": [
+   {
+    "path": "tiles/kyrgyzstan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:599d4f478df51cfdb6f03c19cced17c7cecc2d02af6a65e2ad6ddef0d6ae7207",
+    "bytes": 27356222
+   }
+  ]
+ },
+ {
+  "name": "nepal",
+  "label": "尼泊尔",
+  "bbox": [
+   79.938,
+   26.248,
+   88.325,
+   30.573
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=nepal --label=\"尼泊尔\" --label-en=\"Nepal\" --bbox=79.938,26.248,88.325,30.573",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/nepal.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:baaea9de9564a4adf4701d0b6e7484f71ea4a1578000b45c5a875478a64bc505",
+    "bytes": 70168564
+   }
+  ]
+ },
+ {
+  "name": "syria",
+  "label": "叙利亚",
+  "bbox": [
+   35.551,
+   32.163,
+   42.5,
+   37.38
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=syria --label=\"叙利亚\" --label-en=\"Syria\" --bbox=35.551,32.163,42.5,37.38",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/syria.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:1d835184605c51eed6b049b44f85812f2e04578e343fbccdbf7517928f5950da",
+    "bytes": 32510765
+   }
+  ]
+ },
+ {
+  "name": "north_korea",
+  "label": "朝鲜民主主义人民共和国",
+  "bbox": [
+   124.116,
+   37.519,
+   130.93,
+   43.135
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=north_korea --label=\"朝鲜民主主义人民共和国\" --label-en=\"North Korea\" --bbox=124.116,37.519,130.93,43.135",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/north_korea.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e7ca15f2dee35beae3d9afc04e642f43cc67af595c1c6b706020dab62e728116",
+    "bytes": 36977972
+   }
+  ]
+ },
+ {
+  "name": "philippines",
+  "label": "菲律宾",
+  "bbox": [
+   119.734,
+   12.387,
+   124.331,
+   18.655
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=philippines --label=\"菲律宾\" --label-en=\"Philippines\" --bbox=119.734,12.387,124.331,18.655",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/philippines.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e64052d85d92d46e669e9c1dcefb904bd16cc6fc72b635eb8f65bc0e54bc5b7e",
+    "bytes": 24930484
+   }
+  ]
+ },
+ {
+  "name": "tajikistan",
+  "label": "塔吉克斯坦",
+  "bbox": [
+   67.292,
+   36.588,
+   75.13,
+   41.11
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=tajikistan --label=\"塔吉克斯坦\" --label-en=\"Tajikistan\" --bbox=67.292,36.588,75.13,41.11",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/tajikistan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ce67b19de6a994a3cdc3f694f13ab38d11b5aa5c2bab2db5f46790fe4d76a42b",
+    "bytes": 27562372
+   }
+  ]
+ },
+ {
+  "name": "bangladesh",
+  "label": "孟加拉国",
+  "bbox": [
+   87.934,
+   20.521,
+   92.823,
+   26.597
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=bangladesh --label=\"孟加拉国\" --label-en=\"Bangladesh\" --bbox=87.934,20.521,92.823,26.597",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/bangladesh.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d1e12b0d907d344a178809de2ec86e60c98c5fab8750e8c751555adc2dbc4208",
+    "bytes": 36736962
+   }
+  ]
+ },
+ {
+  "name": "cambodia",
+  "label": "柬埔寨",
+  "bbox": [
+   102.198,
+   10.337,
+   107.765,
+   14.721
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=cambodia --label=\"柬埔寨\" --label-en=\"Cambodia\" --bbox=102.198,10.337,107.765,14.721",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/cambodia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5f45178afe81d4f8f111c766712e66a6bcfc1a001b09af9760294d4a53537249",
+    "bytes": 18720910
+   }
+  ]
+ },
+ {
+  "name": "united_arab_emirates",
+  "label": "阿拉伯联合酋长国",
+  "bbox": [
+   51.43,
+   22.347,
+   56.547,
+   26.205
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=united_arab_emirates --label=\"阿拉伯联合酋长国\" --label-en=\"United Arab Emirates\" --bbox=51.43,22.347,56.547,26.205",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/united_arab_emirates.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:858436f6cb33da7751f4ed524ece9c568be53a262b2ae631a9a7dac59f26937d",
+    "bytes": 8415889
+   }
+  ]
+ },
+ {
+  "name": "jordan",
+  "label": "约旦",
+  "bbox": [
+   34.773,
+   29.047,
+   39.345,
+   33.529
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=jordan --label=\"约旦\" --label-en=\"Jordan\" --bbox=34.773,29.047,39.345,33.529",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/jordan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e331a4ee83724a9647bc60673d7f718200e5419880219e163325ee7bc9ea7aa9",
+    "bytes": 20578605
+   }
+  ]
+ },
+ {
+  "name": "azerbaijan",
+  "label": "阿塞拜疆",
+  "bbox": [
+   44.822,
+   38.12,
+   50.543,
+   42.011
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=azerbaijan --label=\"阿塞拜疆\" --label-en=\"Azerbaijan\" --bbox=44.822,38.12,50.543,42.011",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/azerbaijan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:0c21a1ab8d9b79262f4f309806e2e58c0ee530b0f0573c161abf89fdf98fb871",
+    "bytes": 24143383
+   }
+  ]
+ },
+ {
+  "name": "georgia",
+  "label": "格鲁吉亚",
+  "bbox": [
+   39.805,
+   40.914,
+   46.788,
+   43.703
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=georgia --label=\"格鲁吉亚\" --label-en=\"Georgia\" --bbox=39.805,40.914,46.788,43.703",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/georgia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:feced690d84f4b71c1181edccf98c4ac2306cd10fbdc477c3bfcf2d772669521",
+    "bytes": 41445696
+   }
+  ]
+ },
+ {
+  "name": "south_korea",
+  "label": "大韩民国",
+  "bbox": [
+   125.967,
+   34.24,
+   129.618,
+   38.762
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=south_korea --label=\"大韩民国\" --label-en=\"South Korea\" --bbox=125.967,34.24,129.618,38.762",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/south_korea.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:9199033c55f8ebd285da1d89be0ed20861073226dbf7994940a8b785762d27c2",
+    "bytes": 53436018
+   }
+  ]
+ },
+ {
+  "name": "sri_lanka",
+  "label": "斯里兰卡",
+  "bbox": [
+   79.545,
+   5.818,
+   81.938,
+   9.974
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=sri_lanka --label=\"斯里兰卡\" --label-en=\"Sri Lanka\" --bbox=79.545,5.818,81.938,9.974",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/sri_lanka.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e153373d22f4f8bdf9cc26cf1a3aff6cddd0f6456466b5241a70d668356358a2",
+    "bytes": 14508104
+   }
+  ]
+ },
+ {
+  "name": "taiwan",
+  "label": "中华民国",
+  "bbox": [
+   119.956,
+   21.821,
+   122.101,
+   25.445
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=taiwan --label=\"中华民国\" --label-en=\"Taiwan\" --bbox=119.956,21.821,122.101,25.445",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/taiwan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:8123b3bcb3d222b1b64063e8eeb998df95547ece3b80621ccb357be88fa9d736",
+    "bytes": 15637237
+   }
+  ]
+ },
+ {
+  "name": "armenia",
+  "label": "亚美尼亚",
+  "bbox": [
+   43.433,
+   38.591,
+   46.656,
+   41.398
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=armenia --label=\"亚美尼亚\" --label-en=\"Armenia\" --bbox=43.433,38.591,46.656,41.398",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/armenia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5370937fa161899b5172d0e19a8b2c32ae1a52411f58f8029155371ba4d54c72",
+    "bytes": 14777802
+   }
+  ]
+ },
+ {
+  "name": "israel",
+  "label": "以色列",
+  "bbox": [
+   34.115,
+   29.351,
+   35.986,
+   33.427
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=israel --label=\"以色列\" --label-en=\"Israel\" --bbox=34.115,29.351,35.986,33.427",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/israel.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bdb916b3d781e7ca86b2dd5ce1886adeabdb7ede06973e4923e5bbe17dc95020",
+    "bytes": 16449799
+   }
+  ]
+ },
+ {
+  "name": "bhutan",
+  "label": "不丹",
+  "bbox": [
+   88.664,
+   26.569,
+   92.254,
+   28.446
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=bhutan --label=\"不丹\" --label-en=\"Bhutan\" --bbox=88.664,26.569,92.254,28.446",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/bhutan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:36d97f9ba799225e48cc3fc4a8a068d6c553380f9bc78cc7043863f021af16c2",
+    "bytes": 8934872
+   }
+  ]
+ },
+ {
+  "name": "east_timor",
+  "label": "东帝汶",
+  "bbox": [
+   124.819,
+   -9.543,
+   127.486,
+   -8.123
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=east_timor --label=\"东帝汶\" --label-en=\"East Timor\" --bbox=124.819,-9.543,127.486,-8.123",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/east_timor.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:fa4f78c48513b1eeefadc53f7afe0ae30792fad0d2af145d7d76c1a4e1834c2a",
+    "bytes": 1952162
+   }
+  ]
+ },
+ {
+  "name": "kuwait",
+  "label": "科威特",
+  "bbox": [
+   46.419,
+   28.376,
+   48.566,
+   30.209
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=kuwait --label=\"科威特\" --label-en=\"Kuwait\" --bbox=46.419,28.376,48.566,30.209",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/kuwait.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:9668010691ac6b640b7d75bc03fa347d250650cf7b724fcdde8a2fb738c81aa1",
+    "bytes": 1722559
+   }
+  ]
+ },
+ {
+  "name": "lebanon",
+  "label": "黎巴嫩",
+  "bbox": [
+   34.976,
+   32.939,
+   36.762,
+   34.795
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=lebanon --label=\"黎巴嫩\" --label-en=\"Lebanon\" --bbox=34.976,32.939,36.762,34.795",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/lebanon.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:23b0fcfc7c60f8f0fad73ff71d637cd06ad42d79ac927aa06bac244193f3cef9",
+    "bytes": 8599026
+   }
+  ]
+ },
+ {
+  "name": "brunei",
+  "label": "文莱",
+  "bbox": [
+   114.054,
+   3.858,
+   115.601,
+   5.598
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=brunei --label=\"文莱\" --label-en=\"Brunei\" --bbox=114.054,3.858,115.601,5.598",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/brunei.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5ea5766023153061bac7b35a7d00bd73cf7732779f837978f668271ec5d281d5",
+    "bytes": 1549770
+   }
+  ]
+ },
+ {
+  "name": "qatar",
+  "label": "卡塔尔",
+  "bbox": [
+   50.594,
+   24.406,
+   51.757,
+   26.265
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=qatar --label=\"卡塔尔\" --label-en=\"Qatar\" --bbox=50.594,24.406,51.757,26.265",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/qatar.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:8fead9032c5d13a0a9a5cb81eb67b4abe41617a136057b3e1dabaea4d2dcda63",
+    "bytes": 2301870
+   }
+  ]
+ },
+ {
+  "name": "northern_cyprus",
+  "label": "北塞浦路斯土耳其共和国",
+  "bbox": [
+   32.582,
+   34.85,
+   34.726,
+   35.822
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=northern_cyprus --label=\"北塞浦路斯土耳其共和国\" --label-en=\"Turkish Republic of Northern Cyprus\" --bbox=32.582,34.85,34.726,35.822",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/northern_cyprus.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bbef18572cbcbc43a5b4a6b81bb6823e27fcd8f12acda3b3136b9ebc7ef1a96a",
+    "bytes": 4640340
+   }
+  ]
+ },
+ {
+  "name": "cyprus",
+  "label": "塞浦路斯",
+  "bbox": [
+   32.107,
+   34.422,
+   34.155,
+   35.323
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=cyprus --label=\"塞浦路斯\" --label-en=\"Cyprus\" --bbox=32.107,34.422,34.155,35.323",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/cyprus.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ae8be9bc4f481d0e11494863e7aa292518af3a40c9ef8b09083032ae4aa41f0a",
+    "bytes": 5596591
+   }
+  ]
+ },
+ {
+  "name": "palestine",
+  "label": "巴勒斯坦",
+  "bbox": [
+   34.777,
+   31.203,
+   35.696,
+   32.683
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=palestine --label=\"巴勒斯坦\" --label-en=\"Palestine\" --bbox=34.777,31.203,35.696,32.683",
+  "recordedAt": "2026-11-21 05:04",
+  "products": [
+   {
+    "path": "tiles/palestine.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:dcbe86a540802c4041af2f4a8347e51a5c8141af09eb03fdb21071f2f3709cc5",
+    "bytes": 8091642
+   }
+  ]
+ },
+ {
+  "name": "greenland",
+  "label": "格陵兰",
+  "bbox": [
+   -73.447,
+   59.887,
+   -12.059,
+   83.795
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=greenland --label=\"格陵兰\" --label-en=\"Greenland\" --bbox=-73.447,59.887,-12.059,83.795",
+  "recordedAt": "2026-11-21 05:05",
+  "products": [
+   {
+    "path": "tiles/greenland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:fe6b425337fce41ea0d2b6ef67a273f0e4954b711f6891cbaf6633ce1a6d8d0a",
+    "bytes": 142530347
+   }
+  ]
+ },
+ {
+  "name": "canada_1",
+  "label": "加拿大·1",
+  "bbox": [
+   -141.148,
+   41.525,
+   -119.744,
+   72.071
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=canada_1 --label=\"加拿大·1\" --label-en=\"Canada (1/4)\" --bbox=-141.148,41.525,-119.744,72.071",
+  "recordedAt": "2026-11-21 05:05",
+  "products": [
+   {
+    "path": "tiles/canada_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:be21addea06111cb9d835830e10d1df8e604216c26a7430983328253f2714ecb",
+    "bytes": 289411952
+   }
+  ]
+ },
+ {
+  "name": "canada_2",
+  "label": "加拿大·2",
+  "bbox": [
+   -119.744,
+   41.525,
+   -98.341,
+   72.071
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=canada_2 --label=\"加拿大·2\" --label-en=\"Canada (2/4)\" --bbox=-119.744,41.525,-98.341,72.071",
+  "recordedAt": "2026-11-21 05:06",
+  "products": [
+   {
+    "path": "tiles/canada_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c73138cb19f7dbeabae2a9ff0219f3843adf8cb64077175e05413c12e205fe4d",
+    "bytes": 536449605
+   }
+  ]
+ },
+ {
+  "name": "canada_3",
+  "label": "加拿大·3",
+  "bbox": [
+   -98.341,
+   41.525,
+   -76.937,
+   72.071
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=canada_3 --label=\"加拿大·3\" --label-en=\"Canada (3/4)\" --bbox=-98.341,41.525,-76.937,72.071",
+  "recordedAt": "2026-11-21 05:08",
+  "products": [
+   {
+    "path": "tiles/canada_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:4474eff286ff1a69497485fe7f4dd5e6f9971b28028fe5a2a46d3d84d7f7db9c",
+    "bytes": 605117131
+   }
+  ]
+ },
+ {
+  "name": "canada_4",
+  "label": "加拿大·4",
+  "bbox": [
+   -76.937,
+   41.525,
+   -55.533,
+   72.071
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=canada_4 --label=\"加拿大·4\" --label-en=\"Canada (4/4)\" --bbox=-76.937,41.525,-55.533,72.071",
+  "recordedAt": "2026-11-21 05:09",
+  "products": [
+   {
+    "path": "tiles/canada_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ead7082fe176f6fcddd000f7be2657a4c7b041331f646f3c7e189e3163490f60",
+    "bytes": 547954178
+   }
+  ]
+ },
+ {
+  "name": "united_states_1",
+  "label": "美国·1",
+  "bbox": [
+   -124.837,
+   24.93,
+   -110.332,
+   49.539
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=united_states_1 --label=\"美国·1\" --label-en=\"United States of America (1/4)\" --bbox=-124.837,24.93,-110.332,49.539",
+  "recordedAt": "2026-11-21 05:09",
+  "products": [
+   {
+    "path": "tiles/united_states_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:93ea588c0a96465d0fd4bc884d9b1626268250e2b4a54373a9d7cbbc36d6cff5",
+    "bytes": 237896823
+   }
+  ]
+ },
+ {
+  "name": "united_states_2",
+  "label": "美国·2",
+  "bbox": [
+   -110.332,
+   24.93,
+   -95.826,
+   49.539
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=united_states_2 --label=\"美国·2\" --label-en=\"United States of America (2/4)\" --bbox=-110.332,24.93,-95.826,49.539",
+  "recordedAt": "2026-11-21 05:09",
+  "products": [
+   {
+    "path": "tiles/united_states_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6a8ef6251d79836c057d95de6887df70683463dce9ca57f16f4dc206800afa37",
+    "bytes": 229529758
+   }
+  ]
+ },
+ {
+  "name": "united_states_3",
+  "label": "美国·3",
+  "bbox": [
+   -95.826,
+   24.93,
+   -81.32,
+   49.539
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=united_states_3 --label=\"美国·3\" --label-en=\"United States of America (3/4)\" --bbox=-95.826,24.93,-81.32,49.539",
+  "recordedAt": "2026-11-21 05:10",
+  "products": [
+   {
+    "path": "tiles/united_states_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:34ba5e59589e36f2c39f6439059785bd71b70a703be1f13b64129350d22c8cb5",
+    "bytes": 572839926
+   }
+  ]
+ },
+ {
+  "name": "united_states_4",
+  "label": "美国·4",
+  "bbox": [
+   -81.32,
+   24.93,
+   -66.815,
+   49.539
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=united_states_4 --label=\"美国·4\" --label-en=\"United States of America (4/4)\" --bbox=-81.32,24.93,-66.815,49.539",
+  "recordedAt": "2026-11-21 05:11",
+  "products": [
+   {
+    "path": "tiles/united_states_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:92b80a5247b2cfcc1f5710a106f34ee75d3ef4f7f3c903936c3f2392541f9496",
+    "bytes": 460921551
+   }
+  ]
+ },
+ {
+  "name": "mexico_1",
+  "label": "墨西哥·1",
+  "bbox": [
+   -117.278,
+   14.389,
+   -107.073,
+   32.871
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mexico_1 --label=\"墨西哥·1\" --label-en=\"Mexico (1/3)\" --bbox=-117.278,14.389,-107.073,32.871",
+  "recordedAt": "2026-11-21 05:11",
+  "products": [
+   {
+    "path": "tiles/mexico_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:0012f6f17e0a269fe838287bf24f86e6c0c1644fd0ce72fd0dd9ebfc059e60f9",
+    "bytes": 26894297
+   }
+  ]
+ },
+ {
+  "name": "mexico_2",
+  "label": "墨西哥·2",
+  "bbox": [
+   -107.073,
+   14.389,
+   -96.867,
+   32.871
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mexico_2 --label=\"墨西哥·2\" --label-en=\"Mexico (2/3)\" --bbox=-107.073,14.389,-96.867,32.871",
+  "recordedAt": "2026-11-21 05:11",
+  "products": [
+   {
+    "path": "tiles/mexico_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ed383aba3448db96d9be0e4f4af219001176173fc86452156ea40873f9dd870c",
+    "bytes": 102795047
+   }
+  ]
+ },
+ {
+  "name": "mexico_3",
+  "label": "墨西哥·3",
+  "bbox": [
+   -96.867,
+   14.389,
+   -86.662,
+   32.871
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mexico_3 --label=\"墨西哥·3\" --label-en=\"Mexico (3/3)\" --bbox=-96.867,14.389,-86.662,32.871",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/mexico_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c221b6d1b0f22df1e3353b78ec6f32ad94eb77254d11beeae533934104ae51b0",
+    "bytes": 98511776
+   }
+  ]
+ },
+ {
+  "name": "cuba",
+  "label": "古巴",
+  "bbox": [
+   -85.125,
+   19.705,
+   -74.028,
+   23.339
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=cuba --label=\"古巴\" --label-en=\"Cuba\" --bbox=-85.125,19.705,-74.028,23.339",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/cuba.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:29958b2efa781e4876fc9fe74feecb48df5a17ad5dfe01e5f9a27714034b6113",
+    "bytes": 14894531
+   }
+  ]
+ },
+ {
+  "name": "nicaragua",
+  "label": "尼加拉瓜",
+  "bbox": [
+   -87.818,
+   10.577,
+   -82.997,
+   15.166
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=nicaragua --label=\"尼加拉瓜\" --label-en=\"Nicaragua\" --bbox=-87.818,10.577,-82.997,15.166",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/nicaragua.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3ddc5328f118b6a81437eb253ca7f699fee04e4afbc4e1ddf49505465a675e78",
+    "bytes": 15908838
+   }
+  ]
+ },
+ {
+  "name": "honduras",
+  "label": "洪都拉斯",
+  "bbox": [
+   -89.503,
+   12.835,
+   -82.997,
+   16.155
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=honduras --label=\"洪都拉斯\" --label-en=\"Honduras\" --bbox=-89.503,12.835,-82.997,16.155",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/honduras.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d401c4aa41d4ee9124fd1802fc5c03124b3285328ea5e31627d8e32c061762e9",
+    "bytes": 17564842
+   }
+  ]
+ },
+ {
+  "name": "guatemala",
+  "label": "危地马拉",
+  "bbox": [
+   -92.379,
+   13.585,
+   -88.075,
+   17.969
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=guatemala --label=\"危地马拉\" --label-en=\"Guatemala\" --bbox=-92.379,13.585,-88.075,17.969",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/guatemala.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:09f578054a7808cecc4464378f529655af7f5747ec994a9670ca27478b6b8d0c",
+    "bytes": 22672716
+   }
+  ]
+ },
+ {
+  "name": "panama",
+  "label": "巴拿马",
+  "bbox": [
+   -83.116,
+   7.071,
+   -77.093,
+   9.762
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=panama --label=\"巴拿马\" --label-en=\"Panama\" --bbox=-83.116,7.071,-77.093,9.762",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/panama.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:47f51811697b7ea732690111e935f9b89631c19dbc118a15a66c868fb1fb439b",
+    "bytes": 8950528
+   }
+  ]
+ },
+ {
+  "name": "costa_rica",
+  "label": "哥斯达黎加",
+  "bbox": [
+   -86.092,
+   8.075,
+   -82.396,
+   11.367
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=costa_rica --label=\"哥斯达黎加\" --label-en=\"Costa Rica\" --bbox=-86.092,8.075,-82.396,11.367",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/costa_rica.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d904ebb6e6db015806bc88f1efae99b4b59f160f3040fb8d72d8efce395db0f7",
+    "bytes": 11158584
+   }
+  ]
+ },
+ {
+  "name": "dominican_republic",
+  "label": "多米尼加",
+  "bbox": [
+   -72.095,
+   17.449,
+   -68.168,
+   20.035
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=dominican_republic --label=\"多米尼加\" --label-en=\"Dominican Republic\" --bbox=-72.095,17.449,-68.168,20.035",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/dominican_republic.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3dc5652cff72df65dca79c73291db7964e05369c3ae07c3c3e392fb0bddb15cb",
+    "bytes": 5685667
+   }
+  ]
+ },
+ {
+  "name": "haiti",
+  "label": "海地",
+  "bbox": [
+   -74.608,
+   17.881,
+   -71.475,
+   20.066
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=haiti --label=\"海地\" --label-en=\"Haiti\" --bbox=-74.608,17.881,-71.475,20.066",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/haiti.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b21867a8b258d2b8a948d69b85d78a4c5ed1239629c637fbb5f8b89b803ec5db",
+    "bytes": 4475794
+   }
+  ]
+ },
+ {
+  "name": "el_salvador",
+  "label": "萨尔瓦多",
+  "bbox": [
+   -90.246,
+   12.999,
+   -87.574,
+   14.574
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=el_salvador --label=\"萨尔瓦多\" --label-en=\"El Salvador\" --bbox=-90.246,12.999,-87.574,14.574",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/el_salvador.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:cd739c1cbbc6ff52fcbfb765ad31bf16dca4a5c44e8b4a89328052f29320ab46",
+    "bytes": 5876276
+   }
+  ]
+ },
+ {
+  "name": "belize",
+  "label": "伯利兹",
+  "bbox": [
+   -89.379,
+   15.737,
+   -87.957,
+   18.65
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=belize --label=\"伯利兹\" --label-en=\"Belize\" --bbox=-89.379,15.737,-87.957,18.65",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/belize.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b343bdf3c9be874acd9929b2294560df6bc535907940cfe66eb8ae2b128b4bcc",
+    "bytes": 8588808
+   }
+  ]
+ },
+ {
+  "name": "jamaica",
+  "label": "牙买加",
+  "bbox": [
+   -78.488,
+   17.551,
+   -76.05,
+   18.674
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=jamaica --label=\"牙买加\" --label-en=\"Jamaica\" --bbox=-78.488,17.551,-76.05,18.674",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/jamaica.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:cb1addec1c087cd5d41b03936746a8a039861dce79cbd8caa0115e3107ff0bd9",
+    "bytes": 2361605
+   }
+  ]
+ },
+ {
+  "name": "the_bahamas",
+  "label": "巴哈马",
+  "bbox": [
+   -78.558,
+   23.56,
+   -77.385,
+   25.36
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=the_bahamas --label=\"巴哈马\" --label-en=\"The Bahamas\" --bbox=-78.558,23.56,-77.385,25.36",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/the_bahamas.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f0420346018c890e5551e29d8940e1f7b818c2155b414560fd44b6f30ae16dc7",
+    "bytes": 743598
+   }
+  ]
+ },
+ {
+  "name": "puerto_rico",
+  "label": "波多黎各",
+  "bbox": [
+   -67.392,
+   17.797,
+   -65.441,
+   18.671
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=puerto_rico --label=\"波多黎各\" --label-en=\"Puerto Rico\" --bbox=-67.392,17.797,-65.441,18.671",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/puerto_rico.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:9974f23ee377c8cb9b845dc16c0b0daf9f489c3c9174903df7c5c17e23877d95",
+    "bytes": 3509763
+   }
+  ]
+ },
+ {
+  "name": "trinidad_and_tobago",
+  "label": "特立尼达和多巴哥",
+  "bbox": [
+   -62.1,
+   9.85,
+   -60.745,
+   11.04
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=trinidad_and_tobago --label=\"特立尼达和多巴哥\" --label-en=\"Trinidad and Tobago\" --bbox=-62.1,9.85,-60.745,11.04",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/trinidad_and_tobago.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:a244779d7cd7c91c9fe54b5f7bffdef213034b07043dafa18276e9dac237ab6a",
+    "bytes": 1084185
+   }
+  ]
+ },
+ {
+  "name": "brazil_1",
+  "label": "巴西·1",
+  "bbox": [
+   -74.137,
+   -33.918,
+   -64.248,
+   5.394
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=brazil_1 --label=\"巴西·1\" --label-en=\"Brazil (1/4)\" --bbox=-74.137,-33.918,-64.248,5.394",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/brazil_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:de72bf39aa8f08969042a9ddaf3bf01ee8f9c16c79da97883e19980db7b96d5e",
+    "bytes": 112413492
+   }
+  ]
+ },
+ {
+  "name": "brazil_2",
+  "label": "巴西·2",
+  "bbox": [
+   -64.248,
+   -33.918,
+   -54.359,
+   5.394
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=brazil_2 --label=\"巴西·2\" --label-en=\"Brazil (2/4)\" --bbox=-64.248,-33.918,-54.359,5.394",
+  "recordedAt": "2026-11-21 05:12",
+  "products": [
+   {
+    "path": "tiles/brazil_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bc5eb9a4a2655443e5e6733458816d46e160780b10acde7256ee6ac3d7f4f817",
+    "bytes": 119389072
+   }
+  ]
+ },
+ {
+  "name": "brazil_3",
+  "label": "巴西·3",
+  "bbox": [
+   -54.359,
+   -33.918,
+   -44.469,
+   5.394
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=brazil_3 --label=\"巴西·3\" --label-en=\"Brazil (3/4)\" --bbox=-54.359,-33.918,-44.469,5.394",
+  "recordedAt": "2026-11-21 05:13",
+  "products": [
+   {
+    "path": "tiles/brazil_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:0bab360ddbce2749113919ff03a0e9d7d6a1411eb4a861ec1cde582f1d33cd8d",
+    "bytes": 214723397
+   }
+  ]
+ },
+ {
+  "name": "brazil_4",
+  "label": "巴西·4",
+  "bbox": [
+   -44.469,
+   -33.918,
+   -34.58,
+   5.394
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=brazil_4 --label=\"巴西·4\" --label-en=\"Brazil (4/4)\" --bbox=-44.469,-33.918,-34.58,5.394",
+  "recordedAt": "2026-11-21 05:13",
+  "products": [
+   {
+    "path": "tiles/brazil_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d1e84a25c6e8b2766890aa3040c7b011ae3d793b7854f53c3d28d1cf9fb197d5",
+    "bytes": 149231610
+   }
+  ]
+ },
+ {
+  "name": "chile",
+  "label": "智利",
+  "bbox": [
+   -75.794,
+   -54.006,
+   -66.835,
+   -17.43
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=chile --label=\"智利\" --label-en=\"Chile\" --bbox=-75.794,-54.006,-66.835,-17.43",
+  "recordedAt": "2026-11-21 05:13",
+  "products": [
+   {
+    "path": "tiles/chile.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:67c819ed4b651fa1a7bfae15ac0def4b582828c2416aa0dc0cdb0363d6d3c9fe",
+    "bytes": 100184831
+   }
+  ]
+ },
+ {
+  "name": "peru",
+  "label": "秘鲁",
+  "bbox": [
+   -81.561,
+   -18.498,
+   -68.515,
+   0.093
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=peru --label=\"秘鲁\" --label-en=\"Peru\" --bbox=-81.561,-18.498,-68.515,0.093",
+  "recordedAt": "2026-11-21 05:13",
+  "products": [
+   {
+    "path": "tiles/peru.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:469fc2330d14dace82838ff221c85f8a1b57dd096d2b7d7ecc4c5d1b7440e684",
+    "bytes": 78030101
+   }
+  ]
+ },
+ {
+  "name": "colombia",
+  "label": "哥伦比亚",
+  "bbox": [
+   -79.141,
+   -4.448,
+   -66.726,
+   12.587
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=colombia --label=\"哥伦比亚\" --label-en=\"Colombia\" --bbox=-79.141,-4.448,-66.726,12.587",
+  "recordedAt": "2026-11-21 05:13",
+  "products": [
+   {
+    "path": "tiles/colombia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:011b60702a0a12be865e06b514404944406ace80e2029ebb09bb173f0c7db2b0",
+    "bytes": 86993199
+   }
+  ]
+ },
+ {
+  "name": "argentina_1",
+  "label": "阿根廷·1",
+  "bbox": [
+   -73.565,
+   -52.5,
+   -66.87,
+   -21.682
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=argentina_1 --label=\"阿根廷·1\" --label-en=\"Argentina (1/3)\" --bbox=-73.565,-52.5,-66.87,-21.682",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/argentina_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2afcc71f731ddd9c43cbcec647be8e1bb6b07da3c5e1169f1ad49e7de2dacbc6",
+    "bytes": 79512067
+   }
+  ]
+ },
+ {
+  "name": "argentina_2",
+  "label": "阿根廷·2",
+  "bbox": [
+   -66.87,
+   -52.5,
+   -60.174,
+   -21.682
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=argentina_2 --label=\"阿根廷·2\" --label-en=\"Argentina (2/3)\" --bbox=-66.87,-52.5,-60.174,-21.682",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/argentina_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b0f7e642ae0adcfad0b8ae1b663b2f0b2e41b134399280aacfeca42402c10e24",
+    "bytes": 48168148
+   }
+  ]
+ },
+ {
+  "name": "argentina_3",
+  "label": "阿根廷·3",
+  "bbox": [
+   -60.174,
+   -52.5,
+   -53.478,
+   -21.682
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=argentina_3 --label=\"阿根廷·3\" --label-en=\"Argentina (3/3)\" --bbox=-60.174,-52.5,-53.478,-21.682",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/argentina_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7dc7178dca7784b8713e7751bce912e3bb4e72dc20d15799f4e6ad0eff3a86d4",
+    "bytes": 70254176
+   }
+  ]
+ },
+ {
+  "name": "venezuela",
+  "label": "委内瑞拉",
+  "bbox": [
+   -73.455,
+   0.574,
+   -59.608,
+   12.312
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=venezuela --label=\"委内瑞拉\" --label-en=\"Venezuela\" --bbox=-73.455,0.574,-59.608,12.312",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/venezuela.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:1df60e778e1ec7408bb41384a176688d7ccde66298c0f5b4a607b00d86a113a0",
+    "bytes": 52313055
+   }
+  ]
+ },
+ {
+  "name": "bolivia",
+  "label": "玻利维亚",
+  "bbox": [
+   -69.74,
+   -23.023,
+   -57.348,
+   -9.612
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=bolivia --label=\"玻利维亚\" --label-en=\"Bolivia\" --bbox=-69.74,-23.023,-57.348,-9.612",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/bolivia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:55b4939bd87aa546880817ecc1d5277d23e3f198e6c2e1fd054aae0560b97a88",
+    "bytes": 54416214
+   }
+  ]
+ },
+ {
+  "name": "paraguay",
+  "label": "巴拉圭",
+  "bbox": [
+   -62.835,
+   -27.698,
+   -54.143,
+   -19.193
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=paraguay --label=\"巴拉圭\" --label-en=\"Paraguay\" --bbox=-62.835,-27.698,-54.143,-19.193",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/paraguay.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:01b57cdcf4ce36d1a0929cfdb2c0d0f483c83d140dffd9d25917dee7e2e90841",
+    "bytes": 33371947
+   }
+  ]
+ },
+ {
+  "name": "ecuador",
+  "label": "厄瓜多尔",
+  "bbox": [
+   -81.118,
+   -5.109,
+   -75.084,
+   1.531
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=ecuador --label=\"厄瓜多尔\" --label-en=\"Ecuador\" --bbox=-81.118,-5.109,-75.084,1.531",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/ecuador.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:12dbaba929a67c583f1f7e3030aebf99a8510eb3ed01d63a684039c38d36266a",
+    "bytes": 24292101
+   }
+  ]
+ },
+ {
+  "name": "guyana",
+  "label": "圭亚那",
+  "bbox": [
+   -61.56,
+   1.118,
+   -56.389,
+   8.517
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=guyana --label=\"圭亚那\" --label-en=\"Guyana\" --bbox=-61.56,1.118,-56.389,8.517",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/guyana.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6be8c85ce3a81a36f25e99da81d1fd6b31c05eea6850824b39e8164c4f7cc49a",
+    "bytes": 7218257
+   }
+  ]
+ },
+ {
+  "name": "uruguay",
+  "label": "乌拉圭",
+  "bbox": [
+   -58.577,
+   -35.103,
+   -53.06,
+   -29.96
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=uruguay --label=\"乌拉圭\" --label-en=\"Uruguay\" --bbox=-58.577,-35.103,-53.06,-29.96",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/uruguay.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ea71f45b97bcc214329ef5e12275e089b6f2b7a46c60ecefc961ee406f3dce7b",
+    "bytes": 16805274
+   }
+  ]
+ },
+ {
+  "name": "suriname",
+  "label": "苏里南",
+  "bbox": [
+   -58.195,
+   1.668,
+   -53.808,
+   6.175
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=suriname --label=\"苏里南\" --label-en=\"Suriname\" --bbox=-58.195,1.668,-53.808,6.175",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/suriname.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:381717b0f82b975cb0055ff6fcee78f16968d8c99d63358ec37ab426cefc26d0",
+    "bytes": 6519545
+   }
+  ]
+ },
+ {
+  "name": "falkland_islands",
+  "label": "福克兰群岛",
+  "bbox": [
+   -61.35,
+   -52.45,
+   -57.6,
+   -50.95
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=falkland_islands --label=\"福克兰群岛\" --label-en=\"Falkland Islands\" --bbox=-61.35,-52.45,-57.6,-50.95",
+  "recordedAt": "2026-11-21 05:14",
+  "products": [
+   {
+    "path": "tiles/falkland_islands.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:fb25400103f5a336b12351ae7a1d847970ef42f0dbba337b7cdd81f2a5bd4dfd",
+    "bytes": 1992107
+   }
+  ]
+ },
+ {
+  "name": "dr_congo",
+  "label": "刚果民主共和国",
+  "bbox": [
+   12.032,
+   -13.407,
+   31.324,
+   5.406
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=dr_congo --label=\"刚果民主共和国\" --label-en=\"Democratic Republic of the Congo\" --bbox=12.032,-13.407,31.324,5.406",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/dr_congo.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e954b25dad807135db509f6a3849c4415e4fa414ff50e339f4db9cebf5f45190",
+    "bytes": 167215108
+   }
+  ]
+ },
+ {
+  "name": "algeria",
+  "label": "阿尔及利亚",
+  "bbox": [
+   -8.834,
+   18.907,
+   12.15,
+   37.268
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=algeria --label=\"阿尔及利亚\" --label-en=\"Algeria\" --bbox=-8.834,18.907,12.15,37.268",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/algeria.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:0d3c26529a9d345449b4616381496df93973e40eaaa70ae63c5317ce4b38d87c",
+    "bytes": 104345616
+   }
+  ]
+ },
+ {
+  "name": "mali",
+  "label": "马里",
+  "bbox": [
+   -12.321,
+   9.946,
+   4.42,
+   25.125
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mali --label=\"马里\" --label-en=\"Mali\" --bbox=-12.321,9.946,4.42,25.125",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/mali.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6e0a0e7a6b12eb82f34589215362475300f07896e3aad5f907f42e489cebc1db",
+    "bytes": 78589454
+   }
+  ]
+ },
+ {
+  "name": "sudan",
+  "label": "苏丹",
+  "bbox": [
+   21.787,
+   8.079,
+   38.56,
+   22.15
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=sudan --label=\"苏丹\" --label-en=\"Sudan\" --bbox=21.787,8.079,38.56,22.15",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/sudan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:00b5a474358332cd1fc9e5204b35949c67fd70815a8aeb0d4bb353177dcb8e11",
+    "bytes": 60888715
+   }
+  ]
+ },
+ {
+  "name": "morocco",
+  "label": "摩洛哥",
+  "bbox": [
+   -17.17,
+   21.271,
+   -0.975,
+   35.91
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=morocco --label=\"摩洛哥\" --label-en=\"Morocco\" --bbox=-17.17,21.271,-0.975,35.91",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/morocco.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c097fef64362b0a17e7b0188077a2927b026a2ba7770396e226c3e898d7d8cd6",
+    "bytes": 48050038
+   }
+  ]
+ },
+ {
+  "name": "libya",
+  "label": "利比亚",
+  "bbox": [
+   9.169,
+   19.43,
+   25.315,
+   33.287
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=libya --label=\"利比亚\" --label-en=\"Libya\" --bbox=9.169,19.43,25.315,33.287",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/libya.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:28870ce2d1c7569f56080c7a4c619217d3d1024d0bd3bed641e2119f6f7cbb29",
+    "bytes": 17264814
+   }
+  ]
+ },
+ {
+  "name": "south_africa",
+  "label": "南非",
+  "bbox": [
+   16.195,
+   -34.969,
+   32.98,
+   -21.941
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=south_africa --label=\"南非\" --label-en=\"South Africa\" --bbox=16.195,-34.969,32.98,-21.941",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/south_africa.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f52f8d3a439a57d95c9490c1399524eb002cd50da1b23a6887b5ca52635ea2d8",
+    "bytes": 92191304
+   }
+  ]
+ },
+ {
+  "name": "niger",
+  "label": "尼日尔",
+  "bbox": [
+   0.146,
+   11.51,
+   16.053,
+   23.622
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=niger --label=\"尼日尔\" --label-en=\"Niger\" --bbox=0.146,11.51,16.053,23.622",
+  "recordedAt": "2026-11-21 05:15",
+  "products": [
+   {
+    "path": "tiles/niger.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:a773db5b2c2878d440337f6a236248d97dcfd364fa8e3b3552e7af3fccdf4874",
+    "bytes": 51263088
+   }
+  ]
+ },
+ {
+  "name": "ethiopia",
+  "label": "埃塞俄比亚",
+  "bbox": [
+   32.804,
+   3.272,
+   47.939,
+   15.109
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=ethiopia --label=\"埃塞俄比亚\" --label-en=\"Ethiopia\" --bbox=32.804,3.272,47.939,15.109",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/ethiopia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:541e3efacb55898c5c8cf151180d70d43a8b85d5ab65bf2ec293d8ece18cb03c",
+    "bytes": 71753281
+   }
+  ]
+ },
+ {
+  "name": "mozambique",
+  "label": "莫桑比克",
+  "bbox": [
+   30.029,
+   -26.892,
+   40.925,
+   -10.167
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mozambique --label=\"莫桑比克\" --label-en=\"Mozambique\" --bbox=30.029,-26.892,40.925,-10.167",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/mozambique.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:aa08f323cc3b5e772f53234aaa38a5eec44ccdb2e61196c13e2c733ca5c2542d",
+    "bytes": 51486871
+   }
+  ]
+ },
+ {
+  "name": "chad",
+  "label": "乍得",
+  "bbox": [
+   13.39,
+   7.272,
+   24.037,
+   23.56
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=chad --label=\"乍得\" --label-en=\"Chad\" --bbox=13.39,7.272,24.037,23.56",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/chad.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ffdbaa1beffe38117772bb481e10a9e31d27cceb12142f7333251688a5521265",
+    "bytes": 49743708
+   }
+  ]
+ },
+ {
+  "name": "namibia",
+  "label": "纳米比亚",
+  "bbox": [
+   11.584,
+   -29.195,
+   25.234,
+   -16.791
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=namibia --label=\"纳米比亚\" --label-en=\"Namibia\" --bbox=11.584,-29.195,25.234,-16.791",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/namibia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3653c0ecc05610e45728f773cdab29ec9f6e552b9b820aa0b5a4877103aa25cf",
+    "bytes": 23519867
+   }
+  ]
+ },
+ {
+  "name": "angola",
+  "label": "安哥拉",
+  "bbox": [
+   11.49,
+   -18.081,
+   24.23,
+   -5.714
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=angola --label=\"安哥拉\" --label-en=\"Angola\" --bbox=11.49,-18.081,24.23,-5.714",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/angola.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:52e14b95615714bb14c66b145f41276a8cd8c59a11fc7def0aefd63efd5293de",
+    "bytes": 35071637
+   }
+  ]
+ },
+ {
+  "name": "mauritania",
+  "label": "毛里塔尼亚",
+  "bbox": [
+   -17.213,
+   14.467,
+   -4.773,
+   27.546
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=mauritania --label=\"毛里塔尼亚\" --label-en=\"Mauritania\" --bbox=-17.213,14.467,-4.773,27.546",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/mauritania.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7c78cac5229d64aaed97652cb1a69ea5e35206507cd911f51cf29efba64e609f",
+    "bytes": 17917466
+   }
+  ]
+ },
+ {
+  "name": "somalia",
+  "label": "索马里",
+  "bbox": [
+   40.831,
+   -1.833,
+   51.284,
+   12.175
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=somalia --label=\"索马里\" --label-en=\"Somalia\" --bbox=40.831,-1.833,51.284,12.175",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/somalia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:8531ac1456711885b0b82b1b7176a46285ab7cf704d2d0fdb7455d8c149b609a",
+    "bytes": 63512790
+   }
+  ]
+ },
+ {
+  "name": "tanzania",
+  "label": "坦桑尼亚",
+  "bbox": [
+   29.19,
+   -11.871,
+   40.467,
+   -0.8
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=tanzania --label=\"坦桑尼亚\" --label-en=\"Tanzania\" --bbox=29.19,-11.871,40.467,-0.8",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/tanzania.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:803f356079c3c5d6bac1658ab491b111eae3273537f325287f6fd37a199647f1",
+    "bytes": 68671844
+   }
+  ]
+ },
+ {
+  "name": "central_african_republic",
+  "label": "中非共和国",
+  "bbox": [
+   14.309,
+   2.118,
+   27.524,
+   11.292
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=central_african_republic --label=\"中非共和国\" --label-en=\"Central African Republic\" --bbox=14.309,2.118,27.524,11.292",
+  "recordedAt": "2026-11-21 05:16",
+  "products": [
+   {
+    "path": "tiles/central_african_republic.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f20f963291c8c42fd322717399e50164f6c989c708deafcb525d72e015062f24",
+    "bytes": 75181907
+   }
+  ]
+ },
+ {
+  "name": "nigeria",
+  "label": "尼日利亚",
+  "bbox": [
+   2.542,
+   4.091,
+   14.727,
+   14.016
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=nigeria --label=\"尼日利亚\" --label-en=\"Nigeria\" --bbox=2.542,4.091,14.727,14.016",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/nigeria.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f40343d3964bdfa58258af3ce8b33e23cec10dfe83a4892afb4f934eb0d62d15",
+    "bytes": 121635412
+   }
+  ]
+ },
+ {
+  "name": "zambia",
+  "label": "赞比亚",
+  "bbox": [
+   21.738,
+   -18.111,
+   33.636,
+   -8.088
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=zambia --label=\"赞比亚\" --label-en=\"Zambia\" --bbox=21.738,-18.111,33.636,-8.088",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/zambia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d6cf953e4b04d7e19113a77407f920e298d5c3eeb988af52afc92f8370784192",
+    "bytes": 42918498
+   }
+  ]
+ },
+ {
+  "name": "egypt",
+  "label": "埃及",
+  "bbox": [
+   24.55,
+   21.85,
+   37.016,
+   31.736
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=egypt --label=\"埃及\" --label-en=\"Egypt\" --bbox=24.55,21.85,37.016,31.736",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/egypt.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b125c1718718a20d3a4460f0091f9541bdf3b993ddf3eaa221481242452763c4",
+    "bytes": 30924568
+   }
+  ]
+ },
+ {
+  "name": "south_sudan",
+  "label": "南苏丹",
+  "bbox": [
+   23.737,
+   3.359,
+   35.448,
+   12.398
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=south_sudan --label=\"南苏丹\" --label-en=\"South Sudan\" --bbox=23.737,3.359,35.448,12.398",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/south_sudan.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:269cf97caafca7fce06555989aeac877974ac221a5d6ecd6f746b7484d90bcd2",
+    "bytes": 34960898
+   }
+  ]
+ },
+ {
+  "name": "madagascar",
+  "label": "马达加斯加",
+  "bbox": [
+   43.104,
+   -25.751,
+   50.627,
+   -11.891
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=madagascar --label=\"马达加斯加\" --label-en=\"Madagascar\" --bbox=43.104,-25.751,50.627,-11.891",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/madagascar.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:29ff5dd415441d22100139c43ed960176e078a93e83db72dd9a589c9c82ec098",
+    "bytes": 46041634
+   }
+  ]
+ },
+ {
+  "name": "cameroon",
+  "label": "喀麦隆",
+  "bbox": [
+   8.339,
+   1.578,
+   16.163,
+   13.009
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=cameroon --label=\"喀麦隆\" --label-en=\"Cameroon\" --bbox=8.339,1.578,16.163,13.009",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/cameroon.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2543153aba80d3f51a86c7d2baa7be68fe7d1711655cff09a7ccaa753ee0598f",
+    "bytes": 103966287
+   }
+  ]
+ },
+ {
+  "name": "kenya",
+  "label": "肯尼亚",
+  "bbox": [
+   33.744,
+   -4.827,
+   42.005,
+   5.656
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=kenya --label=\"肯尼亚\" --label-en=\"Kenya\" --bbox=33.744,-4.827,42.005,5.656",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/kenya.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:a9bd0de6b5e04822299f5daa46cee779e0916b5a4005c9925b484d760f096cec",
+    "bytes": 43142762
+   }
+  ]
+ },
+ {
+  "name": "botswana",
+  "label": "博茨瓦纳",
+  "bbox": [
+   19.745,
+   -26.979,
+   29.582,
+   -17.512
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=botswana --label=\"博茨瓦纳\" --label-en=\"Botswana\" --bbox=19.745,-26.979,29.582,-17.512",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/botswana.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:374356dd2c8c20f46ab6b2e6129bf63573ca899a07d7df4590f9b63fa369a4cf",
+    "bytes": 27776057
+   }
+  ]
+ },
+ {
+  "name": "congo",
+  "label": "刚果共和国",
+  "bbox": [
+   10.944,
+   -5.188,
+   18.603,
+   3.878
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=congo --label=\"刚果共和国\" --label-en=\"Republic of the Congo\" --bbox=10.944,-5.188,18.603,3.878",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/congo.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:785b746ca2c01aca80a3c911582b147d7aab964c3237dbfd0ec278c92c8d10ee",
+    "bytes": 24399490
+   }
+  ]
+ },
+ {
+  "name": "western_sahara",
+  "label": "西撒哈拉",
+  "bbox": [
+   -17.213,
+   20.85,
+   -8.515,
+   27.806
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=western_sahara --label=\"西撒哈拉\" --label-en=\"Western Sahara\" --bbox=-17.213,20.85,-8.515,27.806",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/western_sahara.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c08783a61e0ae954d17d5821004d5730264c036a5e36b83cc1b71440cb415d1c",
+    "bytes": 3288708
+   }
+  ]
+ },
+ {
+  "name": "zimbabwe",
+  "label": "津巴布韦",
+  "bbox": [
+   25.114,
+   -22.422,
+   33,
+   -15.358
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=zimbabwe --label=\"津巴布韦\" --label-en=\"Zimbabwe\" --bbox=25.114,-22.422,33,-15.358",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/zimbabwe.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c6350fb6e68abc1394f40afb8baca805a8c8076ddfa2a115dc47f124aba3ce4c",
+    "bytes": 18612273
+   }
+  ]
+ },
+ {
+  "name": "burkina_faso",
+  "label": "布基纳法索",
+  "bbox": [
+   -5.621,
+   9.461,
+   2.327,
+   15.266
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=burkina_faso --label=\"布基纳法索\" --label-en=\"Burkina Faso\" --bbox=-5.621,9.461,2.327,15.266",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/burkina_faso.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:afaf4d1976148005812e803a91770996324539b84a029b2975f15215b9551415",
+    "bytes": 32260117
+   }
+  ]
+ },
+ {
+  "name": "guinea",
+  "label": "几内亚",
+  "bbox": [
+   -15.28,
+   7.159,
+   -7.682,
+   12.736
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=guinea --label=\"几内亚\" --label-en=\"Guinea\" --bbox=-15.28,7.159,-7.682,12.736",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/guinea.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7b6d57c15f715643eea09b814965809d6200f6eb6a50ed9b405067bfd44d62e0",
+    "bytes": 25527331
+   }
+  ]
+ },
+ {
+  "name": "ivory_coast",
+  "label": "科特迪瓦",
+  "bbox": [
+   -8.753,
+   4.188,
+   -2.412,
+   10.674
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=ivory_coast --label=\"科特迪瓦\" --label-en=\"Ivory Coast\" --bbox=-8.753,4.188,-2.412,10.674",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/ivory_coast.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6213d35bb40d800ffd859cd2f573895e00cc65fc278aebe75ee6a1dff8c2cee7",
+    "bytes": 17712193
+   }
+  ]
+ },
+ {
+  "name": "eritrea",
+  "label": "厄立特里亚",
+  "bbox": [
+   36.173,
+   12.305,
+   43.231,
+   18.148
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=eritrea --label=\"厄立特里亚\" --label-en=\"Eritrea\" --bbox=36.173,12.305,43.231,18.148",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/eritrea.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5114a32fbb1bbe8d082d34f32d8b638046a93c81995754417e6ee5ca53c2bfbd",
+    "bytes": 11560485
+   }
+  ]
+ },
+ {
+  "name": "gabon",
+  "label": "加蓬",
+  "bbox": [
+   8.648,
+   -4.129,
+   14.575,
+   2.477
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=gabon --label=\"加蓬\" --label-en=\"Gabon\" --bbox=8.648,-4.129,14.575,2.477",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/gabon.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3242c9fdd70d6294abdd1c868089f05fd383a8054478da83367909288f1e2cc4",
+    "bytes": 12134592
+   }
+  ]
+ },
+ {
+  "name": "uganda",
+  "label": "乌干达",
+  "bbox": [
+   29.429,
+   -1.593,
+   35.186,
+   4.4
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=uganda --label=\"乌干达\" --label-en=\"Uganda\" --bbox=29.429,-1.593,35.186,4.4",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/uganda.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f4ade448ff5407f1d7b736ea8dc6bb6044e6f592aa75ca59c0d410ceca965219",
+    "bytes": 49649557
+   }
+  ]
+ },
+ {
+  "name": "ghana",
+  "label": "加纳",
+  "bbox": [
+   -3.394,
+   4.56,
+   1.21,
+   11.248
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=ghana --label=\"加纳\" --label-en=\"Ghana\" --bbox=-3.394,4.56,1.21,11.248",
+  "recordedAt": "2026-11-21 05:17",
+  "products": [
+   {
+    "path": "tiles/ghana.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:6bf019eb383b76b1d787c953409a69b0707c47be82db4207ccaf8c333d85b216",
+    "bytes": 17136517
+   }
+  ]
+ },
+ {
+  "name": "senegal",
+  "label": "塞内加尔",
+  "bbox": [
+   -17.775,
+   12.182,
+   -11.318,
+   16.748
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=senegal --label=\"塞内加尔\" --label-en=\"Senegal\" --bbox=-17.775,12.182,-11.318,16.748",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/senegal.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:4e632d6f60622142fdd3a549b8eec74ac57c3242c137380ebdd4de3633cbffe7",
+    "bytes": 21000538
+   }
+  ]
+ },
+ {
+  "name": "tunisia",
+  "label": "突尼斯",
+  "bbox": [
+   7.374,
+   30.158,
+   11.639,
+   37.5
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=tunisia --label=\"突尼斯\" --label-en=\"Tunisia\" --bbox=7.374,30.158,11.639,37.5",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/tunisia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:f88bd719fa9ed497e48aea3effaf86949c35c13a24f886ebc7d7c2520846f138",
+    "bytes": 15652628
+   }
+  ]
+ },
+ {
+  "name": "malawi",
+  "label": "马拉维",
+  "bbox": [
+   32.538,
+   -16.951,
+   35.922,
+   -9.081
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=malawi --label=\"马拉维\" --label-en=\"Malawi\" --bbox=32.538,-16.951,35.922,-9.081",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/malawi.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2efdc1cfaaaf1063a6d07ece26fe5fea1a159f64cc1bbed6d9358c78fff49850",
+    "bytes": 16473329
+   }
+  ]
+ },
+ {
+  "name": "somaliland",
+  "label": "索马里兰",
+  "bbox": [
+   42.409,
+   7.847,
+   49.098,
+   11.612
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=somaliland --label=\"索马里兰\" --label-en=\"Somaliland\" --bbox=42.409,7.847,49.098,11.612",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/somaliland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:a1d6d0a71af226447335c21a7129369af05fab75225b686dbd405e5cce20f301",
+    "bytes": 13131074
+   }
+  ]
+ },
+ {
+  "name": "benin",
+  "label": "贝宁",
+  "bbox": [
+   0.622,
+   5.992,
+   3.947,
+   12.386
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=benin --label=\"贝宁\" --label-en=\"Benin\" --bbox=0.622,5.992,3.947,12.386",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/benin.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:66fc0185e407212b91705b81642ecdf8c14d9048f01b813590fb7d58a52568fb",
+    "bytes": 13975896
+   }
+  ]
+ },
+ {
+  "name": "liberia",
+  "label": "利比里亚",
+  "bbox": [
+   -11.589,
+   4.206,
+   -7.39,
+   8.691
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=liberia --label=\"利比里亚\" --label-en=\"Liberia\" --bbox=-11.589,4.206,-7.39,8.691",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/liberia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:15067f896f77d2a75f1009560aa9a672c7e702239b6df8dba6bb05015701edc2",
+    "bytes": 7957095
+   }
+  ]
+ },
+ {
+  "name": "togo",
+  "label": "多哥",
+  "bbox": [
+   -0.2,
+   5.779,
+   2.015,
+   11.169
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=togo --label=\"多哥\" --label-en=\"Togo\" --bbox=-0.2,5.779,2.015,11.169",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/togo.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:cfacd6bd7719b02f9b1e998ff5c7915219550e97e1db1019a6a81cc75b1d522b",
+    "bytes": 7975946
+   }
+  ]
+ },
+ {
+  "name": "sierra_leone",
+  "label": "塞拉利昂",
+  "bbox": [
+   -13.397,
+   6.636,
+   -10.08,
+   10.197
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=sierra_leone --label=\"塞拉利昂\" --label-en=\"Sierra Leone\" --bbox=-13.397,6.636,-10.08,10.197",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/sierra_leone.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:fdada656c81662ea692aafa5f374608efc92bf4e8717e937d058d1761a0f6032",
+    "bytes": 9653462
+   }
+  ]
+ },
+ {
+  "name": "guinea_bissau",
+  "label": "几内亚比绍",
+  "bbox": [
+   -16.827,
+   10.89,
+   -13.55,
+   12.778
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=guinea_bissau --label=\"几内亚比绍\" --label-en=\"Guinea-Bissau\" --bbox=-16.827,10.89,-13.55,12.778",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/guinea_bissau.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:10ee63b4b851d3abc039d0a9aa59b58f7dc3f7ad6d1e677c2dafd41b6cbaf0e6",
+    "bytes": 5002791
+   }
+  ]
+ },
+ {
+  "name": "lesotho",
+  "label": "莱索托",
+  "bbox": [
+   26.849,
+   -30.795,
+   29.475,
+   -28.498
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=lesotho --label=\"莱索托\" --label-en=\"Lesotho\" --bbox=26.849,-30.795,29.475,-28.498",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/lesotho.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:87f6734f5e299248de35070ff663eb9030683be36473cc317faf960a526abfe1",
+    "bytes": 17910738
+   }
+  ]
+ },
+ {
+  "name": "burundi",
+  "label": "布隆迪",
+  "bbox": [
+   28.875,
+   -4.65,
+   30.902,
+   -2.198
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=burundi --label=\"布隆迪\" --label-en=\"Burundi\" --bbox=28.875,-4.65,30.902,-2.198",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/burundi.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7d07ffa84f1d63c77e5602a99cf9cced5c768271edaafa3a8545239db343f0ad",
+    "bytes": 13853457
+   }
+  ]
+ },
+ {
+  "name": "rwanda",
+  "label": "卢旺达",
+  "bbox": [
+   28.875,
+   -3.068,
+   30.966,
+   -0.985
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=rwanda --label=\"卢旺达\" --label-en=\"Rwanda\" --bbox=28.875,-3.068,30.966,-0.985",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/rwanda.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:61deaa4745399cb3cd87b7cb61b2226a86e90c97f4f070757bc264a5b2b878b2",
+    "bytes": 13953098
+   }
+  ]
+ },
+ {
+  "name": "djibouti",
+  "label": "吉布提",
+  "bbox": [
+   41.512,
+   10.777,
+   43.468,
+   12.85
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=djibouti --label=\"吉布提\" --label-en=\"Djibouti\" --bbox=41.512,10.777,43.468,12.85",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/djibouti.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:9176bac4d36cb18728a00bd72c4bdfa8921ffea09898594b598470ed354a813e",
+    "bytes": 1202599
+   }
+  ]
+ },
+ {
+  "name": "equatorial_guinea",
+  "label": "赤道几内亚",
+  "bbox": [
+   9.156,
+   0.86,
+   11.435,
+   2.434
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=equatorial_guinea --label=\"赤道几内亚\" --label-en=\"Equatorial Guinea\" --bbox=9.156,0.86,11.435,2.434",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/equatorial_guinea.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:e37a7e7db668f986159a37613cc924b23da0a61bf6fa267aec523396c47ae0f4",
+    "bytes": 1523568
+   }
+  ]
+ },
+ {
+  "name": "the_gambia",
+  "label": "冈比亚",
+  "bbox": [
+   -16.992,
+   12.98,
+   -13.695,
+   14.026
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=the_gambia --label=\"冈比亚\" --label-en=\"The Gambia\" --bbox=-16.992,12.98,-13.695,14.026",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/the_gambia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:8c6f19621d6f3bdff2edec098231fba67aca5a0ccff16a3667d6cbf5adb33fd2",
+    "bytes": 5731740
+   }
+  ]
+ },
+ {
+  "name": "eswatini",
+  "label": "斯威士兰",
+  "bbox": [
+   30.527,
+   -27.436,
+   32.222,
+   -25.51
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=eswatini --label=\"斯威士兰\" --label-en=\"Eswatini\" --bbox=30.527,-27.436,32.222,-25.51",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/eswatini.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c929109b441eb6c46b23961ab435115147e236ceae47043b5e786a39d8dfe3d9",
+    "bytes": 5678891
+   }
+  ]
+ },
+ {
+  "name": "australia_1",
+  "label": "澳大利亚·1",
+  "bbox": [
+   113.189,
+   -39.186,
+   123.322,
+   -10.518
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=australia_1 --label=\"澳大利亚·1\" --label-en=\"Australia (1/4)\" --bbox=113.189,-39.186,123.322,-10.518",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/australia_1.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:92e1762b56560fd9aa9e3db1eb9b6ab4a34b50d2afbac4145f54ab82178d7b59",
+    "bytes": 29338627
+   }
+  ]
+ },
+ {
+  "name": "australia_2",
+  "label": "澳大利亚·2",
+  "bbox": [
+   123.322,
+   -39.186,
+   133.454,
+   -10.518
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=australia_2 --label=\"澳大利亚·2\" --label-en=\"Australia (2/4)\" --bbox=123.322,-39.186,133.454,-10.518",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/australia_2.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:885fae62017a951679cd11237e4050978e3adca991cdc49c5aceb574025941b1",
+    "bytes": 11180130
+   }
+  ]
+ },
+ {
+  "name": "australia_3",
+  "label": "澳大利亚·3",
+  "bbox": [
+   133.454,
+   -39.186,
+   143.587,
+   -10.518
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=australia_3 --label=\"澳大利亚·3\" --label-en=\"Australia (3/4)\" --bbox=133.454,-39.186,143.587,-10.518",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/australia_3.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:4ac95ff3daa3942ed69e08f3c4b3c14c27f37e570eeeb32ac6a91cdd053e5c85",
+    "bytes": 38926084
+   }
+  ]
+ },
+ {
+  "name": "australia_4",
+  "label": "澳大利亚·4",
+  "bbox": [
+   143.587,
+   -39.186,
+   153.719,
+   -10.518
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=australia_4 --label=\"澳大利亚·4\" --label-en=\"Australia (4/4)\" --bbox=143.587,-39.186,153.719,-10.518",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/australia_4.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:888a8259cdd36bbed11447ace49137fdfae16e05dbb1ef18d79e3fd234281dc6",
+    "bytes": 86337978
+   }
+  ]
+ },
+ {
+  "name": "papua_new_guinea",
+  "label": "巴布亚新几内亚",
+  "bbox": [
+   140.85,
+   -10.802,
+   150.952,
+   -2.45
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=papua_new_guinea --label=\"巴布亚新几内亚\" --label-en=\"Papua New Guinea\" --bbox=140.85,-10.802,150.952,-2.45",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/papua_new_guinea.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2fffb4b0347f801691e2a5c8b2c165d05c303317ef92d2e4ee41c3a41205b9e7",
+    "bytes": 13195023
+   }
+  ]
+ },
+ {
+  "name": "new_zealand",
+  "label": "新西兰",
+  "bbox": [
+   166.359,
+   -46.791,
+   174.399,
+   -40.344
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=new_zealand --label=\"新西兰\" --label-en=\"New Zealand\" --bbox=166.359,-46.791,174.399,-40.344",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/new_zealand.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ddcfe2eb0f0098e695e3a7f50e73b5eb566bad3e8069cf47c6fae8d7d3de2210",
+    "bytes": 32768816
+   }
+  ]
+ },
+ {
+  "name": "new_caledonia",
+  "label": "新喀里多尼亚",
+  "bbox": [
+   163.88,
+   -22.55,
+   167.27,
+   -19.956
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=new_caledonia --label=\"新喀里多尼亚\" --label-en=\"New Caledonia\" --bbox=163.88,-22.55,167.27,-19.956",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/new_caledonia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:14d778c50516fafb29d93aea2cc5c0464eb8e7a38a96afa5ddced1186dae1d63",
+    "bytes": 2047161
+   }
+  ]
+ },
+ {
+  "name": "solomon_islands",
+  "label": "所罗门群岛",
+  "bbox": [
+   158.061,
+   -8.688,
+   160.067,
+   -7.17
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=solomon_islands --label=\"所罗门群岛\" --label-en=\"Solomon Islands\" --bbox=158.061,-8.688,160.067,-7.17",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/solomon_islands.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:36af47ef442e424d09e1146996eefa45fc4e3929e0dd123ab6d53b7d67d23e17",
+    "bytes": 678118
+   }
+  ]
+ },
+ {
+  "name": "fiji",
+  "label": "斐济",
+  "bbox": [
+   177.135,
+   -18.438,
+   178.868,
+   -17.19
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=fiji --label=\"斐济\" --label-en=\"Fiji\" --bbox=177.135,-18.438,178.868,-17.19",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/fiji.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:2a85ca3e50d81e5b7f19d3eecf895bba48a5f3fc482b429483f09bebedc4bbcd",
+    "bytes": 1231352
+   }
+  ]
+ },
+ {
+  "name": "vanuatu",
+  "label": "瓦努阿图",
+  "bbox": [
+   166.479,
+   -15.89,
+   167.42,
+   -14.476
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=vanuatu --label=\"瓦努阿图\" --label-en=\"Vanuatu\" --bbox=166.479,-15.89,167.42,-14.476",
+  "recordedAt": "2026-11-21 05:18",
+  "products": [
+   {
+    "path": "tiles/vanuatu.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:9d56b823fde06d6835bf6201d86f47915571b299114138963b95474d825ff987",
+    "bytes": 226712
+   }
+  ]
  }
 ]

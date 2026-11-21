@@ -1,0 +1,2807 @@
+{
+ "v": 1,
+ "source": "Natural Earth 110m admin_0（最大陆块 bbox，海外属地不计）",
+ "count": 200,
+ "entries": [
+  {
+   "key": "russia_1",
+   "name": "俄罗斯·1",
+   "name_en": "Russia (1/4)",
+   "continent": "Europe",
+   "bbox": [
+    27.138,
+    41.001,
+    65.391,
+    77.848
+   ],
+   "area_km2": 8824875,
+   "split_of": "russia"
+  },
+  {
+   "key": "russia_2",
+   "name": "俄罗斯·2",
+   "name_en": "Russia (2/4)",
+   "continent": "Europe",
+   "bbox": [
+    65.391,
+    41.001,
+    103.644,
+    77.848
+   ],
+   "area_km2": 8824875,
+   "split_of": "russia"
+  },
+  {
+   "key": "russia_3",
+   "name": "俄罗斯·3",
+   "name_en": "Russia (3/4)",
+   "continent": "Europe",
+   "bbox": [
+    103.644,
+    41.001,
+    141.897,
+    77.848
+   ],
+   "area_km2": 8824875,
+   "split_of": "russia"
+  },
+  {
+   "key": "russia_4",
+   "name": "俄罗斯·4",
+   "name_en": "Russia (4/4)",
+   "continent": "Europe",
+   "bbox": [
+    141.897,
+    41.001,
+    180.15,
+    77.848
+   ],
+   "area_km2": 8824875,
+   "split_of": "russia"
+  },
+  {
+   "key": "norway",
+   "name": "挪威",
+   "name_en": "Norway",
+   "continent": "Europe",
+   "bbox": [
+    4.842,
+    57.929,
+    31.443,
+    71.335
+   ],
+   "area_km2": 1880658,
+   "split_of": null
+  },
+  {
+   "key": "ukraine",
+   "name": "乌克兰",
+   "name_en": "Ukraine",
+   "continent": "Europe",
+   "bbox": [
+    21.936,
+    45.143,
+    40.231,
+    52.485
+   ],
+   "area_km2": 1088693,
+   "split_of": null
+  },
+  {
+   "key": "sweden",
+   "name": "瑞典",
+   "name_en": "Sweden",
+   "continent": "Europe",
+   "bbox": [
+    10.877,
+    55.212,
+    24.053,
+    69.256
+   ],
+   "area_km2": 1061104,
+   "split_of": null
+  },
+  {
+   "key": "italy",
+   "name": "意大利",
+   "name_en": "Italy",
+   "continent": "Europe",
+   "bbox": [
+    6.6,
+    37.759,
+    18.63,
+    47.265
+   ],
+   "area_km2": 1037662,
+   "split_of": null
+  },
+  {
+   "key": "france",
+   "name": "法国",
+   "name_en": "France",
+   "continent": "Europe",
+   "bbox": [
+    -4.742,
+    42.193,
+    8.249,
+    51.299
+   ],
+   "area_km2": 997698,
+   "split_of": null
+  },
+  {
+   "key": "spain",
+   "name": "西班牙",
+   "name_en": "Spain",
+   "continent": "Europe",
+   "bbox": [
+    -9.543,
+    35.797,
+    3.189,
+    43.898
+   ],
+   "area_km2": 974777,
+   "split_of": null
+  },
+  {
+   "key": "finland",
+   "name": "芬兰",
+   "name_en": "Finland",
+   "continent": "Europe",
+   "bbox": [
+    20.496,
+    59.696,
+    31.666,
+    70.314
+   ],
+   "area_km2": 616852,
+   "split_of": null
+  },
+  {
+   "key": "germany",
+   "name": "德国",
+   "name_en": "Germany",
+   "continent": "Europe",
+   "bbox": [
+    5.839,
+    47.152,
+    15.167,
+    55.133
+   ],
+   "area_km2": 574888,
+   "split_of": null
+  },
+  {
+   "key": "united_kingdom",
+   "name": "英国",
+   "name_en": "United Kingdom",
+   "continent": "Europe",
+   "bbox": [
+    -6.3,
+    49.81,
+    1.832,
+    58.785
+   ],
+   "area_km2": 524221,
+   "split_of": null
+  },
+  {
+   "key": "poland",
+   "name": "波兰",
+   "name_en": "Poland",
+   "continent": "Europe",
+   "bbox": [
+    13.925,
+    48.877,
+    24.18,
+    55.002
+   ],
+   "area_km2": 476584,
+   "split_of": null
+  },
+  {
+   "key": "romania",
+   "name": "罗马尼亚",
+   "name_en": "Romania",
+   "continent": "Europe",
+   "bbox": [
+    20.07,
+    43.538,
+    29.777,
+    48.371
+   ],
+   "area_km2": 401383,
+   "split_of": null
+  },
+  {
+   "key": "greece",
+   "name": "希腊",
+   "name_en": "Greece",
+   "continent": "Europe",
+   "bbox": [
+    20,
+    36.26,
+    26.754,
+    41.977
+   ],
+   "area_km2": 368738,
+   "split_of": null
+  },
+  {
+   "key": "belarus",
+   "name": "白俄罗斯",
+   "name_en": "Belarus",
+   "continent": "Europe",
+   "bbox": [
+    23.049,
+    51.17,
+    32.844,
+    56.319
+   ],
+   "area_km2": 367136,
+   "split_of": null
+  },
+  {
+   "key": "croatia",
+   "name": "克罗地亚",
+   "name_en": "Croatia",
+   "continent": "Europe",
+   "bbox": [
+    13.507,
+    42.33,
+    19.54,
+    46.654
+   ],
+   "area_km2": 229057,
+   "split_of": null
+  },
+  {
+   "key": "bulgaria",
+   "name": "保加利亚",
+   "name_en": "Bulgaria",
+   "continent": "Europe",
+   "bbox": [
+    22.231,
+    41.084,
+    28.708,
+    44.385
+   ],
+   "area_km2": 193280,
+   "split_of": null
+  },
+  {
+   "key": "iceland",
+   "name": "冰岛",
+   "name_en": "Iceland",
+   "continent": "Europe",
+   "bbox": [
+    -24.476,
+    63.346,
+    -13.46,
+    66.677
+   ],
+   "area_km2": 190770,
+   "split_of": null
+  },
+  {
+   "key": "austria",
+   "name": "奥地利",
+   "name_en": "Austria",
+   "continent": "Europe",
+   "bbox": [
+    9.33,
+    46.282,
+    17.13,
+    49.189
+   ],
+   "area_km2": 187715,
+   "split_of": null
+  },
+  {
+   "key": "portugal",
+   "name": "葡萄牙",
+   "name_en": "Portugal",
+   "continent": "Europe",
+   "bbox": [
+    -9.677,
+    36.688,
+    -6.239,
+    42.43
+   ],
+   "area_km2": 187311,
+   "split_of": null
+  },
+  {
+   "key": "hungary",
+   "name": "匈牙利",
+   "name_en": "Hungary",
+   "continent": "Europe",
+   "bbox": [
+    16.052,
+    45.609,
+    22.861,
+    48.774
+   ],
+   "area_km2": 180199,
+   "split_of": null
+  },
+  {
+   "key": "serbia",
+   "name": "塞尔维亚",
+   "name_en": "Serbia",
+   "continent": "Europe",
+   "bbox": [
+    18.68,
+    42.095,
+    23.136,
+    46.322
+   ],
+   "area_km2": 166172,
+   "split_of": null
+  },
+  {
+   "key": "czechia",
+   "name": "捷克",
+   "name_en": "Czech Republic",
+   "continent": "Europe",
+   "bbox": [
+    12.09,
+    48.405,
+    19.003,
+    51.267
+   ],
+   "area_km2": 157067,
+   "split_of": null
+  },
+  {
+   "key": "latvia",
+   "name": "拉脱维亚",
+   "name_en": "Latvia",
+   "continent": "Europe",
+   "bbox": [
+    20.906,
+    55.465,
+    28.327,
+    58.12
+   ],
+   "area_km2": 132819,
+   "split_of": null
+  },
+  {
+   "key": "ireland",
+   "name": "爱尔兰",
+   "name_en": "Ireland",
+   "continent": "Europe",
+   "bbox": [
+    -10.127,
+    51.519,
+    -5.883,
+    55.282
+   ],
+   "area_km2": 117181,
+   "split_of": null
+  },
+  {
+   "key": "lithuania",
+   "name": "立陶宛",
+   "name_en": "Lithuania",
+   "continent": "Europe",
+   "bbox": [
+    20.906,
+    53.756,
+    26.738,
+    56.523
+   ],
+   "area_km2": 113534,
+   "split_of": null
+  },
+  {
+   "key": "bosnia_and_herzegovina",
+   "name": "波斯尼亚和黑塞哥维那",
+   "name_en": "Bosnia and Herzegovina",
+   "continent": "Europe",
+   "bbox": [
+    15.6,
+    42.5,
+    19.75,
+    45.384
+   ],
+   "area_km2": 106060,
+   "split_of": null
+  },
+  {
+   "key": "slovakia",
+   "name": "斯洛伐克",
+   "name_en": "Slovakia",
+   "continent": "Europe",
+   "bbox": [
+    16.73,
+    47.608,
+    22.708,
+    49.722
+   ],
+   "area_km2": 102696,
+   "split_of": null
+  },
+  {
+   "key": "moldova",
+   "name": "摩尔多瓦",
+   "name_en": "Moldova",
+   "continent": "Europe",
+   "bbox": [
+    26.469,
+    45.338,
+    30.175,
+    48.617
+   ],
+   "area_km2": 102028,
+   "split_of": null
+  },
+  {
+   "key": "switzerland",
+   "name": "瑞士",
+   "name_en": "Switzerland",
+   "continent": "Europe",
+   "bbox": [
+    5.873,
+    45.627,
+    10.593,
+    47.981
+   ],
+   "area_km2": 93609,
+   "split_of": null
+  },
+  {
+   "key": "netherlands",
+   "name": "荷兰",
+   "name_en": "Netherlands",
+   "continent": "Europe",
+   "bbox": [
+    3.165,
+    50.654,
+    7.242,
+    53.66
+   ],
+   "area_km2": 92568,
+   "split_of": null
+  },
+  {
+   "key": "estonia",
+   "name": "爱沙尼亚",
+   "name_en": "Estonia",
+   "continent": "Europe",
+   "bbox": [
+    23.19,
+    57.325,
+    28.282,
+    59.761
+   ],
+   "area_km2": 79694,
+   "split_of": null
+  },
+  {
+   "key": "belgium",
+   "name": "比利时",
+   "name_en": "Belgium",
+   "continent": "Europe",
+   "bbox": [
+    2.364,
+    49.379,
+    6.307,
+    51.625
+   ],
+   "area_km2": 69320,
+   "split_of": null
+  },
+  {
+   "key": "denmark",
+   "name": "丹麦",
+   "name_en": "Denmark",
+   "continent": "Europe",
+   "bbox": [
+    7.94,
+    54.681,
+    11.062,
+    57.88
+   ],
+   "area_km2": 68250,
+   "split_of": null
+  },
+  {
+   "key": "albania",
+   "name": "阿尔巴尼亚",
+   "name_en": "Albania",
+   "continent": "Europe",
+   "bbox": [
+    19.154,
+    39.475,
+    21.17,
+    42.838
+   ],
+   "area_km2": 62822,
+   "split_of": null
+  },
+  {
+   "key": "slovenia",
+   "name": "斯洛文尼亚",
+   "name_en": "Slovenia",
+   "continent": "Europe",
+   "bbox": [
+    13.548,
+    45.302,
+    16.715,
+    47.002
+   ],
+   "area_km2": 45905,
+   "split_of": null
+  },
+  {
+   "key": "north_macedonia",
+   "name": "北马其顿",
+   "name_en": "North Macedonia",
+   "continent": "Europe",
+   "bbox": [
+    20.313,
+    40.693,
+    23.102,
+    42.47
+   ],
+   "area_km2": 45648,
+   "split_of": null
+  },
+  {
+   "key": "montenegro",
+   "name": "黑山",
+   "name_en": "Montenegro",
+   "continent": "Europe",
+   "bbox": [
+    18.3,
+    41.728,
+    20.49,
+    43.674
+   ],
+   "area_km2": 38552,
+   "split_of": null
+  },
+  {
+   "key": "kosovo",
+   "name": "科索沃",
+   "name_en": "Kosovo",
+   "continent": "Europe",
+   "bbox": [
+    19.921,
+    41.697,
+    21.925,
+    43.422
+   ],
+   "area_km2": 31345,
+   "split_of": null
+  },
+  {
+   "key": "luxembourg",
+   "name": "卢森堡",
+   "name_en": "Luxembourg",
+   "continent": "Europe",
+   "bbox": [
+    5.524,
+    49.293,
+    6.393,
+    50.278
+   ],
+   "area_km2": 6803,
+   "split_of": null
+  },
+  {
+   "key": "kazakhstan",
+   "name": "哈萨克斯坦",
+   "name_en": "Kazakhstan",
+   "continent": "Asia",
+   "bbox": [
+    46.316,
+    40.512,
+    87.51,
+    55.535
+   ],
+   "area_km2": 5094535,
+   "split_of": null
+  },
+  {
+   "key": "china_1",
+   "name": "中华人民共和国·1",
+   "name_en": "People's Republic of China (1/4)",
+   "continent": "Asia",
+   "bbox": [
+    73.525,
+    20.132,
+    88.938,
+    53.609
+   ],
+   "area_km2": 5080588,
+   "split_of": "people_s_republic_of_china"
+  },
+  {
+   "key": "china_2",
+   "name": "中华人民共和国·2",
+   "name_en": "People's Republic of China (2/4)",
+   "continent": "Asia",
+   "bbox": [
+    88.938,
+    20.132,
+    104.351,
+    53.609
+   ],
+   "area_km2": 5080588,
+   "split_of": "people_s_republic_of_china"
+  },
+  {
+   "key": "china_3",
+   "name": "中华人民共和国·3",
+   "name_en": "People's Republic of China (3/4)",
+   "continent": "Asia",
+   "bbox": [
+    104.351,
+    20.132,
+    119.764,
+    53.609
+   ],
+   "area_km2": 5080588,
+   "split_of": "people_s_republic_of_china"
+  },
+  {
+   "key": "china_4",
+   "name": "中华人民共和国·4",
+   "name_en": "People's Republic of China (4/4)",
+   "continent": "Asia",
+   "bbox": [
+    119.764,
+    20.132,
+    135.176,
+    53.609
+   ],
+   "area_km2": 5080588,
+   "split_of": "people_s_republic_of_china"
+  },
+  {
+   "key": "saudi_arabia",
+   "name": "沙特阿拉伯",
+   "name_en": "Saudi Arabia",
+   "continent": "Asia",
+   "bbox": [
+    34.482,
+    16.198,
+    55.817,
+    32.311
+   ],
+   "area_km2": 3857761,
+   "split_of": null
+  },
+  {
+   "key": "iran",
+   "name": "伊朗",
+   "name_en": "Iran",
+   "continent": "Asia",
+   "bbox": [
+    43.959,
+    24.928,
+    63.467,
+    39.863
+   ],
+   "area_km2": 3027894,
+   "split_of": null
+  },
+  {
+   "key": "mongolia",
+   "name": "蒙古国",
+   "name_en": "Mongolia",
+   "continent": "Asia",
+   "bbox": [
+    87.601,
+    41.447,
+    119.923,
+    52.197
+   ],
+   "area_km2": 2926389,
+   "split_of": null
+  },
+  {
+   "key": "pakistan",
+   "name": "巴基斯坦",
+   "name_en": "Pakistan",
+   "continent": "Asia",
+   "bbox": [
+    60.724,
+    23.542,
+    77.987,
+    37.283
+   ],
+   "area_km2": 2518040,
+   "split_of": null
+  },
+  {
+   "key": "india_1",
+   "name": "印度·1",
+   "name_en": "India (1/4)",
+   "continent": "Asia",
+   "bbox": [
+    68.027,
+    7.816,
+    75.408,
+    35.644
+   ],
+   "area_km2": 2348719,
+   "split_of": "india"
+  },
+  {
+   "key": "india_2",
+   "name": "印度·2",
+   "name_en": "India (2/4)",
+   "continent": "Asia",
+   "bbox": [
+    75.408,
+    7.816,
+    82.79,
+    35.644
+   ],
+   "area_km2": 2348719,
+   "split_of": "india"
+  },
+  {
+   "key": "india_3",
+   "name": "印度·3",
+   "name_en": "India (3/4)",
+   "continent": "Asia",
+   "bbox": [
+    82.79,
+    7.816,
+    90.171,
+    35.644
+   ],
+   "area_km2": 2348719,
+   "split_of": "india"
+  },
+  {
+   "key": "india_4",
+   "name": "印度·4",
+   "name_en": "India (4/4)",
+   "continent": "Asia",
+   "bbox": [
+    90.171,
+    7.816,
+    97.553,
+    35.644
+   ],
+   "area_km2": 2348719,
+   "split_of": "india"
+  },
+  {
+   "key": "myanmar",
+   "name": "缅甸",
+   "name_en": "Myanmar",
+   "continent": "Asia",
+   "bbox": [
+    92.153,
+    9.783,
+    101.33,
+    28.486
+   ],
+   "area_km2": 1995856,
+   "split_of": null
+  },
+  {
+   "key": "indonesia",
+   "name": "印度尼西亚",
+   "name_en": "Indonesia",
+   "continent": "Asia",
+   "bbox": [
+    95.143,
+    -6.023,
+    106.259,
+    5.63
+   ],
+   "area_km2": 1594341,
+   "split_of": null
+  },
+  {
+   "key": "thailand",
+   "name": "泰国",
+   "name_en": "Thailand",
+   "continent": "Asia",
+   "bbox": [
+    97.226,
+    5.541,
+    105.739,
+    20.568
+   ],
+   "area_km2": 1533859,
+   "split_of": null
+  },
+  {
+   "key": "afghanistan",
+   "name": "阿富汗",
+   "name_en": "Afghanistan",
+   "continent": "Asia",
+   "bbox": [
+    60.378,
+    29.169,
+    75.308,
+    38.636
+   ],
+   "area_km2": 1444028,
+   "split_of": null
+  },
+  {
+   "key": "uzbekistan",
+   "name": "乌兹别克斯坦",
+   "name_en": "Uzbekistan",
+   "continent": "Asia",
+   "bbox": [
+    55.779,
+    36.995,
+    73.205,
+    45.737
+   ],
+   "area_km2": 1407263,
+   "split_of": null
+  },
+  {
+   "key": "japan",
+   "name": "日本",
+   "name_en": "Japan",
+   "continent": "Asia",
+   "bbox": [
+    129.258,
+    30.88,
+    142.064,
+    41.529
+   ],
+   "area_km2": 1354425,
+   "split_of": null
+  },
+  {
+   "key": "vietnam",
+   "name": "越南",
+   "name_en": "Vietnam",
+   "continent": "Asia",
+   "bbox": [
+    102.02,
+    8.45,
+    109.485,
+    23.502
+   ],
+   "area_km2": 1329620,
+   "split_of": null
+  },
+  {
+   "key": "turkey",
+   "name": "土耳其",
+   "name_en": "Turkey",
+   "continent": "Asia",
+   "bbox": [
+    26.021,
+    35.672,
+    44.944,
+    42.19
+   ],
+   "area_km2": 1181114,
+   "split_of": null
+  },
+  {
+   "key": "turkmenistan",
+   "name": "土库曼斯坦",
+   "name_en": "Turkmenistan",
+   "continent": "Asia",
+   "bbox": [
+    52.352,
+    35.121,
+    66.696,
+    42.902
+   ],
+   "area_km2": 1067419,
+   "split_of": null
+  },
+  {
+   "key": "iraq",
+   "name": "伊拉克",
+   "name_en": "Iraq",
+   "continent": "Asia",
+   "bbox": [
+    38.642,
+    28.949,
+    48.718,
+    37.535
+   ],
+   "area_km2": 890594,
+   "split_of": null
+  },
+  {
+   "key": "yemen",
+   "name": "也门",
+   "name_en": "Yemen",
+   "continent": "Asia",
+   "bbox": [
+    42.455,
+    12.436,
+    53.259,
+    19.15
+   ],
+   "area_km2": 859125,
+   "split_of": null
+  },
+  {
+   "key": "laos",
+   "name": "老挝",
+   "name_en": "Laos",
+   "continent": "Asia",
+   "bbox": [
+    99.966,
+    13.731,
+    107.715,
+    22.615
+   ],
+   "area_km2": 805009,
+   "split_of": null
+  },
+  {
+   "key": "oman",
+   "name": "阿曼",
+   "name_en": "Oman",
+   "continent": "Asia",
+   "bbox": [
+    51.85,
+    16.501,
+    59.958,
+    25.075
+   ],
+   "area_km2": 799944,
+   "split_of": null
+  },
+  {
+   "key": "malaysia",
+   "name": "马来西亚",
+   "name_en": "Malaysia",
+   "continent": "Asia",
+   "bbox": [
+    109.513,
+    0.623,
+    119.332,
+    7.078
+   ],
+   "area_km2": 778344,
+   "split_of": null
+  },
+  {
+   "key": "kyrgyzstan",
+   "name": "吉尔吉斯斯坦",
+   "name_en": "Kyrgyzstan",
+   "continent": "Asia",
+   "bbox": [
+    69.315,
+    39.129,
+    80.41,
+    43.448
+   ],
+   "area_km2": 443179,
+   "split_of": null
+  },
+  {
+   "key": "nepal",
+   "name": "尼泊尔",
+   "name_en": "Nepal",
+   "continent": "Asia",
+   "bbox": [
+    79.938,
+    26.248,
+    88.325,
+    30.573
+   ],
+   "area_km2": 392663,
+   "split_of": null
+  },
+  {
+   "key": "syria",
+   "name": "叙利亚",
+   "name_en": "Syria",
+   "continent": "Asia",
+   "bbox": [
+    35.551,
+    32.163,
+    42.5,
+    37.38
+   ],
+   "area_km2": 366529,
+   "split_of": null
+  },
+  {
+   "key": "north_korea",
+   "name": "朝鲜民主主义人民共和国",
+   "name_en": "North Korea",
+   "continent": "Asia",
+   "bbox": [
+    124.116,
+    37.519,
+    130.93,
+    43.135
+   ],
+   "area_km2": 359127,
+   "split_of": null
+  },
+  {
+   "key": "philippines",
+   "name": "菲律宾",
+   "name_en": "Philippines",
+   "continent": "Asia",
+   "bbox": [
+    119.734,
+    12.387,
+    124.331,
+    18.655
+   ],
+   "area_km2": 341796,
+   "split_of": null
+  },
+  {
+   "key": "tajikistan",
+   "name": "塔吉克斯坦",
+   "name_en": "Tajikistan",
+   "continent": "Asia",
+   "bbox": [
+    67.292,
+    36.588,
+    75.13,
+    41.11
+   ],
+   "area_km2": 339754,
+   "split_of": null
+  },
+  {
+   "key": "bangladesh",
+   "name": "孟加拉国",
+   "name_en": "Bangladesh",
+   "continent": "Asia",
+   "bbox": [
+    87.934,
+    20.521,
+    92.823,
+    26.597
+   ],
+   "area_km2": 335092,
+   "split_of": null
+  },
+  {
+   "key": "cambodia",
+   "name": "柬埔寨",
+   "name_en": "Cambodia",
+   "continent": "Asia",
+   "bbox": [
+    102.198,
+    10.337,
+    107.765,
+    14.721
+   ],
+   "area_km2": 293222,
+   "split_of": null
+  },
+  {
+   "key": "united_arab_emirates",
+   "name": "阿拉伯联合酋长国",
+   "name_en": "United Arab Emirates",
+   "continent": "Asia",
+   "bbox": [
+    51.43,
+    22.347,
+    56.547,
+    26.205
+   ],
+   "area_km2": 221547,
+   "split_of": null
+  },
+  {
+   "key": "jordan",
+   "name": "约旦",
+   "name_en": "Jordan",
+   "continent": "Asia",
+   "bbox": [
+    34.773,
+    29.047,
+    39.345,
+    33.529
+   ],
+   "area_km2": 215545,
+   "split_of": null
+  },
+  {
+   "key": "azerbaijan",
+   "name": "阿塞拜疆",
+   "name_en": "Azerbaijan",
+   "continent": "Asia",
+   "bbox": [
+    44.822,
+    38.12,
+    50.543,
+    42.011
+   ],
+   "area_km2": 209629,
+   "split_of": null
+  },
+  {
+   "key": "georgia",
+   "name": "格鲁吉亚",
+   "name_en": "Georgia",
+   "continent": "Asia",
+   "bbox": [
+    39.805,
+    40.914,
+    46.788,
+    43.703
+   ],
+   "area_km2": 177254,
+   "split_of": null
+  },
+  {
+   "key": "south_korea",
+   "name": "大韩民国",
+   "name_en": "South Korea",
+   "continent": "Asia",
+   "bbox": [
+    125.967,
+    34.24,
+    129.618,
+    38.762
+   ],
+   "area_km2": 163355,
+   "split_of": null
+  },
+  {
+   "key": "sri_lanka",
+   "name": "斯里兰卡",
+   "name_en": "Sri Lanka",
+   "continent": "Asia",
+   "bbox": [
+    79.545,
+    5.818,
+    81.938,
+    9.974
+   ],
+   "area_km2": 121234,
+   "split_of": null
+  },
+  {
+   "key": "taiwan",
+   "name": "中华民国",
+   "name_en": "Taiwan",
+   "continent": "Asia",
+   "bbox": [
+    119.956,
+    21.821,
+    122.101,
+    25.445
+   ],
+   "area_km2": 87680,
+   "split_of": null
+  },
+  {
+   "key": "armenia",
+   "name": "亚美尼亚",
+   "name_en": "Armenia",
+   "continent": "Asia",
+   "bbox": [
+    43.433,
+    38.591,
+    46.656,
+    41.398
+   ],
+   "area_km2": 85307,
+   "split_of": null
+  },
+  {
+   "key": "israel",
+   "name": "以色列",
+   "name_en": "Israel",
+   "continent": "Asia",
+   "bbox": [
+    34.115,
+    29.351,
+    35.986,
+    33.427
+   ],
+   "area_km2": 80131,
+   "split_of": null
+  },
+  {
+   "key": "bhutan",
+   "name": "不丹",
+   "name_en": "Bhutan",
+   "continent": "Asia",
+   "bbox": [
+    88.664,
+    26.569,
+    92.254,
+    28.446
+   ],
+   "area_km2": 73555,
+   "split_of": null
+  },
+  {
+   "key": "east_timor",
+   "name": "东帝汶",
+   "name_en": "East Timor",
+   "continent": "Asia",
+   "bbox": [
+    124.819,
+    -9.543,
+    127.486,
+    -8.123
+   ],
+   "area_km2": 46060,
+   "split_of": null
+  },
+  {
+   "key": "kuwait",
+   "name": "科威特",
+   "name_en": "Kuwait",
+   "continent": "Asia",
+   "bbox": [
+    46.419,
+    28.376,
+    48.566,
+    30.209
+   ],
+   "area_km2": 42254,
+   "split_of": null
+  },
+  {
+   "key": "lebanon",
+   "name": "黎巴嫩",
+   "name_en": "Lebanon",
+   "continent": "Asia",
+   "bbox": [
+    34.976,
+    32.939,
+    36.762,
+    34.795
+   ],
+   "area_km2": 33870,
+   "split_of": null
+  },
+  {
+   "key": "brunei",
+   "name": "文莱",
+   "name_en": "Brunei",
+   "continent": "Asia",
+   "bbox": [
+    114.054,
+    3.858,
+    115.601,
+    5.598
+   ],
+   "area_km2": 33015,
+   "split_of": null
+  },
+  {
+   "key": "qatar",
+   "name": "卡塔尔",
+   "name_en": "Qatar",
+   "continent": "Asia",
+   "bbox": [
+    50.594,
+    24.406,
+    51.757,
+    26.265
+   ],
+   "area_km2": 24038,
+   "split_of": null
+  },
+  {
+   "key": "northern_cyprus",
+   "name": "北塞浦路斯土耳其共和国",
+   "name_en": "Turkish Republic of Northern Cyprus",
+   "continent": "Asia",
+   "bbox": [
+    32.582,
+    34.85,
+    34.726,
+    35.822
+   ],
+   "area_km2": 20916,
+   "split_of": null
+  },
+  {
+   "key": "cyprus",
+   "name": "塞浦路斯",
+   "name_en": "Cyprus",
+   "continent": "Asia",
+   "bbox": [
+    32.107,
+    34.422,
+    34.155,
+    35.323
+   ],
+   "area_km2": 18641,
+   "split_of": null
+  },
+  {
+   "key": "palestine",
+   "name": "巴勒斯坦",
+   "name_en": "Palestine",
+   "continent": "Asia",
+   "bbox": [
+    34.777,
+    31.203,
+    35.696,
+    32.683
+   ],
+   "area_km2": 14186,
+   "split_of": null
+  },
+  {
+   "key": "greenland",
+   "name": "格陵兰",
+   "name_en": "Greenland",
+   "continent": "North America",
+   "bbox": [
+    -73.447,
+    59.887,
+    -12.059,
+    83.795
+   ],
+   "area_km2": 5630184,
+   "split_of": null
+  },
+  {
+   "key": "canada_1",
+   "name": "加拿大·1",
+   "name_en": "Canada (1/4)",
+   "continent": "North America",
+   "bbox": [
+    -141.148,
+    41.525,
+    -119.744,
+    72.071
+   ],
+   "area_km2": 4406594,
+   "split_of": "canada"
+  },
+  {
+   "key": "canada_2",
+   "name": "加拿大·2",
+   "name_en": "Canada (2/4)",
+   "continent": "North America",
+   "bbox": [
+    -119.744,
+    41.525,
+    -98.341,
+    72.071
+   ],
+   "area_km2": 4406594,
+   "split_of": "canada"
+  },
+  {
+   "key": "canada_3",
+   "name": "加拿大·3",
+   "name_en": "Canada (3/4)",
+   "continent": "North America",
+   "bbox": [
+    -98.341,
+    41.525,
+    -76.937,
+    72.071
+   ],
+   "area_km2": 4406594,
+   "split_of": "canada"
+  },
+  {
+   "key": "canada_4",
+   "name": "加拿大·4",
+   "name_en": "Canada (4/4)",
+   "continent": "North America",
+   "bbox": [
+    -76.937,
+    41.525,
+    -55.533,
+    72.071
+   ],
+   "area_km2": 4406594,
+   "split_of": "canada"
+  },
+  {
+   "key": "united_states_1",
+   "name": "美国·1",
+   "name_en": "United States of America (1/4)",
+   "continent": "North America",
+   "bbox": [
+    -124.837,
+    24.93,
+    -110.332,
+    49.539
+   ],
+   "area_km2": 3498207,
+   "split_of": "united_states_of_america"
+  },
+  {
+   "key": "united_states_2",
+   "name": "美国·2",
+   "name_en": "United States of America (2/4)",
+   "continent": "North America",
+   "bbox": [
+    -110.332,
+    24.93,
+    -95.826,
+    49.539
+   ],
+   "area_km2": 3498207,
+   "split_of": "united_states_of_america"
+  },
+  {
+   "key": "united_states_3",
+   "name": "美国·3",
+   "name_en": "United States of America (3/4)",
+   "continent": "North America",
+   "bbox": [
+    -95.826,
+    24.93,
+    -81.32,
+    49.539
+   ],
+   "area_km2": 3498207,
+   "split_of": "united_states_of_america"
+  },
+  {
+   "key": "united_states_4",
+   "name": "美国·4",
+   "name_en": "United States of America (4/4)",
+   "continent": "North America",
+   "bbox": [
+    -81.32,
+    24.93,
+    -66.815,
+    49.539
+   ],
+   "area_km2": 3498207,
+   "split_of": "united_states_of_america"
+  },
+  {
+   "key": "mexico_1",
+   "name": "墨西哥·1",
+   "name_en": "Mexico (1/3)",
+   "continent": "North America",
+   "bbox": [
+    -117.278,
+    14.389,
+    -107.073,
+    32.871
+   ],
+   "area_km2": 2126925,
+   "split_of": "mexico"
+  },
+  {
+   "key": "mexico_2",
+   "name": "墨西哥·2",
+   "name_en": "Mexico (2/3)",
+   "continent": "North America",
+   "bbox": [
+    -107.073,
+    14.389,
+    -96.867,
+    32.871
+   ],
+   "area_km2": 2126925,
+   "split_of": "mexico"
+  },
+  {
+   "key": "mexico_3",
+   "name": "墨西哥·3",
+   "name_en": "Mexico (3/3)",
+   "continent": "North America",
+   "bbox": [
+    -96.867,
+    14.389,
+    -86.662,
+    32.871
+   ],
+   "area_km2": 2126925,
+   "split_of": "mexico"
+  },
+  {
+   "key": "cuba",
+   "name": "古巴",
+   "name_en": "Cuba",
+   "continent": "North America",
+   "bbox": [
+    -85.125,
+    19.705,
+    -74.028,
+    23.339
+   ],
+   "area_km2": 461641,
+   "split_of": null
+  },
+  {
+   "key": "nicaragua",
+   "name": "尼加拉瓜",
+   "name_en": "Nicaragua",
+   "continent": "North America",
+   "bbox": [
+    -87.818,
+    10.577,
+    -82.997,
+    15.166
+   ],
+   "area_km2": 265509,
+   "split_of": null
+  },
+  {
+   "key": "honduras",
+   "name": "洪都拉斯",
+   "name_en": "Honduras",
+   "continent": "North America",
+   "bbox": [
+    -89.503,
+    12.835,
+    -82.997,
+    16.155
+   ],
+   "area_km2": 257463,
+   "split_of": null
+  },
+  {
+   "key": "guatemala",
+   "name": "危地马拉",
+   "name_en": "Guatemala",
+   "continent": "North America",
+   "bbox": [
+    -92.379,
+    13.585,
+    -88.075,
+    17.969
+   ],
+   "area_km2": 223510,
+   "split_of": null
+  },
+  {
+   "key": "panama",
+   "name": "巴拿马",
+   "name_en": "Panama",
+   "continent": "North America",
+   "bbox": [
+    -83.116,
+    7.071,
+    -77.093,
+    9.762
+   ],
+   "area_km2": 197361,
+   "split_of": null
+  },
+  {
+   "key": "costa_rica",
+   "name": "哥斯达黎加",
+   "name_en": "Costa Rica",
+   "continent": "North America",
+   "bbox": [
+    -86.092,
+    8.075,
+    -82.396,
+    11.367
+   ],
+   "area_km2": 147597,
+   "split_of": null
+  },
+  {
+   "key": "dominican_republic",
+   "name": "多米尼加",
+   "name_en": "Dominican Republic",
+   "continent": "North America",
+   "bbox": [
+    -72.095,
+    17.449,
+    -68.168,
+    20.035
+   ],
+   "area_km2": 118390,
+   "split_of": null
+  },
+  {
+   "key": "haiti",
+   "name": "海地",
+   "name_en": "Haiti",
+   "continent": "North America",
+   "bbox": [
+    -74.608,
+    17.881,
+    -71.475,
+    20.066
+   ],
+   "area_km2": 79675,
+   "split_of": null
+  },
+  {
+   "key": "el_salvador",
+   "name": "萨尔瓦多",
+   "name_en": "El Salvador",
+   "continent": "North America",
+   "bbox": [
+    -90.246,
+    12.999,
+    -87.574,
+    14.574
+   ],
+   "area_km2": 50312,
+   "split_of": null
+  },
+  {
+   "key": "belize",
+   "name": "伯利兹",
+   "name_en": "Belize",
+   "continent": "North America",
+   "bbox": [
+    -89.379,
+    15.737,
+    -87.957,
+    18.65
+   ],
+   "area_km2": 48719,
+   "split_of": null
+  },
+  {
+   "key": "jamaica",
+   "name": "牙买加",
+   "name_en": "Jamaica",
+   "continent": "North America",
+   "bbox": [
+    -78.488,
+    17.551,
+    -76.05,
+    18.674
+   ],
+   "area_km2": 32033,
+   "split_of": null
+  },
+  {
+   "key": "the_bahamas",
+   "name": "巴哈马",
+   "name_en": "The Bahamas",
+   "continent": "North America",
+   "bbox": [
+    -78.558,
+    23.56,
+    -77.385,
+    25.36
+   ],
+   "area_km2": 23676,
+   "split_of": null
+  },
+  {
+   "key": "puerto_rico",
+   "name": "波多黎各",
+   "name_en": "Puerto Rico",
+   "continent": "North America",
+   "bbox": [
+    -67.392,
+    17.797,
+    -65.441,
+    18.671
+   ],
+   "area_km2": 19940,
+   "split_of": null
+  },
+  {
+   "key": "trinidad_and_tobago",
+   "name": "特立尼达和多巴哥",
+   "name_en": "Trinidad and Tobago",
+   "continent": "North America",
+   "bbox": [
+    -62.1,
+    9.85,
+    -60.745,
+    11.04
+   ],
+   "area_km2": 19518,
+   "split_of": null
+  },
+  {
+   "key": "brazil_1",
+   "name": "巴西·1",
+   "name_en": "Brazil (1/4)",
+   "continent": "South America",
+   "bbox": [
+    -74.137,
+    -33.918,
+    -64.248,
+    5.394
+   ],
+   "area_km2": 4637837,
+   "split_of": "brazil"
+  },
+  {
+   "key": "brazil_2",
+   "name": "巴西·2",
+   "name_en": "Brazil (2/4)",
+   "continent": "South America",
+   "bbox": [
+    -64.248,
+    -33.918,
+    -54.359,
+    5.394
+   ],
+   "area_km2": 4637837,
+   "split_of": "brazil"
+  },
+  {
+   "key": "brazil_3",
+   "name": "巴西·3",
+   "name_en": "Brazil (3/4)",
+   "continent": "South America",
+   "bbox": [
+    -54.359,
+    -33.918,
+    -44.469,
+    5.394
+   ],
+   "area_km2": 4637837,
+   "split_of": "brazil"
+  },
+  {
+   "key": "brazil_4",
+   "name": "巴西·4",
+   "name_en": "Brazil (4/4)",
+   "continent": "South America",
+   "bbox": [
+    -44.469,
+    -33.918,
+    -34.58,
+    5.394
+   ],
+   "area_km2": 4637837,
+   "split_of": "brazil"
+  },
+  {
+   "key": "chile",
+   "name": "智利",
+   "name_en": "Chile",
+   "continent": "South America",
+   "bbox": [
+    -75.794,
+    -54.006,
+    -66.835,
+    -17.43
+   ],
+   "area_km2": 3274769,
+   "split_of": null
+  },
+  {
+   "key": "peru",
+   "name": "秘鲁",
+   "name_en": "Peru",
+   "continent": "South America",
+   "bbox": [
+    -81.561,
+    -18.498,
+    -68.515,
+    0.093
+   ],
+   "area_km2": 2946827,
+   "split_of": null
+  },
+  {
+   "key": "colombia",
+   "name": "哥伦比亚",
+   "name_en": "Colombia",
+   "continent": "South America",
+   "bbox": [
+    -79.141,
+    -4.448,
+    -66.726,
+    12.587
+   ],
+   "area_km2": 2596580,
+   "split_of": null
+  },
+  {
+   "key": "argentina_1",
+   "name": "阿根廷·1",
+   "name_en": "Argentina (1/3)",
+   "continent": "South America",
+   "bbox": [
+    -73.565,
+    -52.5,
+    -66.87,
+    -21.682
+   ],
+   "area_km2": 2025971,
+   "split_of": "argentina"
+  },
+  {
+   "key": "argentina_2",
+   "name": "阿根廷·2",
+   "name_en": "Argentina (2/3)",
+   "continent": "South America",
+   "bbox": [
+    -66.87,
+    -52.5,
+    -60.174,
+    -21.682
+   ],
+   "area_km2": 2025971,
+   "split_of": "argentina"
+  },
+  {
+   "key": "argentina_3",
+   "name": "阿根廷·3",
+   "name_en": "Argentina (3/3)",
+   "continent": "South America",
+   "bbox": [
+    -60.174,
+    -52.5,
+    -53.478,
+    -21.682
+   ],
+   "area_km2": 2025971,
+   "split_of": "argentina"
+  },
+  {
+   "key": "venezuela",
+   "name": "委内瑞拉",
+   "name_en": "Venezuela",
+   "continent": "South America",
+   "bbox": [
+    -73.455,
+    0.574,
+    -59.608,
+    12.312
+   ],
+   "area_km2": 1987891,
+   "split_of": null
+  },
+  {
+   "key": "bolivia",
+   "name": "玻利维亚",
+   "name_en": "Bolivia",
+   "continent": "South America",
+   "bbox": [
+    -69.74,
+    -23.023,
+    -57.348,
+    -9.612
+   ],
+   "area_km2": 1963166,
+   "split_of": null
+  },
+  {
+   "key": "paraguay",
+   "name": "巴拉圭",
+   "name_en": "Paraguay",
+   "continent": "South America",
+   "bbox": [
+    -62.835,
+    -27.698,
+    -54.143,
+    -19.193
+   ],
+   "area_km2": 834881,
+   "split_of": null
+  },
+  {
+   "key": "ecuador",
+   "name": "厄瓜多尔",
+   "name_en": "Ecuador",
+   "continent": "South America",
+   "bbox": [
+    -81.118,
+    -5.109,
+    -75.084,
+    1.531
+   ],
+   "area_km2": 492922,
+   "split_of": null
+  },
+  {
+   "key": "guyana",
+   "name": "圭亚那",
+   "name_en": "Guyana",
+   "continent": "South America",
+   "bbox": [
+    -61.56,
+    1.118,
+    -56.389,
+    8.517
+   ],
+   "area_km2": 469257,
+   "split_of": null
+  },
+  {
+   "key": "uruguay",
+   "name": "乌拉圭",
+   "name_en": "Uruguay",
+   "continent": "South America",
+   "bbox": [
+    -58.577,
+    -35.103,
+    -53.06,
+    -29.96
+   ],
+   "area_km2": 294472,
+   "split_of": null
+  },
+  {
+   "key": "suriname",
+   "name": "苏里南",
+   "name_en": "Suriname",
+   "continent": "South America",
+   "bbox": [
+    -58.195,
+    1.668,
+    -53.808,
+    6.175
+   ],
+   "area_km2": 242814,
+   "split_of": null
+  },
+  {
+   "key": "falkland_islands",
+   "name": "福克兰群岛",
+   "name_en": "Falkland Islands",
+   "continent": "South America",
+   "bbox": [
+    -61.35,
+    -52.45,
+    -57.6,
+    -50.95
+   ],
+   "area_km2": 42911,
+   "split_of": null
+  },
+  {
+   "key": "dr_congo",
+   "name": "刚果民主共和国",
+   "name_en": "Democratic Republic of the Congo",
+   "continent": "Africa",
+   "bbox": [
+    12.032,
+    -13.407,
+    31.324,
+    5.406
+   ],
+   "area_km2": 4456453,
+   "split_of": null
+  },
+  {
+   "key": "algeria",
+   "name": "阿尔及利亚",
+   "name_en": "Algeria",
+   "continent": "Africa",
+   "bbox": [
+    -8.834,
+    18.907,
+    12.15,
+    37.268
+   ],
+   "area_km2": 4183827,
+   "split_of": null
+  },
+  {
+   "key": "mali",
+   "name": "马里",
+   "name_en": "Mali",
+   "continent": "Africa",
+   "bbox": [
+    -12.321,
+    9.946,
+    4.42,
+    25.125
+   ],
+   "area_km2": 2982264,
+   "split_of": null
+  },
+  {
+   "key": "sudan",
+   "name": "苏丹",
+   "name_en": "Sudan",
+   "continent": "Africa",
+   "bbox": [
+    21.787,
+    8.079,
+    38.56,
+    22.15
+   ],
+   "area_km2": 2804515,
+   "split_of": null
+  },
+  {
+   "key": "morocco",
+   "name": "摩洛哥",
+   "name_en": "Morocco",
+   "continent": "Africa",
+   "bbox": [
+    -17.17,
+    21.271,
+    -0.975,
+    35.91
+   ],
+   "area_km2": 2562476,
+   "split_of": null
+  },
+  {
+   "key": "libya",
+   "name": "利比亚",
+   "name_en": "Libya",
+   "continent": "Africa",
+   "bbox": [
+    9.169,
+    19.43,
+    25.315,
+    33.287
+   ],
+   "area_km2": 2467387,
+   "split_of": null
+  },
+  {
+   "key": "south_africa",
+   "name": "南非",
+   "name_en": "South Africa",
+   "continent": "Africa",
+   "bbox": [
+    16.195,
+    -34.969,
+    32.98,
+    -21.941
+   ],
+   "area_km2": 2366415,
+   "split_of": null
+  },
+  {
+   "key": "niger",
+   "name": "尼日尔",
+   "name_en": "Niger",
+   "continent": "Africa",
+   "bbox": [
+    0.146,
+    11.51,
+    16.053,
+    23.622
+   ],
+   "area_km2": 2260866,
+   "split_of": null
+  },
+  {
+   "key": "ethiopia",
+   "name": "埃塞俄比亚",
+   "name_en": "Ethiopia",
+   "continent": "Africa",
+   "bbox": [
+    32.804,
+    3.272,
+    47.939,
+    15.109
+   ],
+   "area_km2": 2176925,
+   "split_of": null
+  },
+  {
+   "key": "mozambique",
+   "name": "莫桑比克",
+   "name_en": "Mozambique",
+   "continent": "Africa",
+   "bbox": [
+    30.029,
+    -26.892,
+    40.925,
+    -10.167
+   ],
+   "area_km2": 2126803,
+   "split_of": null
+  },
+  {
+   "key": "chad",
+   "name": "乍得",
+   "name_en": "Chad",
+   "continent": "Africa",
+   "bbox": [
+    13.39,
+    7.272,
+    24.037,
+    23.56
+   ],
+   "area_km2": 2057626,
+   "split_of": null
+  },
+  {
+   "key": "namibia",
+   "name": "纳米比亚",
+   "name_en": "Namibia",
+   "continent": "Africa",
+   "bbox": [
+    11.584,
+    -29.195,
+    25.234,
+    -16.791
+   ],
+   "area_km2": 1918510,
+   "split_of": null
+  },
+  {
+   "key": "angola",
+   "name": "安哥拉",
+   "name_en": "Angola",
+   "continent": "Africa",
+   "bbox": [
+    11.49,
+    -18.081,
+    24.23,
+    -5.714
+   ],
+   "area_km2": 1897516,
+   "split_of": null
+  },
+  {
+   "key": "mauritania",
+   "name": "毛里塔尼亚",
+   "name_en": "Mauritania",
+   "continent": "Africa",
+   "bbox": [
+    -17.213,
+    14.467,
+    -4.773,
+    27.546
+   ],
+   "area_km2": 1869558,
+   "split_of": null
+  },
+  {
+   "key": "somalia",
+   "name": "索马里",
+   "name_en": "Somalia",
+   "continent": "Africa",
+   "bbox": [
+    40.831,
+    -1.833,
+    51.284,
+    12.175
+   ],
+   "area_km2": 1794923,
+   "split_of": null
+  },
+  {
+   "key": "tanzania",
+   "name": "坦桑尼亚",
+   "name_en": "Tanzania",
+   "continent": "Africa",
+   "bbox": [
+    29.19,
+    -11.871,
+    40.467,
+    -0.8
+   ],
+   "area_km2": 1527258,
+   "split_of": null
+  },
+  {
+   "key": "central_african_republic",
+   "name": "中非共和国",
+   "name_en": "Central African Republic",
+   "continent": "Africa",
+   "bbox": [
+    14.309,
+    2.118,
+    27.524,
+    11.292
+   ],
+   "area_km2": 1482128,
+   "split_of": null
+  },
+  {
+   "key": "nigeria",
+   "name": "尼日利亚",
+   "name_en": "Nigeria",
+   "continent": "Africa",
+   "bbox": [
+    2.542,
+    4.091,
+    14.727,
+    14.016
+   ],
+   "area_km2": 1470123,
+   "split_of": null
+  },
+  {
+   "key": "zambia",
+   "name": "赞比亚",
+   "name_en": "Zambia",
+   "continent": "Africa",
+   "bbox": [
+    21.738,
+    -18.111,
+    33.636,
+    -8.088
+   ],
+   "area_km2": 1429631,
+   "split_of": null
+  },
+  {
+   "key": "egypt",
+   "name": "埃及",
+   "name_en": "Egypt",
+   "continent": "Africa",
+   "bbox": [
+    24.55,
+    21.85,
+    37.016,
+    31.736
+   ],
+   "area_km2": 1354026,
+   "split_of": null
+  },
+  {
+   "key": "south_sudan",
+   "name": "南苏丹",
+   "name_en": "South Sudan",
+   "continent": "Africa",
+   "bbox": [
+    23.737,
+    3.359,
+    35.448,
+    12.398
+   ],
+   "area_km2": 1290622,
+   "split_of": null
+  },
+  {
+   "key": "madagascar",
+   "name": "马达加斯加",
+   "name_en": "Madagascar",
+   "continent": "Africa",
+   "bbox": [
+    43.104,
+    -25.751,
+    50.627,
+    -11.891
+   ],
+   "area_km2": 1214758,
+   "split_of": null
+  },
+  {
+   "key": "cameroon",
+   "name": "喀麦隆",
+   "name_en": "Cameroon",
+   "continent": "Africa",
+   "bbox": [
+    8.339,
+    1.578,
+    16.163,
+    13.009
+   ],
+   "area_km2": 1092005,
+   "split_of": null
+  },
+  {
+   "key": "kenya",
+   "name": "肯尼亚",
+   "name_en": "Kenya",
+   "continent": "Africa",
+   "bbox": [
+    33.744,
+    -4.827,
+    42.005,
+    5.656
+   ],
+   "area_km2": 1065945,
+   "split_of": null
+  },
+  {
+   "key": "botswana",
+   "name": "博茨瓦纳",
+   "name_en": "Botswana",
+   "continent": "Africa",
+   "bbox": [
+    19.745,
+    -26.979,
+    29.582,
+    -17.512
+   ],
+   "area_km2": 1060893,
+   "split_of": null
+  },
+  {
+   "key": "congo",
+   "name": "刚果共和国",
+   "name_en": "Republic of the Congo",
+   "continent": "Africa",
+   "bbox": [
+    10.944,
+    -5.188,
+    18.603,
+    3.878
+   ],
+   "area_km2": 854664,
+   "split_of": null
+  },
+  {
+   "key": "western_sahara",
+   "name": "西撒哈拉",
+   "name_en": "Western Sahara",
+   "continent": "Africa",
+   "bbox": [
+    -17.213,
+    20.85,
+    -8.515,
+    27.806
+   ],
+   "area_km2": 678673,
+   "split_of": null
+  },
+  {
+   "key": "zimbabwe",
+   "name": "津巴布韦",
+   "name_en": "Zimbabwe",
+   "continent": "Africa",
+   "bbox": [
+    25.114,
+    -22.422,
+    33,
+    -15.358
+   ],
+   "area_km2": 648700,
+   "split_of": null
+  },
+  {
+   "key": "burkina_faso",
+   "name": "布基纳法索",
+   "name_en": "Burkina Faso",
+   "continent": "Africa",
+   "bbox": [
+    -5.621,
+    9.461,
+    2.327,
+    15.266
+   ],
+   "area_km2": 554736,
+   "split_of": null
+  },
+  {
+   "key": "guinea",
+   "name": "几内亚",
+   "name_en": "Guinea",
+   "continent": "Africa",
+   "bbox": [
+    -15.28,
+    7.159,
+    -7.682,
+    12.736
+   ],
+   "area_km2": 513754,
+   "split_of": null
+  },
+  {
+   "key": "ivory_coast",
+   "name": "科特迪瓦",
+   "name_en": "Ivory Coast",
+   "continent": "Africa",
+   "bbox": [
+    -8.753,
+    4.188,
+    -2.412,
+    10.674
+   ],
+   "area_km2": 501933,
+   "split_of": null
+  },
+  {
+   "key": "eritrea",
+   "name": "厄立特里亚",
+   "name_en": "Eritrea",
+   "continent": "Africa",
+   "bbox": [
+    36.173,
+    12.305,
+    43.231,
+    18.148
+   ],
+   "area_km2": 489778,
+   "split_of": null
+  },
+  {
+   "key": "gabon",
+   "name": "加蓬",
+   "name_en": "Gabon",
+   "continent": "Africa",
+   "bbox": [
+    8.648,
+    -4.129,
+    14.575,
+    2.477
+   ],
+   "area_km2": 481887,
+   "split_of": null
+  },
+  {
+   "key": "uganda",
+   "name": "乌干达",
+   "name_en": "Uganda",
+   "continent": "Africa",
+   "bbox": [
+    29.429,
+    -1.593,
+    35.186,
+    4.4
+   ],
+   "area_km2": 424522,
+   "split_of": null
+  },
+  {
+   "key": "ghana",
+   "name": "加纳",
+   "name_en": "Ghana",
+   "continent": "Africa",
+   "bbox": [
+    -3.394,
+    4.56,
+    1.21,
+    11.248
+   ],
+   "area_km2": 375435,
+   "split_of": null
+  },
+  {
+   "key": "senegal",
+   "name": "塞内加尔",
+   "name_en": "Senegal",
+   "continent": "Africa",
+   "bbox": [
+    -17.775,
+    12.182,
+    -11.318,
+    16.748
+   ],
+   "area_km2": 351409,
+   "split_of": null
+  },
+  {
+   "key": "tunisia",
+   "name": "突尼斯",
+   "name_en": "Tunisia",
+   "continent": "Africa",
+   "bbox": [
+    7.374,
+    30.158,
+    11.639,
+    37.5
+   ],
+   "area_km2": 320144,
+   "split_of": null
+  },
+  {
+   "key": "malawi",
+   "name": "马拉维",
+   "name_en": "Malawi",
+   "continent": "Africa",
+   "bbox": [
+    32.538,
+    -16.951,
+    35.922,
+    -9.081
+   ],
+   "area_km2": 319387,
+   "split_of": null
+  },
+  {
+   "key": "somaliland",
+   "name": "索马里兰",
+   "name_en": "Somaliland",
+   "continent": "Africa",
+   "bbox": [
+    42.409,
+    7.847,
+    49.098,
+    11.612
+   ],
+   "area_km2": 305557,
+   "split_of": null
+  },
+  {
+   "key": "benin",
+   "name": "贝宁",
+   "name_en": "Benin",
+   "continent": "Africa",
+   "bbox": [
+    0.622,
+    5.992,
+    3.947,
+    12.386
+   ],
+   "area_km2": 258286,
+   "split_of": null
+  },
+  {
+   "key": "liberia",
+   "name": "利比里亚",
+   "name_en": "Liberia",
+   "continent": "Africa",
+   "bbox": [
+    -11.589,
+    4.206,
+    -7.39,
+    8.691
+   ],
+   "area_km2": 230355,
+   "split_of": null
+  },
+  {
+   "key": "togo",
+   "name": "多哥",
+   "name_en": "Togo",
+   "continent": "Africa",
+   "bbox": [
+    -0.2,
+    5.779,
+    2.015,
+    11.169
+   ],
+   "area_km2": 145344,
+   "split_of": null
+  },
+  {
+   "key": "sierra_leone",
+   "name": "塞拉利昂",
+   "name_en": "Sierra Leone",
+   "continent": "Africa",
+   "bbox": [
+    -13.397,
+    6.636,
+    -10.08,
+    10.197
+   ],
+   "area_km2": 143801,
+   "split_of": null
+  },
+  {
+   "key": "guinea_bissau",
+   "name": "几内亚比绍",
+   "name_en": "Guinea-Bissau",
+   "continent": "Africa",
+   "bbox": [
+    -16.827,
+    10.89,
+    -13.55,
+    12.778
+   ],
+   "area_km2": 74525,
+   "split_of": null
+  },
+  {
+   "key": "lesotho",
+   "name": "莱索托",
+   "name_en": "Lesotho",
+   "continent": "Africa",
+   "bbox": [
+    26.849,
+    -30.795,
+    29.475,
+    -28.498
+   ],
+   "area_km2": 64540,
+   "split_of": null
+  },
+  {
+   "key": "burundi",
+   "name": "布隆迪",
+   "name_en": "Burundi",
+   "continent": "Africa",
+   "bbox": [
+    28.875,
+    -4.65,
+    30.902,
+    -2.198
+   ],
+   "area_km2": 61064,
+   "split_of": null
+  },
+  {
+   "key": "rwanda",
+   "name": "卢旺达",
+   "name_en": "Rwanda",
+   "continent": "Africa",
+   "bbox": [
+    28.875,
+    -3.068,
+    30.966,
+    -0.985
+   ],
+   "area_km2": 53588,
+   "split_of": null
+  },
+  {
+   "key": "djibouti",
+   "name": "吉布提",
+   "name_en": "Djibouti",
+   "continent": "Africa",
+   "bbox": [
+    41.512,
+    10.777,
+    43.468,
+    12.85
+   ],
+   "area_km2": 48849,
+   "split_of": null
+  },
+  {
+   "key": "equatorial_guinea",
+   "name": "赤道几内亚",
+   "name_en": "Equatorial Guinea",
+   "continent": "Africa",
+   "bbox": [
+    9.156,
+    0.86,
+    11.435,
+    2.434
+   ],
+   "area_km2": 44137,
+   "split_of": null
+  },
+  {
+   "key": "the_gambia",
+   "name": "冈比亚",
+   "name_en": "The Gambia",
+   "continent": "Africa",
+   "bbox": [
+    -16.992,
+    12.98,
+    -13.695,
+    14.026
+   ],
+   "area_km2": 41278,
+   "split_of": null
+  },
+  {
+   "key": "eswatini",
+   "name": "斯威士兰",
+   "name_en": "Eswatini",
+   "continent": "Africa",
+   "bbox": [
+    30.527,
+    -27.436,
+    32.222,
+    -25.51
+   ],
+   "area_km2": 35964,
+   "split_of": null
+  },
+  {
+   "key": "australia_1",
+   "name": "澳大利亚·1",
+   "name_en": "Australia (1/4)",
+   "continent": "Oceania",
+   "bbox": [
+    113.189,
+    -39.186,
+    123.322,
+    -10.518
+   ],
+   "area_km2": 3244298,
+   "split_of": "australia"
+  },
+  {
+   "key": "australia_2",
+   "name": "澳大利亚·2",
+   "name_en": "Australia (2/4)",
+   "continent": "Oceania",
+   "bbox": [
+    123.322,
+    -39.186,
+    133.454,
+    -10.518
+   ],
+   "area_km2": 3244298,
+   "split_of": "australia"
+  },
+  {
+   "key": "australia_3",
+   "name": "澳大利亚·3",
+   "name_en": "Australia (3/4)",
+   "continent": "Oceania",
+   "bbox": [
+    133.454,
+    -39.186,
+    143.587,
+    -10.518
+   ],
+   "area_km2": 3244298,
+   "split_of": "australia"
+  },
+  {
+   "key": "australia_4",
+   "name": "澳大利亚·4",
+   "name_en": "Australia (4/4)",
+   "continent": "Oceania",
+   "bbox": [
+    143.587,
+    -39.186,
+    153.719,
+    -10.518
+   ],
+   "area_km2": 3244298,
+   "split_of": "australia"
+  },
+  {
+   "key": "papua_new_guinea",
+   "name": "巴布亚新几内亚",
+   "name_en": "Papua New Guinea",
+   "continent": "Oceania",
+   "bbox": [
+    140.85,
+    -10.802,
+    150.952,
+    -2.45
+   ],
+   "area_km2": 1031548,
+   "split_of": null
+  },
+  {
+   "key": "new_zealand",
+   "name": "新西兰",
+   "name_en": "New Zealand",
+   "continent": "Oceania",
+   "bbox": [
+    166.359,
+    -46.791,
+    174.399,
+    -40.344
+   ],
+   "area_km2": 462258,
+   "split_of": null
+  },
+  {
+   "key": "new_caledonia",
+   "name": "新喀里多尼亚",
+   "name_en": "New Caledonia",
+   "continent": "Oceania",
+   "bbox": [
+    163.88,
+    -22.55,
+    167.27,
+    -19.956
+   ],
+   "area_km2": 100902,
+   "split_of": null
+  },
+  {
+   "key": "solomon_islands",
+   "name": "所罗门群岛",
+   "name_en": "Solomon Islands",
+   "continent": "Oceania",
+   "bbox": [
+    158.061,
+    -8.688,
+    160.067,
+    -7.17
+   ],
+   "area_km2": 37134,
+   "split_of": null
+  },
+  {
+   "key": "fiji",
+   "name": "斐济",
+   "name_en": "Fiji",
+   "continent": "Oceania",
+   "bbox": [
+    177.135,
+    -18.438,
+    178.868,
+    -17.19
+   ],
+   "area_km2": 25346,
+   "split_of": null
+  },
+  {
+   "key": "vanuatu",
+   "name": "瓦努阿图",
+   "name_en": "Vanuatu",
+   "continent": "Oceania",
+   "bbox": [
+    166.479,
+    -15.89,
+    167.42,
+    -14.476
+   ],
+   "area_km2": 15799,
+   "split_of": null
+  }
+ ]
+}
