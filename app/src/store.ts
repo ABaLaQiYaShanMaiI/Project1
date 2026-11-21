@@ -291,6 +291,7 @@ class Store {
   preset = PERSONAS[0].key;
   forceDetail = false;
   lang: MapLang = loadLang();
+  layerRev = 0;
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };
@@ -343,6 +344,7 @@ class Store {
     if (this.layers[key] === on) return;
     this.layers = { ...this.layers, [key]: on };
     this.preset = 'custom';
+    this.layerRev += 1;
     this.emit();
   }
 
@@ -351,6 +353,7 @@ class Store {
     if (!p) return;
     this.layers = personaLayers(p);
     this.preset = p.key;
+    this.layerRev += 1;
     this.emit();
   }
 
@@ -379,6 +382,7 @@ class Store {
     const next: Record<LayerKey, boolean> = { ...this.layers };
     for (const i of g.items) next[i.key] = on;
     this.layers = next;
+    this.layerRev += 1;
     this.emit();
   }
 

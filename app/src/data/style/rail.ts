@@ -22,7 +22,7 @@ const RAIL_NARROW_FILTER = [
   ['==', ['get', 'kind_detail'], 'narrow_gauge'],
 ] as never;
 
-export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
+export function railsOf(tier: Tier, suffix: string, minExtra = 0): Record<string, unknown>[] {
   const rail = restyle({
     id: `roads_rail${suffix}`,
     type: 'line',
@@ -33,7 +33,9 @@ export function railsOf(tier: Tier, suffix: string): Record<string, unknown>[] {
     paint: {},
   });
   if (!clampZoom(rail, tier)) return [];
-  const min = Math.max(tier.styleMin, RAIL_MINZOOM);
+  const min = Math.max(tier.styleMin, RAIL_MINZOOM, minExtra);
+  rail.minzoom = min;
+  rail.maxzoom = tier.styleMax;
 
   rail.filter = RAIL_MAIN_FILTER;
   return [

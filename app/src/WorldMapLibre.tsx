@@ -289,11 +289,11 @@ export function WorldMapLibre(): JSX.Element {
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       const slopeBands = DEM_BANDS.map(({ key, from }) => ({ key, from }));
-      const activeBands = contourBandsIn(viewBox);
-      contourSigRef.current = contourSig(activeBands);
+      const activeBands = contourBandsIn(viewBox, zoomNow);
+      contourSigRef.current = contourSig(activeBands, zoomNow);
       const [slopeMans, contours, mergedRails, dex] = await Promise.all([
         Promise.all(slopeBands.map((s) => getJson<SlopeManifest>(`/data/slope/${s.key}/index.json`))),
-        loadContours(activeBands),
+        loadContours(activeBands, zoomNow),
         mergeRails(regions),
         loadCityDex(regions.map((z) => z.key)),
       ]);
@@ -381,11 +381,11 @@ export function WorldMapLibre(): JSX.Element {
         grid: { type: 'FeatureCollection', features: [...grid.lines, ...grid.labels] } as unknown as FC,
         poi,
         railsWorldFine,
-        railsWorldCoarse,
-        urbanWorld,
-        seaLabels,
-        roadsWorld,
-        riversWorld,
+        railsWorldCoarse: zoomNow <= 4 ? railsWorldCoarse : null,
+        urbanWorld: zoomNow <= 10 ? urbanWorld : null,
+        seaLabels: zoomNow <= 9 ? seaLabels : null,
+        roadsWorld: zoomNow <= 7 ? roadsWorld : null,
+        riversWorld: zoomNow <= 9 ? riversWorld : null,
         lang: store.lang,
         zhNames: zhRef.current,
         waterSource: waterSource,
@@ -489,6 +489,12 @@ export function WorldMapLibre(): JSX.Element {
         continue;
       }
     }
+  }, [store.layerRev, viewEpoch]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const style = map ? map.getStyle() : null;
+    if (!map || !style || !Array.isArray(style.layers) || style.layers.length <= 1) return;
     const found = PERSONAS.find((p) => p.key === store.preset);
     if (found) personaRef.current = found;
     const persona = personaRef.current ?? PERSONAS[0];
@@ -507,7 +513,7 @@ export function WorldMapLibre(): JSX.Element {
         }
       }
     }
-  }, [store.version, viewEpoch]);
+  }, [store.preset, viewEpoch]);
 
   const zoomRef = useRef<ZoomStore>({ epoch: -1, map: {}, on: false });
 
@@ -515,7 +521,7 @@ export function WorldMapLibre(): JSX.Element {
     const map = mapRef.current;
     if (!map) return;
     applyForceDetail(map, store.forceDetail, viewEpoch, zoomRef.current);
-  }, [store.version, viewEpoch]);
+  }, [store.forceDetail, viewEpoch]);
 
   useEffect(() => {
     const map = mapRef.current;

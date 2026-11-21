@@ -8,12 +8,17 @@ const MAX_FC = 6;
 const docCache = new Map<string, ContourDoc>();
 const fcCache = new Map<string, FC | null>();
 
-export function contourBandsIn(view: [number, number, number, number]): Array<{ b: ContourBand; i: number }> {
-  return CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(({ b }) => contourBandActive(b, view));
+export function contourBandsIn(
+  view: [number, number, number, number],
+  zoom = 0,
+): Array<{ b: ContourBand; i: number }> {
+  return CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(
+    ({ b }) => contourBandActive(b, view) && b.minzoom <= zoom + 1 && b.maxzoom >= zoom - 1,
+  );
 }
 
-export function contourSig(active: Array<{ i: number }>): string {
-  return active.map(({ i }) => i).join(',');
+export function contourSig(active: Array<{ i: number }>, zoom = 0): string {
+  return `${Math.round(zoom)}|${active.map(({ i }) => i).join(',')}`;
 }
 
 function remember(cache: Map<string, unknown>, key: string, value: unknown, cap: number): void {
@@ -40,9 +45,9 @@ export async function loadContourItems(
   return docs.flatMap((doc, k) => (doc?.levels?.length ? [{ doc, band: active[k].i }] : []));
 }
 
-export async function loadContours(active: Array<{ b: ContourBand; i: number }>): Promise<FC | null> {
+export async function loadContours(active: Array<{ b: ContourBand; i: number }>, zoom = 0): Promise<FC | null> {
   if (!active.length) return null;
-  const sig = contourSig(active);
+  const sig = contourSig(active, zoom);
   if (fcCache.has(sig)) return fcCache.get(sig) ?? null;
   const items = await loadContourItems(active);
   if (!items.length) return null;
@@ -59,8 +64,8 @@ export function bindContourSync(map: MLMap, sigRef: { current: string }): () => 
     try {
       const vb = map.getBounds();
       const view: [number, number, number, number] = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
-      const active = contourBandsIn(view);
-      const sig = contourSig(active);
+      const active = contourBandsIn(view, map.getZoom());
+      const sig = contourSig(active, map.getZoom());
       if (sig === sigRef.current) return;
       const items = await loadContourItems(active);
       const src = map.getSource('contours') as { setData?: (d: unknown) => void } | undefined;

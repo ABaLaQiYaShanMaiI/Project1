@@ -1,5 +1,7 @@
 import type { LayerKey } from '../../store';
 
+const groupCache = new Map<string, LayerKey | null>();
+
 export function baseIdOf(id: string): string {
   return id.includes('__') ? id.slice(0, id.indexOf('__')) : id;
 }
@@ -20,6 +22,14 @@ const NEW_IDS: Partial<Record<string, LayerKey>> = {
 };
 
 export function groupOf(id: string): LayerKey | null {
+  const hit = groupCache.get(id);
+  if (hit !== undefined) return hit;
+  const result = groupOfRaw(id);
+  groupCache.set(id, result);
+  return result;
+}
+
+function groupOfRaw(id: string): LayerKey | null {
   const base = baseIdOf(id);
   const fixed = NEW_IDS[base];
   if (fixed) return fixed;

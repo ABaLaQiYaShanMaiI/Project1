@@ -1,5 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
-import { AERODROME_MARK_INK, STATION_EDGE, STATION_FILL, BUILDING_GLOW_INK, LANDUSE, MILITARY_FILL, MILITARY_OUTLINE, URBAN_GREY, URBAN_KINDS } from './tokens';
+import { AERODROME_MARK_INK, STATION_EDGE, STATION_FILL, BUILDING_GLOW_INK, BUILDING_TIER_MINZOOM, LANDUSE, MILITARY_FILL, MILITARY_OUTLINE, URBAN_GREY, URBAN_KINDS } from './tokens';
 import { restyle } from './restyle';
 import type { Tier } from './types';
 
@@ -16,10 +16,13 @@ export function clampZoom(layer: Record<string, unknown>, tier: Tier): boolean {
 
 export function tierLayers(base: StyleSpecification, tier: Tier, suffix: string): Record<string, unknown>[] {
   const out: Record<string, unknown>[] = [];
+  const core = tier.minzoom >= BUILDING_TIER_MINZOOM;
+  const skip = core ? ['earth', 'landcover', 'places_region', 'places_country'] : [];
   for (const raw of base.layers as unknown as Record<string, unknown>[]) {
     if (raw.type === 'background') continue;
     if (raw.id === 'roads_rail') continue;
     if (raw.id === 'boundaries' || raw.id === 'boundaries_country') continue;
+    if (skip.includes(String(raw.id))) continue;
     const layer = restyle({ ...raw, id: `${String(raw.id)}${suffix}` });
     if (!clampZoom(layer, tier)) continue;
     layer.source = tier.id;

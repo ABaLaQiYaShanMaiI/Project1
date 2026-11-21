@@ -34,17 +34,7 @@ export async function loadPmtilesZones(): Promise<PmtilesZone[]> {
     const list = Array.isArray(data.zones)
       ? data.zones.filter((z) => Boolean(z?.key && z?.file && Array.isArray(z?.bbox)))
       : [];
-    const checked = await Promise.all(
-      list.map(async (z) => {
-        const ok = await fetch(`/data/tiles/${z.file}`, { method: 'HEAD' })
-          .then((r) => r.ok)
-          .catch(() => false);
-        return ok ? z : null;
-      }),
-    );
-    cache = checked
-      .filter((z): z is PmtilesZone => z !== null)
-      .sort((a, b) => (a.kind === 'world' ? -1 : b.kind === 'world' ? 1 : a.maxzoom - b.maxzoom));
+    cache = list.sort((a, b) => (a.kind === 'world' ? -1 : b.kind === 'world' ? 1 : a.maxzoom - b.maxzoom));
   } catch {
     cache = [];
   }

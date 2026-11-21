@@ -174,7 +174,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
-    if (tier.minzoom < BUILDING_TIER_MINZOOM) out.push(...railsOf(tier, suffix));
+    out.push(...railsOf(tier, suffix, tier.minzoom >= BUILDING_TIER_MINZOOM ? tier.minzoom + 1 : 0));
   });
 
   if (inp.railsWorldCoarse) {
