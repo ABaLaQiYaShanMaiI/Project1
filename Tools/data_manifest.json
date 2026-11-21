@@ -1011,5 +1011,201 @@
     "bytes": 1650913
    }
   ]
+ },
+ {
+  "name": "france",
+  "label": "法国",
+  "bbox": [
+   -5.2,
+   41.3,
+   9.6,
+   51.2
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=france --label=\"法国\" --label-en=\"France\" --bbox=-5.2,41.3,9.6,51.2",
+  "recordedAt": "2026-11-21 01:54",
+  "products": [
+   {
+    "path": "tiles/france.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3f237e457f062dd2da3e9d0be4e50846ddaa8734ae759b2632b36216df2fa9f7",
+    "bytes": 912510541
+   },
+   {
+    "path": "rails_france.json",
+    "kind": "file",
+    "sha256": "sha256:6fee8ec9914f3d2e5fda2f8f8eb72a75838696cc3f5d0fcd5229174c6cf1bcf2",
+    "bytes": 3980098
+   },
+   {
+    "path": "rails_france_low.json",
+    "kind": "file",
+    "sha256": "sha256:c27d6931e6eb6a604059b5c936362edfc8a660b387941a2f81d89ba7484972ef",
+    "bytes": 2129039
+   },
+   {
+    "path": "poi_france.json",
+    "kind": "file",
+    "sha256": "sha256:aa87457ebba38e243be9eb3c779ad9e9808ac9d34ec71f6310561e2bb46fa5b3",
+    "bytes": 56157
+   },
+   {
+    "path": "cities_france.json",
+    "kind": "file",
+    "sha256": "sha256:f8e04066c8be9c3e341bdb02538ff03c333a8cd1d6b2f5c7d47b43278f10de09",
+    "bytes": 1804877
+   }
+  ]
+ },
+ {
+  "name": "spain",
+  "label": "西班牙",
+  "bbox": [
+   -9.4,
+   35.9,
+   3.4,
+   43.8
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=spain --label=\"西班牙\" --label-en=\"Spain\" --bbox=-9.4,35.9,3.4,43.8",
+  "recordedAt": "2026-11-21 01:56",
+  "products": [
+   {
+    "path": "tiles/spain.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:089a96db6cf16bacf029a407e15911096ef276b642a563f2b8cb3d5db3398799",
+    "bytes": 331921312
+   },
+   {
+    "path": "rails_spain.json",
+    "kind": "file",
+    "sha256": "sha256:2b90d3e93f426403ad41d1fc53a2006013d55bc8c763d27c37523ec7841612e4",
+    "bytes": 4019646
+   },
+   {
+    "path": "rails_spain_low.json",
+    "kind": "file",
+    "sha256": "sha256:3036cb6cac6d2542ecc66a5086e55452b9c1bb9917cc8358b092a2c4ec350e84",
+    "bytes": 649674
+   },
+   {
+    "path": "poi_spain.json",
+    "kind": "file",
+    "sha256": "sha256:c368b3f4c545f9e5c70823835b49d093b4b09b762867af94c78d249e39bd0451",
+    "bytes": 17073
+   },
+   {
+    "path": "cities_spain.json",
+    "kind": "file",
+    "sha256": "sha256:011f347187af639d6a22e28f391ef3664ab70b016ba8d269709a23ddbc27d002",
+    "bytes": 485119
+   }
+  ]
+ },
+ {
+  "name": "portugal",
+  "label": "葡萄牙",
+  "bbox": [
+   -9.6,
+   36.9,
+   -6.2,
+   42.2
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=portugal --label=\"葡萄牙\" --label-en=\"Portugal\" --bbox=-9.6,36.9,-6.2,42.2",
+  "recordedAt": "2026-11-21 01:56",
+  "products": [
+   {
+    "path": "tiles/portugal.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bb30c160c3bbc51306dfe69d2258256b1fdb17af56895d1b5e562972130e2f29",
+    "bytes": 68073182
+   },
+   {
+    "path": "rails_portugal.json",
+    "kind": "file",
+    "sha256": "sha256:f9ae5b4f398912f5fcc75d10d7e4dfc60b0ab58c742507fbc58d6c9212a54a89",
+    "bytes": 829702
+   },
+   {
+    "path": "rails_portugal_low.json",
+    "kind": "file",
+    "sha256": "sha256:f783e7bda978f8ebceb6842f2bc8a928cf7c8f2aa2ed83078aa6a9bda1ea3dc0",
+    "bytes": 142956
+   },
+   {
+    "path": "poi_portugal.json",
+    "kind": "file",
+    "sha256": "sha256:fbcc29118e4966bee045dc2076563adadcfffca6c331553290ec76ea44ace3bc",
+    "bytes": 3516
+   },
+   {
+    "path": "cities_portugal.json",
+    "kind": "file",
+    "sha256": "sha256:c5b3b9a4a92bb6ec2be9bb4eb97752d7bc1374b6e99ee0089229a2b7f23fad3d",
+    "bytes": 124676
+   }
+  ]
+ },
+ {
+  "name": "italy",
+  "label": "意大利",
+  "bbox": [
+   6.6,
+   36.6,
+   18.6,
+   47.1
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=italy --label=\"意大利\" --label-en=\"Italy\" --bbox=6.6,36.6,18.6,47.1",
+  "recordedAt": "2026-11-21 01:59",
+  "products": [
+   {
+    "path": "tiles/italy.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:cbcdabf6d8e0d5b2a381bedf4f3d3f93c3b59a7a3ffded3fe38251ec16eefd0c",
+    "bytes": 451430120
+   },
+   {
+    "path": "rails_italy.json",
+    "kind": "file",
+    "sha256": "sha256:988f3e7dcf06ad2b26ad30aca2d2216202b6e28c87efa08a70a478f0446aec2f",
+    "bytes": 3072905
+   },
+   {
+    "path": "rails_italy_low.json",
+    "kind": "file",
+    "sha256": "sha256:193e4fd6ff7e90794301932c884e48385c4a676b3a9c1de03746047038dd7701",
+    "bytes": 887630
+   },
+   {
+    "path": "poi_italy.json",
+    "kind": "file",
+    "sha256": "sha256:a9827a592d7fd0c426254cc19b09df2db146352fecb1bee9585bfc12f412aa11",
+    "bytes": 24554
+   },
+   {
+    "path": "cities_italy.json",
+    "kind": "file",
+    "sha256": "sha256:4a538f70ef41059c996cb1b46662c6cb96f06d1eb646a7318d9fa47a74551956",
+    "bytes": 980621
+   }
+  ]
  }
 ]

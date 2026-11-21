@@ -88,9 +88,33 @@ try {
   ]);
   console.log(`\n=== cities ${KEY} ===`);
   run(process.execPath, ['Tools/bake_cities.mjs', `--pack=${PACK}`, '--zoom=12', '--kinds=city,town,village', `--out=${CITIES}`]);
+  const ladder = [
+    [0.00015, 1200],
+    [0.0003, 1600],
+    [0.0006, 2400],
+    [0.0012, 4000],
+    [0.0024, 6000],
+  ];
+  for (const [tol, minlen] of ladder) {
+    if (statSync(RAILS).size <= 4 * 1048576) break;
+    console.log(`\n=== rail simplify ${KEY} (${(statSync(RAILS).size / 1048576).toFixed(1)} MB, tol=${tol}) ===`);
+    run(process.execPath, [
+      'Tools/bake_rail.mjs',
+      `--pack=${PACK}`,
+      '--zoom=12',
+      `--tol=${tol}`,
+      `--minlen=${minlen}`,
+      `--out=${RAILS}`,
+    ]);
+  }
   if (statSync(RAILS).size > 4 * 1048576) {
-    console.log(`\n=== rail simplify ${KEY} (${(statSync(RAILS).size / 1048576).toFixed(1)} MB > 4 MB) ===`);
-    run(process.execPath, ['Tools/bake_rail.mjs', `--pack=${PACK}`, '--zoom=12', '--tol=0.00015', '--minlen=1200', `--out=${RAILS}`]);
+    console.log(`\n=== rail quantize ${KEY} (${(statSync(RAILS).size / 1048576).toFixed(1)} MB) ===`);
+    const doc = JSON.parse(readFileSync(RAILS, 'utf8'));
+    const q = (v) => Math.round(v * 1e5) / 1e5;
+    if (Array.isArray(doc.lines)) {
+      doc.lines = doc.lines.map((line) => line.map(([x, y]) => [q(x), q(y)]));
+      writeFileSync(RAILS, JSON.stringify(doc), 'utf8');
+    }
   }
 } catch (e) {
   rollback();

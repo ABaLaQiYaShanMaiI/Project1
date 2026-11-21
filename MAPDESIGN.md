@@ -12,7 +12,7 @@ L0 全球      tiles/world.pmtiles      z0-z6    42 MB     全世界始终有图
 L1 全球 z7-8  tiles/world8.pmtiles     z7-z8    476 MB    村镇级标注与路网
 L1b 全球 z9-10 tiles/world9.pmtiles     z9-z10   3.0 GB    街区级路网与更密地名
 L2 热点      tiles/fulda.pmtiles      z0-z13   42 MB     战术尺度
-L2b 国家     tiles/<country>.pmtiles z11-z12  1.35 GB   九国：奥/捷/瑞/荷/比/丹/斯洛/匈/波
+L2b 国家     tiles/<country>.pmtiles z11-z12  3.03 GB   13 国：上述九国 + 法/西/葡/意
 L3 城区核心  tiles/<city>_core.pmtiles z14-z15 118 MB   13 城真实建筑
 地形        dem/world z0-z5（86 MB） + dem/world6 z6（约 200 MB） + dem/europe z6-z9（151 MB） + dem/germany z9-z11（520 MB）
 坡度        slope/world z0-z5（3.6 MB） + slope/world6 z6（约 6 MB） + slope/europe z6-z9（9.2 MB） + slope/germany z9-z11（35 MB）
