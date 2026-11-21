@@ -1,0 +1,17 @@
+{
+ "key": "budapest_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  18.98,
+  47.44,
+  19.1,
+  47.56
+ ],
+ "tiles": "/data/density/budapest_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 203,
+ "sizeMB": 0.29,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/budapest_core.pmtiles"
+}

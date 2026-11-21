@@ -5,8 +5,8 @@
  "bbox": [
   0.0,
   44.0,
-  20.0,
-  56.0
+  24.5,
+  58.0
  ],
  "tiles": "/data/slope/europe/{z}/{x}/{y}.png",
  "classes": [
@@ -17,6 +17,6 @@
   35
  ],
  "attribution": "AWS Terrain Tiles (Terrarium / SRTM, 公有领域)",
- "sizeMB": 7.42,
- "generated": "2026-11-21 08:34"
+ "sizeMB": 9.17,
+ "generated": "2026-11-21 09:20"
 }

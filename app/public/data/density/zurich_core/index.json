@@ -1,0 +1,17 @@
+{
+ "key": "zurich_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  8.48,
+  47.31,
+  8.6,
+  47.43
+ ],
+ "tiles": "/data/density/zurich_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 197,
+ "sizeMB": 0.25,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/zurich_core.pmtiles"
+}

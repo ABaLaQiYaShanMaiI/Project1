@@ -414,7 +414,9 @@ export function WorldMapLibre(): JSX.Element {
 
       store.setBasemap({
         name: focus.name,
+        nameEn: focus.name_en ?? focus.name,
         tiers: tiersZones.map((z) => `${z.kind === 'world' ? s.global : z.name} z${z.minzoom}–${z.maxzoom}`),
+        tiersEn: tiersZones.map((z) => `${z.kind === 'world' ? 'Global' : z.name_en ?? z.name} z${z.minzoom}–${z.maxzoom}`),
         minzoom: 0,
         maxzoom: Math.max(...tiersZones.map((z) => z.maxzoom)),
         sizeMB: Number(tiersZones.reduce((s, z) => s + z.sizeMB, 0).toFixed(1)),

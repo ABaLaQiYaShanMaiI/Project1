@@ -15,7 +15,7 @@ function boxHit(a: [number, number, number, number], b: [number, number, number,
 export const DEM_BANDS: DemBand[] = [
   { key: 'world', from: 0, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
   { key: 'world6', from: 6, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
-  { key: 'europe', from: 7, bbox: [0, 44, 20, 56], ramp: HYPSOMETRIC_RAMP_MID },
+  { key: 'europe', from: 7, bbox: [0, 44, 24.5, 58], ramp: HYPSOMETRIC_RAMP_MID },
   { key: 'germany', from: 9, bbox: [5.8, 47.2, 15.1, 55.1], ramp: HYPSOMETRIC_RAMP },
 ];
 

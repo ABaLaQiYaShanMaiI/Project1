@@ -348,5 +348,668 @@
     "bytes": 266190
    }
   ]
+ },
+ {
+  "name": "vienna_core",
+  "label": "维也纳",
+  "bbox": [
+   16.31,
+   48.148,
+   16.43,
+   48.268
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=vienna_core --bbox=16.31,48.148,16.43,48.268 --label=\"维也纳\"",
+  "recordedAt": "2026-11-21 00:59",
+  "products": [
+   {
+    "path": "tiles/vienna_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c041c91598574667df16b332970d1c6985ab159234cf8aa309088d3fcfb55001",
+    "bytes": 12179679
+   },
+   {
+    "path": "poi_vienna_core.json",
+    "kind": "file",
+    "sha256": "sha256:bfa7024ecb4442d73451cf2109e3125ecbaff0fa7c7029d46b5dda999f1c70c2",
+    "bytes": 4022
+   },
+   {
+    "path": "density/vienna_core",
+    "kind": "dir",
+    "files": 205,
+    "bytes": 311578
+   }
+  ]
+ },
+ {
+  "name": "prague_core",
+  "label": "布拉格",
+  "bbox": [
+   14.36,
+   50.02,
+   14.48,
+   50.14
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=prague_core --bbox=14.36,50.02,14.48,50.14 --label=\"布拉格\"",
+  "recordedAt": "2026-11-21 01:00",
+  "products": [
+   {
+    "path": "tiles/prague_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:77e9382ced2ecac7e7c7d92f6ba56067edf10ae642ce47e042698067762ffd26",
+    "bytes": 10744206
+   },
+   {
+    "path": "poi_prague_core.json",
+    "kind": "file",
+    "sha256": "sha256:9a989bf5374204759d5ea75a93ac7917ed227e0104949536401850717d7b825f",
+    "bytes": 3443
+   },
+   {
+    "path": "density/prague_core",
+    "kind": "dir",
+    "files": 217,
+    "bytes": 290000
+   }
+  ]
+ },
+ {
+  "name": "warsaw_core",
+  "label": "华沙",
+  "bbox": [
+   20.95,
+   52.17,
+   21.07,
+   52.29
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=warsaw_core --bbox=20.95,52.17,21.07,52.29 --label=\"华沙\"",
+  "recordedAt": "2026-11-21 01:00",
+  "products": [
+   {
+    "path": "tiles/warsaw_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b45f7c2fc062f289f01929f0ea22f23d39a744a007861747311818f551b2f87b",
+    "bytes": 12155464
+   },
+   {
+    "path": "poi_warsaw_core.json",
+    "kind": "file",
+    "sha256": "sha256:992bd2a2edb814c4f18c3b0b3e7c34213c1b3b82e58093f7b7e3dd5581f38eb8",
+    "bytes": 1408
+   },
+   {
+    "path": "density/warsaw_core",
+    "kind": "dir",
+    "files": 229,
+    "bytes": 317067
+   }
+  ]
+ },
+ {
+  "name": "budapest_core",
+  "label": "布达佩斯",
+  "bbox": [
+   18.98,
+   47.44,
+   19.1,
+   47.56
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=budapest_core --bbox=18.98,47.44,19.1,47.56 --label=\"布达佩斯\"",
+  "recordedAt": "2026-11-21 01:00",
+  "products": [
+   {
+    "path": "tiles/budapest_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:de16554c462a8d1240e0e696b8aec985ebe9837676414738524c7d60f55cb4ea",
+    "bytes": 7807909
+   },
+   {
+    "path": "poi_budapest_core.json",
+    "kind": "file",
+    "sha256": "sha256:892025e75449060f2fda74c7a19b6d3864eafcd44d8601702d7b32c65eac4d6c",
+    "bytes": 2309
+   },
+   {
+    "path": "density/budapest_core",
+    "kind": "dir",
+    "files": 204,
+    "bytes": 302635
+   }
+  ]
+ },
+ {
+  "name": "amsterdam_core",
+  "label": "阿姆斯特丹",
+  "bbox": [
+   4.835,
+   52.31,
+   4.955,
+   52.43
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=amsterdam_core --bbox=4.835,52.31,4.955,52.43 --label=\"阿姆斯特丹\"",
+  "recordedAt": "2026-11-21 01:00",
+  "products": [
+   {
+    "path": "tiles/amsterdam_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:ab0f5888f00a6169faec3b8dba917dc08e81dd82e3dca35301216aab21e9ec08",
+    "bytes": 15062546
+   },
+   {
+    "path": "poi_amsterdam_core.json",
+    "kind": "file",
+    "sha256": "sha256:6b9a0b9e7ac57236ddf5e3544ac536f84c4e83ea349ad3d797b4408623b2b0b7",
+    "bytes": 4364
+   },
+   {
+    "path": "density/amsterdam_core",
+    "kind": "dir",
+    "files": 226,
+    "bytes": 278009
+   }
+  ]
+ },
+ {
+  "name": "zurich_core",
+  "label": "苏黎世",
+  "bbox": [
+   8.48,
+   47.31,
+   8.6,
+   47.43
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=zurich_core --bbox=8.48,47.31,8.6,47.43 --label=\"苏黎世\"",
+  "recordedAt": "2026-11-21 01:00",
+  "products": [
+   {
+    "path": "tiles/zurich_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:fd2a8c9c51eddb1d6bb06e164760efad2130a675e08f28c9e32d6e6a455eaa24",
+    "bytes": 8343495
+   },
+   {
+    "path": "poi_zurich_core.json",
+    "kind": "file",
+    "sha256": "sha256:a40e1fb065bdfb676c10f11567a385ebe5f345dc65981343effa9272672b4615",
+    "bytes": 2482
+   },
+   {
+    "path": "density/zurich_core",
+    "kind": "dir",
+    "files": 198,
+    "bytes": 263966
+   }
+  ]
+ },
+ {
+  "name": "austria",
+  "label": "奥地利",
+  "bbox": [
+   9.5,
+   46.3,
+   17.2,
+   49.1
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=austria --label=\"奥地利\" --label-en=\"Austria\" --bbox=9.5,46.3,17.2,49.1",
+  "recordedAt": "2026-11-21 01:21",
+  "products": [
+   {
+    "path": "tiles/austria.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:b90d774ffae812d9b7080d051e35192b0853a3438cf85fee1b7fb49edc0ad21a",
+    "bytes": 238213584
+   },
+   {
+    "path": "rails_austria.json",
+    "kind": "file",
+    "sha256": "sha256:a642a053f6b3759992f55d24e44131ded7f9381e8f0642ad352d2dd7070c01b1",
+    "bytes": 3597561
+   },
+   {
+    "path": "rails_austria_low.json",
+    "kind": "file",
+    "sha256": "sha256:b8555de3c903fae92659008942bf04d5de964bc7fcffa68ded82788c9df7ffe1",
+    "bytes": 431798
+   },
+   {
+    "path": "poi_austria.json",
+    "kind": "file",
+    "sha256": "sha256:2f77ecd8b45c4a9697320705a7f258c3e174afa67e59ced1ad87d11760f974b0",
+    "bytes": 13729
+   },
+   {
+    "path": "cities_austria.json",
+    "kind": "file",
+    "sha256": "sha256:e1a15a142bb963887cbc26caf0b6ab7f47b90472777e3b2989e6938cbda5862f",
+    "bytes": 461415
+   }
+  ]
+ },
+ {
+  "name": "czechia",
+  "label": "捷克",
+  "bbox": [
+   12,
+   48.5,
+   18.9,
+   51.1
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=czechia --label=\"捷克\" --label-en=\"Czechia\" --bbox=12.0,48.5,18.9,51.1",
+  "recordedAt": "2026-11-21 01:22",
+  "products": [
+   {
+    "path": "tiles/czechia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:06d81e104e80a5f6a039e3d8c17815b871d7c45a38c7ef04ddb385a67cef6223",
+    "bytes": 197764643
+   },
+   {
+    "path": "rails_czechia.json",
+    "kind": "file",
+    "sha256": "sha256:1edf1ac82ea021ba9f4c423f6251874e0d5ce81f4e62b8efb7318fa6bcea2071",
+    "bytes": 2488989
+   },
+   {
+    "path": "rails_czechia_low.json",
+    "kind": "file",
+    "sha256": "sha256:84fc14a29e4aaaa045ac0dd6f42f82c25621db76e37196d3d8f6a5b23d2dd4ee",
+    "bytes": 610190
+   },
+   {
+    "path": "poi_czechia.json",
+    "kind": "file",
+    "sha256": "sha256:1d6430935c71709b55c67fc4536431c7e4be31e091290dde2d63fbdc370e8d75",
+    "bytes": 11757
+   },
+   {
+    "path": "cities_czechia.json",
+    "kind": "file",
+    "sha256": "sha256:873ad02fc3754789c16f9493f0dbb68e7dd523c88ae8b1ce8b0d288e504ca00f",
+    "bytes": 513870
+   }
+  ]
+ },
+ {
+  "name": "switzerland",
+  "label": "瑞士",
+  "bbox": [
+   5.9,
+   45.8,
+   10.5,
+   47.8
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=switzerland --label=\"瑞士\" --label-en=\"Switzerland\" --bbox=5.9,45.8,10.5,47.8",
+  "recordedAt": "2026-11-21 01:23",
+  "products": [
+   {
+    "path": "tiles/switzerland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5657e9c9a21b2ab96822957c063fdb827cf9e630ab1bb00f2fcba667beccf6dd",
+    "bytes": 97604264
+   },
+   {
+    "path": "rails_switzerland.json",
+    "kind": "file",
+    "sha256": "sha256:9f9bcfaaf7158758328cb1ddcb11650dbb8f6cf676bc0f8b00d7af16f1a7cb6f",
+    "bytes": 1960899
+   },
+   {
+    "path": "rails_switzerland_low.json",
+    "kind": "file",
+    "sha256": "sha256:416d14a6abdbf1d5ddbe6ab45cb98851b2fb940a5512443ece7e6b437e28a20d",
+    "bytes": 231070
+   },
+   {
+    "path": "poi_switzerland.json",
+    "kind": "file",
+    "sha256": "sha256:4850c3c070790d585f23f62c0049f4393acdb956463ad5de93fb60e3ec47003e",
+    "bytes": 4540
+   },
+   {
+    "path": "cities_switzerland.json",
+    "kind": "file",
+    "sha256": "sha256:c70d5c3e3c925e00560fb950e8aee09bc48b44fbe53995a3dba44d59ace0383c",
+    "bytes": 193501
+   }
+  ]
+ },
+ {
+  "name": "netherlands",
+  "label": "荷兰",
+  "bbox": [
+   3.3,
+   50.7,
+   7.2,
+   53.6
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=netherlands --label=\"荷兰\" --label-en=\"Netherlands\" --bbox=3.3,50.7,7.2,53.6",
+  "recordedAt": "2026-11-21 01:23",
+  "products": [
+   {
+    "path": "tiles/netherlands.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5daa3fb1f0250e6b2cc90c10849d280784e2320b86acc835ab6d28565893db88",
+    "bytes": 145547539
+   },
+   {
+    "path": "rails_netherlands.json",
+    "kind": "file",
+    "sha256": "sha256:08eb6146892233f5c09c622d97062c8f97362c6bd3e6ed58d661ce1cc43f8358",
+    "bytes": 1985624
+   },
+   {
+    "path": "rails_netherlands_low.json",
+    "kind": "file",
+    "sha256": "sha256:7818150b82163b6517ac0e55ddc6661682c54c82ef73646486e20cba9b6c36cc",
+    "bytes": 248241
+   },
+   {
+    "path": "poi_netherlands.json",
+    "kind": "file",
+    "sha256": "sha256:ff1c9a2fafd235b23c16824451a74cf0c6330660ae49ce4969d0e34421902fa6",
+    "bytes": 9634
+   },
+   {
+    "path": "cities_netherlands.json",
+    "kind": "file",
+    "sha256": "sha256:9c75cedffab2c98196f9ffc9c1979174a1d3e01fbaf5450ead371bd274844f36",
+    "bytes": 123325
+   }
+  ]
+ },
+ {
+  "name": "belgium",
+  "label": "比利时",
+  "bbox": [
+   2.5,
+   49.5,
+   6.4,
+   51.5
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=belgium --label=\"比利时\" --label-en=\"Belgium\" --bbox=2.5,49.5,6.4,51.5",
+  "recordedAt": "2026-11-21 01:24",
+  "products": [
+   {
+    "path": "tiles/belgium.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7240a7882f0b88b864db082a710b08644b1838e3df94239ae7557f4bce5042fc",
+    "bytes": 107138235
+   },
+   {
+    "path": "rails_belgium.json",
+    "kind": "file",
+    "sha256": "sha256:f7c59e8945579da77b7118dc614b73b86b2ff8d8388a3ba98cdb19c6ea4fa912",
+    "bytes": 1814425
+   },
+   {
+    "path": "rails_belgium_low.json",
+    "kind": "file",
+    "sha256": "sha256:17d686fa4d5d3bc286d680a693a9dec6b9773c47fe3356bd6712b7539754e574",
+    "bytes": 251728
+   },
+   {
+    "path": "poi_belgium.json",
+    "kind": "file",
+    "sha256": "sha256:d7e301e18e57cf31bca3d991bad907308b5af5f77c4e8f2364a34f7c8fc8194a",
+    "bytes": 7142
+   },
+   {
+    "path": "cities_belgium.json",
+    "kind": "file",
+    "sha256": "sha256:09d16327f9e7221197cf3c222401b6fde3d25deb4035ccc0a5d3041e57107e49",
+    "bytes": 184052
+   }
+  ]
+ },
+ {
+  "name": "denmark",
+  "label": "丹麦",
+  "bbox": [
+   8,
+   54.5,
+   12.7,
+   57.8
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=denmark --label=\"丹麦\" --label-en=\"Denmark\" --bbox=8.0,54.5,12.7,57.8",
+  "recordedAt": "2026-11-21 01:24",
+  "products": [
+   {
+    "path": "tiles/denmark.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:08c347c3fe68b30e34c154bcbb0160b0779979b6e32bdd54daf499b1f9626680",
+    "bytes": 66679589
+   },
+   {
+    "path": "rails_denmark.json",
+    "kind": "file",
+    "sha256": "sha256:ec9a751044a00844f37f90f0ff908bc9775926a23b56fb07ef6058aa29b16a87",
+    "bytes": 598906
+   },
+   {
+    "path": "rails_denmark_low.json",
+    "kind": "file",
+    "sha256": "sha256:0fe61e4233e28c5e17b834be59b118abd57be4dbbbe39173b93d3f2da49b2137",
+    "bytes": 105118
+   },
+   {
+    "path": "poi_denmark.json",
+    "kind": "file",
+    "sha256": "sha256:47219804b56530b4e4ef5ed4774b970d7377255782737b7ed374f4970e18f397",
+    "bytes": 4053
+   },
+   {
+    "path": "cities_denmark.json",
+    "kind": "file",
+    "sha256": "sha256:6d95c659f745856d733fd8fa92722b4c9b7b6029e596b6a5aff5ee23a1f473a9",
+    "bytes": 54007
+   }
+  ]
+ },
+ {
+  "name": "slovakia",
+  "label": "斯洛伐克",
+  "bbox": [
+   16.8,
+   47.7,
+   22.6,
+   49.6
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=slovakia --label=\"斯洛伐克\" --label-en=\"Slovakia\" --bbox=16.8,47.7,22.6,49.6",
+  "recordedAt": "2026-11-21 01:25",
+  "products": [
+   {
+    "path": "tiles/slovakia.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:18aaa3915d3790432e0072912dbedc610553e498d18d79a62901a3389c9a425f",
+    "bytes": 75987220
+   },
+   {
+    "path": "rails_slovakia.json",
+    "kind": "file",
+    "sha256": "sha256:c79dd0d110bff335789fda91cf74fe921bcc5adafbc46f8a8191a08d017c9e8c",
+    "bytes": 1855972
+   },
+   {
+    "path": "rails_slovakia_low.json",
+    "kind": "file",
+    "sha256": "sha256:68b52322ce3d75be43544cd2d27f9b5a830060c6d21d0f3d95c681d2e409d25e",
+    "bytes": 219227
+   },
+   {
+    "path": "poi_slovakia.json",
+    "kind": "file",
+    "sha256": "sha256:0d9cac94a06bba53efdf0eb29ee469e3488fb2686a3911ad9f8464689fb28316",
+    "bytes": 4647
+   },
+   {
+    "path": "cities_slovakia.json",
+    "kind": "file",
+    "sha256": "sha256:58c15466861a11a5b168a5699f994176e4d6b4ca1010c39c74dc1335beda59d0",
+    "bytes": 153304
+   }
+  ]
+ },
+ {
+  "name": "hungary",
+  "label": "匈牙利",
+  "bbox": [
+   16,
+   45.7,
+   22.9,
+   48.6
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=hungary --label=\"匈牙利\" --label-en=\"Hungary\" --bbox=16.0,45.7,22.9,48.6",
+  "recordedAt": "2026-11-21 01:25",
+  "products": [
+   {
+    "path": "tiles/hungary.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:3b0725f629dd9acf766e0ca3df85d1ae7a82726ff92d88f29b07121b1c92e73f",
+    "bytes": 98879024
+   },
+   {
+    "path": "rails_hungary.json",
+    "kind": "file",
+    "sha256": "sha256:b73d68d335b36fda787e2a389b969c95d8fc0d0305cb00f4b94c846d5f1ba8a1",
+    "bytes": 2401320
+   },
+   {
+    "path": "rails_hungary_low.json",
+    "kind": "file",
+    "sha256": "sha256:ece215211463a436d4b19e01c83a0bccc353d1e80e8b876518ed3887f28f4ee3",
+    "bytes": 369924
+   },
+   {
+    "path": "poi_hungary.json",
+    "kind": "file",
+    "sha256": "sha256:5d400cfe5f107ebb7f26029f2ae3a769e96abe0164c762fb230c5e13bf8550ea",
+    "bytes": 8912
+   },
+   {
+    "path": "cities_hungary.json",
+    "kind": "file",
+    "sha256": "sha256:9e98486247b6e8be91b561288478062c19322e1cf5c1552959c5afe5726bc0cd",
+    "bytes": 252843
+   }
+  ]
+ },
+ {
+  "name": "poland",
+  "label": "波兰",
+  "bbox": [
+   14.1,
+   49,
+   24.2,
+   54.9
+  ],
+  "zoom": [
+   11,
+   12
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_country.mjs --key=poland --label=\"波兰\" --label-en=\"Poland\" --bbox=14.1,49.0,24.2,54.9",
+  "recordedAt": "2026-11-21 01:27",
+  "products": [
+   {
+    "path": "tiles/poland.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5f29f3f2bd400cdc43794f61fe6f9d4367c82e58e7f3e5ff17af747a5c8dddc9",
+    "bytes": 422586964
+   },
+   {
+    "path": "rails_poland.json",
+    "kind": "file",
+    "sha256": "sha256:633b0d88f2377ec80ab3e2ab6c9b8bba0ce8b1846e4045ff5050dc8fd14945c2",
+    "bytes": 3612209
+   },
+   {
+    "path": "rails_poland_low.json",
+    "kind": "file",
+    "sha256": "sha256:364b82c78e57e04de3df89129e84727acfd3f183fd902464876ddb1eb12f2a0e",
+    "bytes": 1036171
+   },
+   {
+    "path": "poi_poland.json",
+    "kind": "file",
+    "sha256": "sha256:72eeef2e39713ded0acf6b57c71c2c9e0fd3407a2b980aea534a838ff68596a4",
+    "bytes": 18381
+   },
+   {
+    "path": "cities_poland.json",
+    "kind": "file",
+    "sha256": "sha256:3caa58f6af7f1307e3a8ca9d7796bf1634584f3abc8677de8e14cd26c32c68ad",
+    "bytes": 1650913
+   }
+  ]
  }
 ]

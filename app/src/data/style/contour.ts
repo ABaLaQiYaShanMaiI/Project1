@@ -38,6 +38,11 @@ export const CONTOUR_BANDS: ContourBand[] = [
   { key: 'drakensberg', bbox: [27, -33, 32, -25], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'japan_alps', bbox: [135, 34, 142, 38], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'mesoamerica', bbox: [-108, 15, -96, 25], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'pyrenees', bbox: [-10, 36, 3, 44], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'new_guinea', bbox: [131, -11, 151, 1], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'madagascar', bbox: [46.1, -26, 51, -12], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'new_zealand', bbox: [166, -48, 179, -34], minzoom: 7, maxzoom: 10, allLabels: false },
+  { key: 'borneo', bbox: [95, -6, 119, 7], minzoom: 7, maxzoom: 10, allLabels: false },
   { key: 'germany', bbox: [5.8, 47.2, 15.1, 55.1], minzoom: 10, maxzoom: 13, allLabels: false },
   { key: 'fulda', bbox: [8.849, 50.24, 10.591, 51], minzoom: 13, maxzoom: 22, allLabels: true },
 ];

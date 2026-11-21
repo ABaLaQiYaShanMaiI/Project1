@@ -4,6 +4,7 @@ import type { Tier } from './style/types';
 export interface PmtilesZone {
   key: string;
   name: string;
+  name_en?: string;
   file: string;
   style: string;
   bbox: [number, number, number, number];

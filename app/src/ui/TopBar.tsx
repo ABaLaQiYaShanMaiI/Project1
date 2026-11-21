@@ -16,7 +16,7 @@ export function TopBar(): JSX.Element {
           <span className="brand-name">{s.brand}</span>
           <span className="brand-sub">{s.brandSub}</span>
         </div>
-        <span className="scenario">{base ? base.name : s.worldMap} · 1985</span>
+        <span className="scenario">{base ? (store.lang === 'en' ? base.nameEn : base.name) : s.worldMap} · 1985</span>
       </div>
 
       <div className="clock">

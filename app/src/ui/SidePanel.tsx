@@ -117,8 +117,8 @@ export function SidePanel(): JSX.Element {
         <div className="lp-title">{s.basemap}</div>
         {base ? (
           <>
-            <div className="lp-hint">{base.name}</div>
-            {base.tiers.map((t) => (
+            <div className="lp-hint">{store.lang === 'en' ? base.nameEn : base.name}</div>
+            {(store.lang === 'en' ? base.tiersEn : base.tiers).map((t) => (
               <div key={t} className="lp-hint mono">
                 {t}
               </div>

@@ -257,7 +257,9 @@ export const LAYER_TREE: LayerGroup[] = [
 
 export interface BasemapInfo {
   name: string;
+  nameEn: string;
   tiers: string[];
+  tiersEn: string[];
   minzoom: number;
   maxzoom: number;
   sizeMB: number;

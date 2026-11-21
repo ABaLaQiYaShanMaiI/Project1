@@ -1,0 +1,17 @@
+{
+ "key": "warsaw_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  20.95,
+  52.17,
+  21.07,
+  52.29
+ ],
+ "tiles": "/data/density/warsaw_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 228,
+ "sizeMB": 0.3,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/warsaw_core.pmtiles"
+}

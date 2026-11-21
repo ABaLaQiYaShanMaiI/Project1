@@ -2189,3 +2189,40 @@ v1.77 只有 5 条山系 + 中欧有 500 m 档。这一轮用本地 `dem/world6`
 - 预算：DEM 总量 844 → **934 MB**（CONSTRAINTS §2 的 1 GB 上限，余 ~90 MB）；坡度总量 +2.4 MB。
 - 注意：坡度清单走 `getJson` 的 `force-cache`，换数据后浏览器需硬刷新（Ctrl+F5）才会读到新 `index.json`；
   DEM 清单走 `loadDemManifest` 的 `no-cache`，不受影响。
+
+### v1.92 再补 5 条山系 + 6 个欧洲城市核心包 + 英文区名
+
+- **等高线 14 → 19 区**：新增比利牛斯/伊比利亚（−10…3°E / 36–44°N）、新几内亚、马达加斯加、
+  新西兰、婆罗洲，合计 **0.72 MB**；bbox 与既有区互不重叠（阿特拉斯止于 36°N、欧洲从 44°N 起）。
+  `world_mid` 按 **20 个矩形**重烘：1.84 → **1.74 MB / 102k 顶点**。
+- **城市核心 7 → 13 个**：维也纳 11.62 / 布拉格 10.25 / 华沙 11.59 / 布达佩斯 7.45 /
+  阿姆斯特丹 14.36 / 苏黎世 7.96，合计 **63.2 MB**，全部走 `Tools/add_core.mjs`；
+  底图包总量 5.41 → **5.47 GB**（12 GB 预算内）。
+- **英文区名**：`tiles/index.json` 的 19 个区全部补 `name_en`；`PmtilesZone.name_en`、
+  `BasemapInfo.nameEn / tiersEn` 落地，顶栏区名与「底图」面板层列表随 EN 档切换。
+  实测维也纳：中文「维也纳 · 1985」→ EN「Vienna · 1985」，层列表
+  `Global z0–… / Global z7–… / Global z9–10 / Vienna z14–15`。
+- 实测：维也纳 z15 建筑要素 **7,126**，tier 为 `world8 / world9 / vienna_core`。
+- tsc 0 error；check_all 见本轮结论。
+
+### v1.93 九国 z11–12 国家包 + europe DEM 扩到 24.5°E/58°N
+
+按实测报价执行（先试切奥地利/捷克/波兰再定）：
+
+- 新增 **`Tools/add_country.mjs`**：`pmtiles extract` z11–12 → `bake_region`（跳 dem/contours/slope/cities）
+  → `bake_cities`(z12) → 写 `tiles/index.json` + `data_manifest.json`，失败回滚；母包本地切、不联网。
+- **九国实测体积**：奥地利 227.2 / 捷克 188.6 / 瑞士 93.1 / 荷兰 138.8 / 比利时 102.2 /
+  丹麦 63.6 / 斯洛伐克 72.5 / 匈牙利 94.3 / 波兰 403.0，合计 **1,383 MB（1.35 GB）**。
+  底图包总量 5.47 → **6.46 GB**（12 GB 预算内）。
+- **europe DEM** bbox 由 0–20°E/44–56°N 扩到 **0–24.5°E/44–58°N**：1,121 → **1,567 张 / 151.4 MB**；
+  `slope/europe` 9.17 MB。DEM 总量 **975 MB**（1 GB 上限，余 ~49 MB）。
+  同步 `data/demBands.ts` 的 europe bbox 与 `dem/world8`、`slope/world8` 别名清单。
+- 运行时实测：维也纳 z12 `detail_austria` 1,365 条路；华沙 z11 `detail_poland` 381 条；
+  阿姆斯特丹 z12 `detail_netherlands` 1,005 条；华沙 z10 回落 world9（241 条）。
+  三国交界（17.1E/48.15N）同时 5 个区域包（奥/捷/斯洛/匈/维也纳 core），正好等于 `MAX_REGION_TIERS`。
+- 地形边界：九国 z10–13 仍是 europe z9 的 1–4× overzoom（城市由 core 包兜底）；
+  要逐国 z9–11 需把 DEM 上限从 1 GB 提到 ~2.5 GB，属产品决策。
+- **4 MB 单文件闸门**：捷克 / 波兰的 `rails_<key>.json` 首烘 **5.32 / 7.65 MB**，超 CONSTRAINTS §2；
+  用 `--tol=0.00015 --minlen=1200` 重烘到 **2.37 / 3.44 MB**，台账 sha 同步。
+  `Tools/add_country.mjs` 现在会在 rails > 4 MB 时自动用这组容差再烘一次。
+- 校验：check_all 9/9；`restore.mjs` **23 条记录全部一致**。

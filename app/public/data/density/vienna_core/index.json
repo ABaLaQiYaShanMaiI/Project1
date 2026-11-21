@@ -1,0 +1,17 @@
+{
+ "key": "vienna_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  16.31,
+  48.148,
+  16.43,
+  48.268
+ ],
+ "tiles": "/data/density/vienna_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 204,
+ "sizeMB": 0.3,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/vienna_core.pmtiles"
+}

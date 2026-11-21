@@ -478,6 +478,46 @@ NE 按区域 bbox 裁剪（新 `data/railsWorld.ts`，Liang-Barsky 分段裁剪 
 
 ## 踩坑记录
 
+### v1.93 九国国家包：先试切三家，再决定买不买
+
+「国家级 z11–12 可行吗」这个问题不能拍脑袋。做法是先试切奥地利/捷克/波兰，量出真实体积：
+227/189/403 MB，折合 2.4–2.7 MB per 1000 km²（波兰反而便宜，1.3）。按这个口径九国合计 1.35 GB，
+在 6.5 GB 余量内，于是按 Phase 1+2 一次做完。
+
+地形是另一笔账：DEM 只剩 90 MB，逐国 z9–11 要 1.26 GB，不可能。折中方案是把 europe 档
+bbox 从 20°E/56°N 扩到 **24.5°E/58°N**（+446 张、+41 MB），这样波兰东部/匈牙利/斯洛伐克/丹麦
+也有 z9 原生地形；z10–13 仍是 1–4× overzoom，城市里靠 core 包。
+
+两个实现细节：
+
+1. **不能直接用 `add_region`**：它会跑 dem/contours/slope，而我们要的是「矢量包 + 铁路/气泡/城市台账」。
+   新写 `Tools/add_country.mjs`，`bake_region` 用 `--skip=dem,contours,slope,cities`，再单独用 z12 跑
+   `bake_cities`（`bake_region` 里写死 z13，国家包没有 z13 瓦片）。
+2. **bbox 是矩形，国家边界不是**：匈牙利的矩形会盖住维也纳一带，于是维也纳视图会多加载一个空 tier
+   （`detail_hungary` 0 条路）。代价是每视图多一套 base 图层；三国交界实测 5 个区域包，
+   正好卡在 `MAX_REGION_TIERS`，不会丢包。
+
+还有一条硬闸门差点漏掉：`rails_czechia.json` 5.32 MB、`rails_poland.json` 7.65 MB 直接顶破
+CONSTRAINTS §2 的 4 MB 单文件上限（`check_all` 第 4 项抓到的）。`bake_rail` 默认容差 0.00004°（约 4 m）
+对大国太细；改成 `0.00015 / minlen 1200` 后是 2.37 / 3.44 MB，z11–12 的像素尺度约 15–30 m，
+这个精度足够。`add_country.mjs` 里加了自动兜底：rails > 4 MB 就重烘一次。
+
+### v1.92 补山系与城市包：把「还剩哪些空洞」补完
+
+等高线 5 区一烘（比利牛斯、新几内亚、马达加斯加、新西兰、婆罗洲，0.72 MB），
+bbox 继续遵守「互不重叠」：阿特拉斯止于 36°N、欧洲从 44°N 起，所以比利牛斯取 36–44°N 正好插空。
+`world_mid` 的 `--exclude` 列表加到 20 个矩形（1.74 MB / 102k 顶点）。
+
+城市核心包按同一模板再加 6 个（维也纳/布拉格/华沙/布达佩斯/阿姆斯特丹/苏黎世，63 MB）。
+这几个城市在 z11–13 只有 world9 的 z10 街区细节（overzoom），z14–15 靠新包接住——
+tier 自动变成 `world8 → world9 → <city>_core(14–15)`，与德国城市的观感一致。
+
+英文区名是 i18n 的收尾：`index.json` 补 `name_en`，store 的 `BasemapInfo` 同时带 `nameEn/tiersEn`，
+UI 按当前语言取。这样 EN 档不会再出现「富尔达缺口」这类中文区名。
+
+踩坑：PowerShell 脚本里 `node …; if ($LASTEXITCODE -ne 0)` 在本机环境不可靠（node 已成功却被判失败），
+批量跑 `add_core` 改成直接分批执行，别用 `$LASTEXITCODE` 做闸门。
+
 ### v1.91 DEM 扩档：先把「预算还剩多少」算清楚
 
 DEM 预算是 1 GB，扩档前 844 MB。中欧（0–20E / 44–56N）z9 需要 812 张新瓦片；

@@ -1,0 +1,17 @@
+{
+ "key": "prague_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  14.36,
+  50.02,
+  14.48,
+  50.14
+ ],
+ "tiles": "/data/density/prague_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 216,
+ "sizeMB": 0.28,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/prague_core.pmtiles"
+}
