@@ -78,6 +78,7 @@ export function tierBands(zones: PmtilesZone[]): Array<{ zone: PmtilesZone; from
   const out: Array<{ zone: PmtilesZone; from: number }> = [];
   let from = 0;
   for (const zone of zones) {
+    if (from > zone.maxzoom) continue;
     out.push({ zone, from });
     from = zone.maxzoom + 1;
   }
@@ -134,14 +135,25 @@ export function tierOf(zone: PmtilesZone, from: number): Tier {
   };
 }
 
-export function tierCaps(bands: Array<{ zone: PmtilesZone; from: number }>, viewBox: [number, number, number, number]): number[] {
+export function tierCaps(
+  bands: Array<{ zone: PmtilesZone; from: number }>,
+  viewBox: [number, number, number, number],
+  center?: [number, number],
+): number[] {
   const covers = (zone: PmtilesZone) =>
     zone.bbox[0] <= viewBox[0] &&
     zone.bbox[1] <= viewBox[1] &&
     zone.bbox[2] >= viewBox[2] &&
     zone.bbox[3] >= viewBox[3];
+  const holds = (zone: PmtilesZone) =>
+    covers(zone) ||
+    (center !== undefined &&
+      zone.bbox[0] <= center[0] &&
+      zone.bbox[2] >= center[0] &&
+      zone.bbox[1] <= center[1] &&
+      zone.bbox[3] >= center[1]);
   return bands.map((band, i) => {
     const next = bands[i + 1];
-    return next && next.from > band.from && covers(next.zone) ? next.from : 22;
+    return next && next.from > band.from && holds(next.zone) ? next.from : 22;
   });
 }

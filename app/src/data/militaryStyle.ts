@@ -174,7 +174,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
     }
     if (contours.length && i === last && !inserted) out.push(...contours);
     out.push(...boundaryLayers(tier, suffix));
-    out.push(...railsOf(tier, suffix, tier.minzoom >= BUILDING_TIER_MINZOOM ? tier.minzoom + 1 : 0));
+    out.push(...railsOf(tier, suffix, tier.minzoom >= BUILDING_TIER_MINZOOM ? tier.minzoom : 0));
   });
 
   if (inp.railsWorldCoarse) {
@@ -194,7 +194,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       ...railWorldLayers({
         source: 'rails-world-fine',
         minzoom: 3,
-        maxzoom: 17,
+        maxzoom: 11,
         suffix: '',
         opacity: 1,
         hatch: true,

@@ -258,7 +258,8 @@ export function WorldMapLibre(): JSX.Element {
       ]);
       baseRef.current = base;
       const viewBox: [number, number, number, number] = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
-      const caps = tierCaps(bands, viewBox);
+      const c0 = map.getCenter();
+      const caps = tierCaps(bands, viewBox, [c0.lng, c0.lat]);
       capsRef.current = { bands, caps };
       const tiers = bands.map(({ zone, from }, i) => {
         const tier = tierOf(zone, from);

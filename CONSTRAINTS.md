@@ -15,7 +15,7 @@
 | 项 | 上限 |
 | --- | --- |
 | 前端单文件 | 700 行 |
-| 单个数据文件 | 4 MB（底图 `.pmtiles` 与 DEM 瓦片除外：底图单包 ≤ 12 GB 且总量 ≤ 100 GB、DEM 总量 ≤ 1 GB；v1.95 放开以容纳全球国家包，需预留约 100 GB 磁盘；DEM 预算不变） |
+| 单个数据文件 | 4 MB（**`rails_*.json` 例外 ≤ 12 MB**，用于保留米级几何；底图 `.pmtiles` 与 DEM 瓦片除外：底图单包 ≤ 12 GB 且总量 ≤ 100 GB、DEM 总量 ≤ 1 GB） |
 | 前端首屏 JS（gzip） | 120 KB（世界地图按需加载的 `maplibre-gl` + `pmtiles` 单独成 chunk，不计入首屏） |
 | 生产依赖 | 只允许 `react` `react-dom` `maplibre-gl` `pmtiles`；构建期 `vite` `typescript` `@vitejs/plugin-react` |
 | Python 依赖 | 只允许 `numpy` `Pillow` `requests`；文档构建（`Tools/build_requirements_workbook.py`）允许 `openpyxl`；Natural Earth 底料（`Tools/bake_ne_*.py`：rails / roads / rivers / urban）允许 `pyshp` |

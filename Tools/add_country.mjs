@@ -90,15 +90,14 @@ try {
     ]);
     console.log(`\n=== cities ${KEY} ===`);
     run(process.execPath, ['Tools/bake_cities.mjs', `--pack=${PACK}`, '--zoom=12', '--kinds=city,town,village', `--out=${CITIES}`]);
-    const ladder = [
+    const RAIL_MAX = 12 * 1048576;
+  const ladder = [
+    [0.00006, 800],
+    [0.0001, 1000],
     [0.00015, 1200],
-    [0.0003, 1600],
-    [0.0006, 2400],
-    [0.0012, 4000],
-    [0.0024, 6000],
   ];
   for (const [tol, minlen] of ladder) {
-    if (statSync(RAILS).size <= 4 * 1048576) break;
+    if (statSync(RAILS).size <= RAIL_MAX) break;
     console.log(`\n=== rail simplify ${KEY} (${(statSync(RAILS).size / 1048576).toFixed(1)} MB, tol=${tol}) ===`);
     run(process.execPath, [
       'Tools/bake_rail.mjs',
@@ -109,8 +108,7 @@ try {
       `--out=${RAILS}`,
     ]);
   }
-  if (statSync(RAILS).size > 4 * 1048576) {
-    console.log(`\n=== rail quantize ${KEY} (${(statSync(RAILS).size / 1048576).toFixed(1)} MB) ===`);
+  {
     const doc = JSON.parse(readFileSync(RAILS, 'utf8'));
     const q = (v) => Math.round(v * 1e5) / 1e5;
     if (Array.isArray(doc.lines)) {

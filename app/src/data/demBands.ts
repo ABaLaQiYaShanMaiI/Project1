@@ -30,5 +30,6 @@ export function demKeyAt(zoom: number, lon: number, lat: number): string {
 
 export function viewSig(hit: PmtilesZone[], zoom: number, lon: number, lat: number): string {
   const bands = tierBands(hit);
-  return `${hit.map((z) => z.key).sort().join(',')}|${bands.map((b) => b.from).join(',')}|${demKeyAt(zoom, lon, lat)}`;
+  const active = bands.filter((b) => b.from <= zoom).length;
+  return `${hit.map((z) => z.key).sort().join(',')}|${bands.map((b) => b.from).join(',')}|${active}|${demKeyAt(zoom, lon, lat)}`;
 }

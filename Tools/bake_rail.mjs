@@ -33,6 +33,9 @@ function lengthM(pts) {
 
 function rdp(pts, tol) {
   if (pts.length < 3) return pts;
+  let latSum = 0;
+  for (const p of pts) latSum += p[1];
+  const kx = Math.cos((latSum / pts.length) * Math.PI / 180);
   const keep = new Uint8Array(pts.length);
   keep[0] = 1;
   keep[pts.length - 1] = 1;
@@ -41,13 +44,16 @@ function rdp(pts, tol) {
     const [a, b] = stack.pop();
     let maxD = 0;
     let idx = -1;
-    const [ax, ay] = pts[a];
-    const [bx, by] = pts[b];
+    const ax = pts[a][0] * kx;
+    const ay = pts[a][1];
+    const bx = pts[b][0] * kx;
+    const by = pts[b][1];
     const dx = bx - ax;
     const dy = by - ay;
     const len = Math.hypot(dx, dy) || 1e-12;
     for (let i = a + 1; i < b; i++) {
-      const [px, py] = pts[i];
+      const px = pts[i][0] * kx;
+      const py = pts[i][1];
       const d = Math.abs(dy * px - dx * py + bx * ay - by * ax) / len;
       if (d > maxD) {
         maxD = d;

@@ -9,6 +9,7 @@ import { gzipSync } from 'node:zlib';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const MAX_LINES = 700;
 const MAX_DATA_MB = 4;
+const MAX_RAIL_MB = 12;
 const MAX_FIRST_JS_KB = 120;
 
 const results = [];
@@ -105,14 +106,15 @@ function checkDataBudget() {
   const over = [];
   for (const f of files) {
     const mb = statSync(f).size / 1048576;
+    const limit = /rails_[^\\/]*\.json$/.test(f) ? MAX_RAIL_MB : MAX_DATA_MB;
     max = Math.max(max, mb);
-    if (mb > MAX_DATA_MB) over.push(`${f.slice(ROOT.length)} ${mb.toFixed(1)} MB`);
+    if (mb > limit) over.push(`${f.slice(ROOT.length)} ${mb.toFixed(1)} MB`);
   }
   if (over.length) {
-    record('单数据文件 ≤ 4 MB', false, over.join(' '));
+    record('单数据文件 ≤ 4 MB（rails ≤ 12 MB）', false, over.join(' '));
     return false;
   }
-  record('单数据文件 ≤ 4 MB', true, `最大 ${max.toFixed(2)} MB / ${files.length} 个 JSON`);
+  record('单数据文件 ≤ 4 MB（rails ≤ 12 MB）', true, `最大 ${max.toFixed(2)} MB / ${files.length} 个 JSON`);
   return true;
 }
 

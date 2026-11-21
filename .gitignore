@@ -36,8 +36,12 @@ __pycache__/
 app/public/data/zones.json
 app/dist/data/zones.json
 
+# 自动化验证用的临时浏览器 profile（Tools/dev_*.mjs / 无头 Edge）
+.edge-profile
+
 # 日志与临时文件
 *.log
+*.err
 npm-debug.log*
 pnpm-debug.log*
 vite.err
