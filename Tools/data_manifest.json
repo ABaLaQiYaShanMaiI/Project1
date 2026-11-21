@@ -126,5 +126,227 @@
     "bytes": 35447
    }
   ]
+ },
+ {
+  "name": "berlin_core",
+  "label": "柏林",
+  "bbox": [
+   13.345,
+   52.46,
+   13.465,
+   52.58
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=berlin_core --bbox=13.345,52.46,13.465,52.58 --label=\"柏林\"",
+  "recordedAt": "2026-11-21 00:24",
+  "products": [
+   {
+    "path": "tiles/berlin_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:7f46105eaafc10ccd9ede713f6b3036f63e7840f0a5f463d617e785b2d2a5198",
+    "bytes": 12809206
+   },
+   {
+    "path": "poi_berlin_core.json",
+    "kind": "file",
+    "sha256": "sha256:3d37564e0b62e0aff423ec192a109e0c9c2958e67dfc374ed67fe79925ce35c8",
+    "bytes": 4023
+   },
+   {
+    "path": "density/berlin_core",
+    "kind": "dir",
+    "files": 229,
+    "bytes": 358435
+   }
+  ]
+ },
+ {
+  "name": "munich_core",
+  "label": "慕尼黑",
+  "bbox": [
+   11.515,
+   48.077,
+   11.635,
+   48.197
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=munich_core --bbox=11.515,48.077,11.635,48.197 --label=\"慕尼黑\"",
+  "recordedAt": "2026-11-21 00:25",
+  "products": [
+   {
+    "path": "tiles/munich_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:5e608ed760122441eecef93f4c592ebab5b7c7404fefa1de63817cbf132c7808",
+    "bytes": 9709049
+   },
+   {
+    "path": "poi_munich_core.json",
+    "kind": "file",
+    "sha256": "sha256:ec7e4572ba6c936d2b6ff23e3ee623593d61c68c318b86d44ef7759f46b5affe",
+    "bytes": 2589
+   },
+   {
+    "path": "density/munich_core",
+    "kind": "dir",
+    "files": 213,
+    "bytes": 326185
+   }
+  ]
+ },
+ {
+  "name": "hamburg_core",
+  "label": "汉堡",
+  "bbox": [
+   9.933,
+   53.491,
+   10.053,
+   53.611
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=hamburg_core --bbox=9.933,53.491,10.053,53.611 --label=\"汉堡\"",
+  "recordedAt": "2026-11-21 00:25",
+  "products": [
+   {
+    "path": "tiles/hamburg_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:d93c32f65956ef4e7cca28b1c7412387c0b08e2c57d940489b9c24fdf8b4b638",
+    "bytes": 8275718
+   },
+   {
+    "path": "poi_hamburg_core.json",
+    "kind": "file",
+    "sha256": "sha256:9beab0d6ad3ed01b07810e1c402610210ea226db8a3a6b401be31617db02a84a",
+    "bytes": 3974
+   },
+   {
+    "path": "density/hamburg_core",
+    "kind": "dir",
+    "files": 226,
+    "bytes": 302148
+   }
+  ]
+ },
+ {
+  "name": "cologne_core",
+  "label": "科隆",
+  "bbox": [
+   6.899,
+   50.878,
+   7.019,
+   50.998
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=cologne_core --bbox=6.899,50.878,7.019,50.998 --label=\"科隆\"",
+  "recordedAt": "2026-11-21 00:25",
+  "products": [
+   {
+    "path": "tiles/cologne_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:0714389f69a637479b2ebe54ee455917320abc28e20a4cbef3822762d60e6234",
+    "bytes": 8685318
+   },
+   {
+    "path": "poi_cologne_core.json",
+    "kind": "file",
+    "sha256": "sha256:cdf99259b8b325eb3d99b2ffe9d74e62c005860cc39673c561a74b1867544727",
+    "bytes": 3841
+   },
+   {
+    "path": "density/cologne_core",
+    "kind": "dir",
+    "files": 216,
+    "bytes": 288097
+   }
+  ]
+ },
+ {
+  "name": "frankfurt_core",
+  "label": "美因河畔法兰克福",
+  "bbox": [
+   8.622,
+   50.05,
+   8.742,
+   50.17
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=frankfurt_core --bbox=8.622,50.05,8.742,50.17 --label=\"美因河畔法兰克福\"",
+  "recordedAt": "2026-11-21 00:25",
+  "products": [
+   {
+    "path": "tiles/frankfurt_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:bc2631ff9bf8a56913b974418c6b75b32c42e5fae4a0732d7993bb7c44a993cd",
+    "bytes": 7341927
+   },
+   {
+    "path": "poi_frankfurt_core.json",
+    "kind": "file",
+    "sha256": "sha256:401c13e72d841fe208a5ca8dcf0911c589c871a9ea2b8b733c446c6bc00e4560",
+    "bytes": 2527
+   },
+   {
+    "path": "density/frankfurt_core",
+    "kind": "dir",
+    "files": 214,
+    "bytes": 268605
+   }
+  ]
+ },
+ {
+  "name": "kassel_core",
+  "label": "卡塞尔",
+  "bbox": [
+   9.419,
+   51.252,
+   9.539,
+   51.372
+  ],
+  "zoom": [
+   14,
+   15
+  ],
+  "demZoom": null,
+  "command": "node Tools/add_core.mjs --key=kassel_core --bbox=9.419,51.252,9.539,51.372 --label=\"卡塞尔\"",
+  "recordedAt": "2026-11-21 00:26",
+  "products": [
+   {
+    "path": "tiles/kassel_core.pmtiles",
+    "kind": "file",
+    "sha256": "sha256:c2c3b1d239d25e5452942cfdcdf152e8c38084d1c9e542381d31c66651c94bed",
+    "bytes": 5510956
+   },
+   {
+    "path": "poi_kassel_core.json",
+    "kind": "file",
+    "sha256": "sha256:c8978d7401e6d2ff378a9419148e491301495e2b7062b1c0a517fb1e9e7f9fcd",
+    "bytes": 1815
+   },
+   {
+    "path": "density/kassel_core",
+    "kind": "dir",
+    "files": 220,
+    "bytes": 266190
+   }
+  ]
  }
 ]

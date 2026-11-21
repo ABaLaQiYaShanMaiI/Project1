@@ -41,7 +41,7 @@ export interface PoiDoc {
 }
 
 export interface SeaDoc {
-  points?: Array<[number, number, string, number]>;
+  points?: Array<[number, number, string, number, string?]>;
 }
 
 export interface RoadsWorldDoc {
@@ -94,9 +94,9 @@ export function seaLabelFc(doc: SeaDoc | null): FC | null {
   if (!doc?.points?.length) return null;
   return {
     type: 'FeatureCollection',
-    features: doc.points.map(([o, l, n, s]) => ({
+    features: doc.points.map(([o, l, n, s, z]) => ({
       type: 'Feature',
-      properties: { n, s },
+      properties: { n, s, z: z ?? '' },
       geometry: { type: 'Point', coordinates: [o, l] },
     })),
   } as unknown as FC;

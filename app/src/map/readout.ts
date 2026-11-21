@@ -8,8 +8,10 @@ export interface Readout {
   aspect: number | null;
 }
 
-export function bearingLabel(deg: number): string {
-  const dirs = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
+export function bearingLabel(
+  deg: number,
+  dirs: string[] = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'],
+): string {
   return dirs[Math.round(deg / 45) % 8];
 }
 

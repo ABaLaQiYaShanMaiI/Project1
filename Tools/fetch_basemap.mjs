@@ -14,11 +14,14 @@ const CLI_URL = `https://github.com/protomaps/go-pmtiles/releases/download/${CLI
 const BUILDS = 'https://build-metadata.protomaps.dev/builds.json';
 const MIRROR = 'https://data.source.coop/protomaps/openstreetmap/v4.pmtiles';
 const STYLE_API = 'https://npm-style.protomaps.dev/style.json';
-const ATTRIBUTION = '© OpenStreetMap contributors · Protomaps (ODbL)';
+const ATTRIBUTION = '© OpenStreetMap contributors · Protomaps (ODbL) · Wikidata (CC0)';
 const DEFAULT_BBOX = '8.849,50.240,10.591,51.000';
 const WORLD_BBOX = '-180,-85,180,85';
 const FONT = 'Noto Sans Regular';
-const GLYPH_RANGES = ['0-255', '256-511', '512-767'];
+const GLYPH_FONTS = [FONT, 'Noto Sans Devanagari Regular v1'];
+const GLYPH_STEP = 256;
+const GLYPH_LIMIT = 65536;
+const GLYPH_PARALLEL = 8;
 
 function log(...a) {
   const t = new Date().toTimeString().slice(0, 8);
@@ -52,10 +55,10 @@ function curlText(args) {
   });
 }
 
-async function download(url, file) {
+async function download(url, file, quiet = false) {
   const tmp = `${file}.part`;
   if (existsSync(tmp)) unlinkSync(tmp);
-  log('下载', url);
+  if (!quiet) log('下载', url);
   let ok = false;
   try {
     await curlText(['--retry', '2', '--connect-timeout', '20', '--max-time', '1800', '-o', tmp, url]);
@@ -74,7 +77,7 @@ async function download(url, file) {
   if (!existsSync(tmp)) throw new Error(`下载失败 ${url}`);
   if (existsSync(file)) unlinkSync(file);
   renameSync(tmp, file);
-  log('下载完成', `${(statSync(file).size / 1048576).toFixed(1)} MB`);
+  if (!quiet) log('下载完成', `${(statSync(file).size / 1048576).toFixed(1)} MB`);
 }
 
 async function fetchText(url) {
@@ -205,15 +208,48 @@ async function header(file) {
   });
 }
 
-async function fetchGlyphs(dir) {
-  ensureDir(dir);
-  for (const r of GLYPH_RANGES) {
-    const file = join(dir, `${r}.pbf`);
-    if (existsSync(file)) continue;
-    const url = `https://protomaps.github.io/basemaps-assets/fonts/${encodeURIComponent(FONT)}/${r}.pbf`;
-    await download(url, file);
-    log('字形', `${FONT}/${r}.pbf`, `${statSync(file).size} B`);
+async function mapLimit(items, limit, fn) {
+  let cursor = 0;
+  const workers = Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      await fn(items[index]);
+    }
+  });
+  await Promise.all(workers);
+}
+
+function glyphRanges() {
+  const out = [];
+  for (let start = 0; start < GLYPH_LIMIT; start += GLYPH_STEP) out.push(`${start}-${start + GLYPH_STEP - 1}`);
+  return out;
+}
+
+async function fetchGlyphs(root) {
+  const ranges = glyphRanges();
+  const failed = [];
+  for (const font of GLYPH_FONTS) {
+    const dir = join(root, font);
+    ensureDir(dir);
+    const missing = ranges.filter((r) => !existsSync(join(dir, `${r}.pbf`)));
+    if (!missing.length) {
+      log('字形已齐', font, `${ranges.length} 片`);
+      continue;
+    }
+    log('字形', font, `待补 ${missing.length}/${ranges.length} 片`);
+    await mapLimit(missing, GLYPH_PARALLEL, async (r) => {
+      const url = `https://protomaps.github.io/basemaps-assets/fonts/${encodeURIComponent(font)}/${r}.pbf`;
+      try {
+        await download(url, join(dir, `${r}.pbf`), true);
+      } catch (e) {
+        failed.push(`${font}/${r}: ${e.message}`);
+      }
+    });
+    const size = ranges.reduce((sum, r) => sum + (existsSync(join(dir, `${r}.pbf`)) ? statSync(join(dir, `${r}.pbf`)).size : 0), 0);
+    log('字形完成', font, `${(size / 1048576).toFixed(1)} MB`);
   }
+  if (failed.length) throw new Error(`字形下载失败 ${failed.length} 片：${failed.slice(0, 3).join('；')}`);
 }
 
 function offlineStyle(json, key) {
@@ -280,6 +316,12 @@ async function main() {
   const skipCli = arg('skip-cli', '') === '1';
   const threads = Number(arg('threads', '8'));
 
+  if (arg('glyphs-only', '') === '1') {
+    await fetchGlyphs(join(OUT, 'glyphs'));
+    log('字形就绪', GLYPH_FONTS.join(' · '));
+    return;
+  }
+
   if (!skipCli) await ensureCli();
 
   const given = arg('source', '');
@@ -304,7 +346,7 @@ async function main() {
   writeFileSync(join(OUT, 'base.style.json'), JSON.stringify(style), 'utf8');
   log('图层', style.layers.length, '（符号层改为纯文字 + 本地字形）');
 
-  await fetchGlyphs(join(OUT, 'glyphs', FONT));
+  await fetchGlyphs(join(OUT, 'glyphs'));
 
   const idxFile = join(OUT, 'index.json');
   const idx = readIndex(idxFile);

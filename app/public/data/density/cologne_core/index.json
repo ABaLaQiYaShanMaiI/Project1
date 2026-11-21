@@ -1,0 +1,17 @@
+{
+ "key": "cologne_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  6.899,
+  50.878,
+  7.019,
+  50.998
+ ],
+ "tiles": "/data/density/cologne_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 215,
+ "sizeMB": 0.27,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/cologne_core.pmtiles"
+}

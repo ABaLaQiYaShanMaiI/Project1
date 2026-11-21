@@ -5,14 +5,26 @@ import { boundaryLayers } from './style/boundary';
 import { railsOf, railLowLayers, railWorldLayers } from './style/rail';
 import { contourLayers } from './style/contour';
 import { reliefTintLayer } from './style/relief';
-import { gridLayers, ringLayers, poiLayers, seaLabelLayers, urbanWorldLayers } from './style/overlay';
+import { gridLayers, ringLayers, poiLayers, seaLabelLayers, urbanWorldLayers, waterLabelLayers } from './style/overlay';
 import { roadWorldLayers } from './style/road';
 import { riverWorldLayers } from './style/water';
 import type { StyleInputs } from './style/types';
+import { nameField, type MapLang, type ZhNames } from './style/lang';
 
 export type { ContourBand, ContourDoc } from './style/contour';
 export { CONTOUR_BANDS, contourBandActive, mergeContours } from './style/contour';
 export type { DemTier, FC, SlopeTier, StyleInputs, Tier } from './style/types';
+
+function localizeSymbols(layers: Record<string, unknown>[], lang: MapLang, dict: ZhNames | null): void {
+  for (const layer of layers) {
+    if (String(layer.type) !== 'symbol') continue;
+    const sourceLayer = String(layer['source-layer'] ?? '');
+    if (sourceLayer !== 'places' && sourceLayer !== 'water') continue;
+    const field = nameField(lang, dict, sourceLayer === 'places' ? 'places' : 'water');
+    if (!field) continue;
+    layer.layout = { ...(layer.layout as Record<string, unknown> | undefined), 'text-field': field };
+  }
+}
 
 export function militaryStyle(inp: StyleInputs): StyleSpecification {
   const style = JSON.parse(JSON.stringify(inp.base)) as StyleSpecification;
@@ -79,7 +91,7 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
       bounds: tier.bounds,
       minzoom: tier.minzoom,
       maxzoom: tier.maxzoom,
-      attribution: '© OpenStreetMap contributors · Protomaps (ODbL)',
+      attribution: '© OpenStreetMap contributors · Protomaps (ODbL) · Wikidata (CC0)',
     };
   }
 
@@ -196,12 +208,15 @@ export function militaryStyle(inp: StyleInputs): StyleSpecification {
   if (!slopePlaced && slopeLayers.length) out.push(...slopeLayers);
   if (densityLayers.length) out.push(...densityLayers);
 
-  if (inp.seaLabels) out.push(...seaLabelLayers());
+  if (inp.seaLabels) out.push(...seaLabelLayers(inp.lang));
+  const finest = inp.waterSource ?? inp.tiers[inp.tiers.length - 1]?.id;
+  if (finest) out.push(...waterLabelLayers(finest, inp.lang ?? 'local', inp.zhNames ?? null));
   if (inp.roadsWorld) out.push(...roadWorldLayers());
   if (inp.riversWorld) out.push(...riverWorldLayers());
   out.push(...gridLayers(), ...ringLayers(), ...poiLayers());
 
   const seen = new Set<string>();
+  if (inp.lang && inp.lang !== 'local') localizeSymbols(out, inp.lang, inp.zhNames ?? null);
   const deduped = out.filter((layer) => {
     const id = String(layer.id);
     if (seen.has(id)) return false;

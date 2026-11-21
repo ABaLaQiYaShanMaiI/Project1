@@ -1,4 +1,6 @@
 import { GRID_MAJOR, GRID_MINOR, HALO, INK, POI_AIRPORT, POI_BRIDGE, POI_PORT, POI_PORT_STROKE, POI_STROKE, RING_INK, RING_LABEL_HALO, RING_LABEL_INK, URBAN_GREY, WATER_LABEL_HALO, WATER_LABEL_INK } from './tokens';
+import type { MapLang, ZhNames } from './lang';
+import { nameField } from './lang';
 export function gridLayers(): Record<string, unknown>[] {
   return [
     {
@@ -120,7 +122,7 @@ export function ringLayers(): Record<string, unknown>[] {
     },
   ];
 }
-export function seaLabelLayers(): Record<string, unknown>[] {
+export function seaLabelLayers(lang: MapLang = 'local'): Record<string, unknown>[] {
   return [
     {
       id: 'sea-label',
@@ -129,7 +131,7 @@ export function seaLabelLayers(): Record<string, unknown>[] {
       minzoom: 3,
       maxzoom: 8,
       layout: {
-        'text-field': ['get', 'n'],
+        'text-field': lang === 'zh' ? ['get', 'z'] : ['get', 'n'],
         'text-font': ['Noto Sans Regular'],
         'text-transform': 'uppercase',
         'text-letter-spacing': ['interpolate', ['linear'], ['zoom'], 3, 0.24, 6, 0.14],
@@ -152,6 +154,30 @@ export function seaLabelLayers(): Record<string, unknown>[] {
         'text-halo-width': 1.6,
         'text-opacity': 0.9,
       },
+    },
+  ];
+}
+
+export function waterLabelLayers(source: string, lang: MapLang, dict: ZhNames | null): Record<string, unknown>[] {
+  return [
+    {
+      id: 'water_label',
+      type: 'symbol',
+      source,
+      'source-layer': 'water',
+      minzoom: 10,
+      maxzoom: 17,
+      layout: {
+        'text-field': nameField(lang, dict, 'water') ?? ['get', 'name'],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 10, 9, 14, 10.5],
+        'symbol-placement': 'line',
+        'symbol-spacing': 420,
+        'text-padding': 4,
+        'text-max-angle': 30,
+        'text-keep-upright': true,
+      },
+      paint: { 'text-color': WATER_LABEL_INK, 'text-halo-color': WATER_LABEL_HALO, 'text-halo-width': 1.4 },
     },
   ];
 }

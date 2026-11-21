@@ -1,12 +1,12 @@
 {
  "key": "world8",
  "minzoom": 6,
- "maxzoom": 8,
+ "maxzoom": 9,
  "bbox": [
-  0.0,
-  44.0,
-  20.0,
-  56.0
+  0,
+  44,
+  20,
+  56
  ],
  "tiles": "/data/slope/europe/{z}/{x}/{y}.png",
  "classes": [
@@ -17,6 +17,6 @@
   35
  ],
  "attribution": "AWS Terrain Tiles (Terrarium / SRTM, 公有领域)",
- "sizeMB": 5.03,
- "generated": "2026-11-18 13:20"
+ "sizeMB": 7.42,
+ "generated": "2026-11-21 00:35"
 }

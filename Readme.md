@@ -57,14 +57,14 @@ cd app && pnpm install && pnpm dev
 | 区域矢量（德） | `tiles/germany.pmtiles` | 德国 z11–12（689 MB），街区级路网与地名 |
 | 区域矢量（德 z13） | `tiles/germany13.pmtiles` | 德国 z13（879 MB），与富尔达同源细节 |
 | 区域矢量 | `tiles/fulda.pmtiles` | 富尔达 bbox 内的 OSM 细节，z9–13 接管 |
-| 城区核心 | `tiles/fulda_core.pmtiles` | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB），高倍的真实建筑与街道 |
+| 城区核心 | `tiles/fulda_core.pmtiles` + 6 个城市核心包 | 富尔达镇区 0.12°×0.12°、z14–15（3.2 MB）；另有**柏林 / 慕尼黑 / 汉堡 / 科隆 / 法兰克福 / 卡塞尔**（合计 52 MB），高倍真实建筑 + 密度 + 气泡 |
 | 全球晕渲 | `dem/world` z0–z5（86 MB） | 世界任何位置都有地形起伏 |
 | 全球 z6 晕渲 | `dem/world6` z6（203 MB） | z6 起全球 2.4 km 级高程；此前跳出中欧就是 z5 的 16–32 倍 overzoom（v1.75 补烘） |
-| 大区晕渲 | dem/europe z6–z8（21 MB） | 中欧 0–20°E / 44–56°N，由 dem/world8 清单别名复用；**europe 档从 z7 接管**，z6 交给 world6 |
+| 大区晕渲 | dem/europe z6–z9（110 MB） | 中欧 0–20°E / 44–56°N，由 dem/world8 清单别名复用；**europe 档从 z7 接管**，z6 交给 world6；z9 中欧（德国之外）用原生 z9，不再是 z8 overzoom |
 | 区域晕渲 | `dem/germany` z9–z11（520 MB） | 德国全域；z9–10 此前是 z5 的 16–32 倍 overzoom（v1.70 补烘） |
 | 富尔达晕渲 | `dem/fulda` z9–z11 | 富尔达精细晕渲（现由 germany 档覆盖，保留作回退） |
-| 坡度通行 | `slope/world` z0–z5、`slope/world6` z6、`slope/europe` z7–z8、`slope/germany` z9–z11、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色（<3 / 3–8 / 8–15 / 15–25 / 25–35 / >35%），档间互斥（0/6/7/9）；**地势图默认开启** |
-| 等高线 | `contours_world` / `world_mid` / `asia_himal` / `zagros` / `andes` / `rockies` / `africa_rift` / `europe` / `germany` / `fulda` | **五级阶梯**：1000 m（z4–7 全球）/ 1000 m（z7–10 全球，挖掉下面 500 m 区）/ 500 m（z7–10：中欧 + 喜马拉雅 · 扎格罗斯 · 安第斯 · 落基山 · 东非裂谷）/ 200 m（z10–13 德国）/ 25 m（z13+ 富尔达）；计曲线 2–3× 粗 + 沿线上字；一档只画一套；烘焙按 `asinh(tan(lat))` 重采样成线性纬度网格 |
+| 坡度通行 | `slope/world` z0–z5、`slope/world6` z6、`slope/europe` z6–z9、`slope/germany` z9–z11、`slope/fulda` z9–z11 | DEM 差分 → 6 级着色（<3 / 3–8 / 8–15 / 15–25 / 25–35 / >35%），档间互斥（0/6/7/9）；**地势图默认开启** |
+| 等高线 | `contours_*` | **五级阶梯**：1000 m（z4–7 全球）/ 1000 m（z7–10 全球，挖掉 15 个 500 m 区）/ 500 m（z7–10，共 14 区：中欧 · 喜马拉雅 · 扎格罗斯 · 安第斯 · 落基山 · 东非裂谷 · 喀尔巴阡 · 斯堪的纳维亚 · 乌拉尔 · 高加索 · 阿尔泰 · 阿特拉斯 · 德拉肯斯堡 · 日本阿尔卑斯 · 中美洲）/ 200 m（z10–13 德国）/ 25 m（z13+ 富尔达）；计曲线 2–3× 粗 + 沿线上字；一档只画一套；平移换山系时 `moveend` 增量补载；烘焙按 `asinh(tan(lat))` 重采样成线性纬度网格 |
 | 分层设色 | `dem/*`（terrarium） | `color-relief` **彩色色阶**：绿（低地）→ 黄 → 橙 → 褐 → 雪线白，共 16 级；各档按自己的等高距取步长（world / world6 200/500/1000、europe 250/500/750、germany 100/200/300），地势图 0.88 不透明；水系面在设色之上 |
 | 交通线 | 底图 `roads` | 高速/干线/主干**同级不同色**（1.2 px），**z7 起全球出现**（z7 0.45 透明细线 → z10 满强度 0.9）；次级 z12（城区大路）；生活道路 z11；支路 z12；跳出区域包后由世界瓦片层 overzoom 撑到 z22（v1.74 修掉跨档被压回 z11 的回写缺陷）；**z4–6 由 NE 1:10m 主干骨架补位**（`roads_world.json`，18,806 段 / 3.4 MB，z7 交瓦片） |
 | 河流（低倍） | `rivers_world.json` | NE 1:10m 河网（River + Lake Centerline，2,252 段 / 3.05 MB），**z3–8 补位**（底图河流 z9 才出现）；按 scalerank 分三档线宽，z9 交瓦片 |
@@ -73,7 +73,9 @@ cd app && pnpm install && pnpm dev
 | 军用格网 | 运行时 UTM / 经纬网 | **z≥7** 单带 UTM（1/2/5/10/25/50/100/200/500/1000 km 自适应），线端标注里程 km、左上注带号（如 `32U`）；**z<7** 切经纬网（1/2/5/10/15/30°），边注 `45°N` / `15°E`；归「格网」叶 |
 | 射程圈 | 运行时 | 单击放中心，5 级同心圆 |
 | 设施气泡 | `poi_fulda.json` + `poi_world.json` | 机场 z5+ / 港口 z4+（全球 Natural Earth）/ 桥隧 z11+（仅富尔达） |
-| 海域名 | `seas_world.json` | 5 大洋 + 32 海 + 21 湾/海峡（人工整理中心点），z3–8 大写 + 字距，随「地名标注」开关 |
+| 海域名 | `seas_world.json` | 5 大洋 + 32 海 + 21 湾/海峡（人工整理中心点，第 5 项为中文名），z3–8 大写 + 字距，随「地名标注」开关；中文档显示中文名 |
+| 地名语言 | 瓦片 `name:zh-Hans` + `names_zh.json` | 顶部三档（**中文**（默认）/ EN / 本地名）：`name:zh-Hans → name:zh-Hant → 人工/ Wikidata 词表 → name:en → 本地名`；词表 **1,371 条居民地 + 33 条河流**（人工 150 + Wikidata 烘焙 1,221），覆盖富尔达热点与全球低倍地名；河流由 `water_label` 层在 z10+ 沿线上字；切换只改 `text-field`，不重建样式 |
+| 字形 | `tiles/glyphs/{fontstack}/{range}.pbf` | `Noto Sans Regular` + `Noto Sans Devanagari Regular v1` 各 256 片（0–65535，共 12.3 MB），西里尔/希腊/阿拉伯/天城文地名可画；**CJK 区间是空片，中日韩地名仍缺字** |
 | 全球城区面 | `urban_world.json` | NE 1:10m 建成区面，z4–14 铺在底图上 |
 | 城区灰块 | 底图 `landcover` / `landuse` | 城区纯灰色块（居住/商业/零售/铁路/工业等合并），绿=植被、米=农田、灰=城区；**z3–6 用 `landcover urban_area`，z7 起由 `landuse` 居住/商业面接管**（v1.82 起按 tier 裁剪、不再叠画）；建筑轮廓只有区域包有（德国 z13 / 富尔达 z14–15），其余地区是灰块面 |
 | 行政边界 | 底图 `boundaries` | 国界/州/县/乡镇四级，冷灰虚线，按 `kind_detail` 分级 |
@@ -87,6 +89,9 @@ cd app && pnpm install && pnpm dev
 
 - 拖动平移 / 滚轮缩放 / 双击放大；
 - 顶部工具条：**格网**、**射程圈**（选中后单击放中心，左下滑块调圈距）、当前 FPS；
+- **地名语言**：顶部三档「中文 / EN / 本地名」，默认中文并记 `localStorage`；
+  中文档优先瓦片自带 `name:zh-Hans`，缺了查 `names_zh.json`，再退英文与本地名（海名同步切中文）；
+- **界面语言**：同一档位驱动 UI 文案（`app/src/i18n.ts`，中/英）；`本地名` 档界面仍为中文；
 - **城区影响**：光标进入城区，右下角出现面板（城名 / 强度 / 半径 / 五项修饰 / 战损级别）；离开即消失；
 - **战损**：顶部「战损」开关，单击城区 +1 级（最高 3 级），Shift+单击清零；存 localStorage；
 - 左下读数：**DD 经纬 / UTM（带号 + 东向 + 北向）/ 高程 / 坡度 / 坡向**；
@@ -112,6 +117,12 @@ node Tools/bake_region.mjs --key=fulda --bbox=8.849,50.240,10.591,51.000 --zmin=
 
 ```
 node Tools/add_region.mjs --name=berlin --bbox=13.0,52.3,13.8,52.7 --label=柏林
+```
+
+单个城区核心包（z14–15 建筑 + 密度 + 气泡，从本地母包离线切，不联网）：
+
+```
+node Tools/add_core.mjs --key=berlin_core --label=柏林 --bbox=13.345,52.46,13.465,52.58
 ```
 
 按 `Tools/data_manifest.json` 校验产物，`--fix` 重跑重建：
@@ -181,13 +192,14 @@ python Tools/bake_ne_urban.py
 
 | 产物 | 生成命令 | 入库 |
 | --- | --- | --- |
-| `tiles/*.pmtiles`、`tiles/index.json`、`base.style.json`、`glyphs/` | `node Tools/fetch_basemap.mjs`、`Tools\bin\pmtiles.exe extract` | 否（体积大） |
+| `tiles/*.pmtiles`、`tiles/index.json`、`base.style.json`、`glyphs/` | `node Tools/fetch_basemap.mjs`、`Tools\bin\pmtiles.exe extract`；只补字形用 `node Tools/fetch_basemap.mjs --glyphs-only=1` | 否（体积大） |
 | `dem/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_dem.py` | 否（体积大） |
 | `slope/<key>/{z}/{x}/{y}.png` + `index.json` | `python Tools/bake_slope.py` | 全部入库（含 germany 区域包，约 46 MB；v1.55 起不再忽略） |
 | `contours_<key>.json` | `python Tools/bake_contours.py` | 是 |
 | `rails_<key>.json` | `node Tools/bake_rail.mjs` | 是 |
 | `poi_<key>.json` | `node Tools/bake_poi.mjs` | 是 |
 | `cities.json`、`cities_<key>.json` | `node Tools/bake_cities.mjs` | 是 |
+| `names_zh.json`（中文地名词表） | 手工维护 + `node Tools/bake_names_zh.mjs`（Wikidata CC0） | 是（1,371 居民地 + 33 河流） |
 
 `tiles/` 与 `dem/` 不入库（体积大），换机器重跑对应命令即可；其余产物（含 `slope/`）全部入库，
 换机器直接 checkout 即可，无需重烘。

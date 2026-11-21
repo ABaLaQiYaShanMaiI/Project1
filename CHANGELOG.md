@@ -2063,3 +2063,129 @@ AWS Terrarium 恢复可访问后补的第一块全球地形：
 彻底解决要按区域从 `E:\PersonalGame\v4.pmtiles` 抽 z11 瓦片铁路并分块装载（试点读母包报 `Z_BUF_ERROR`，暂缓）。
 
 - 校验：z2 coarse 7 要素、z8 fine 6、z9/z12 fine+hatch 7；富尔达 z9 `rail-low` 9 要素正常。
+
+### v1.85 字形全球化：0–65535 全码位 + 样式引用的第二字体栈
+
+全球地名标注一直只在拉丁区正常。查产物：`app/public/data/tiles/glyphs/` 只有
+`Noto Sans Regular` 的 3 个分片（0–255 / 256–511 / 512–767），而 `base.style.json` 的
+`text-field` 还引用了 `Noto Sans Devanagari Regular v1`——目录根本不存在。西里尔（1024+）、
+希腊（768+）、阿拉伯（1536+）、天城文（2304+）四个常用区段全是 404，俄罗斯、中东、希腊、
+印度整片地名不画。
+
+- `Tools/fetch_basemap.mjs`：写死的 `GLYPH_RANGES`（3 片）改成 `glyphRanges()` 按 256 步长铺满
+  **0–65535（256 片/栈）**；`GLYPH_FONTS` 补上样式实际引用的 `Noto Sans Devanagari Regular v1`；
+  下载改 8 并发（`mapLimit`）、已存在分片跳过、失败汇总后一次报错。
+- 新增 **`--glyphs-only=1`**：只补齐字形，不动 `*.pmtiles` / `style.json` / `index.json`，
+  换机器或补字面时不必重切底图包。
+- 实测：两栈各 256 片，`Noto Sans Regular` **5.95 MB**、`Noto Sans Devanagari Regular v1`
+  **6.33 MB**；1024–1279（125 KB）、768–1023（77 KB）、1536–1791（111 KB）、2304–2559（100 KB）、
+  4096–4351（122 KB）均到位，无 0 字节分片。
+- 已知边界：① 资产里 `Noto Sans Devanagari Regular v1` 与 `Noto Sans Regular` 的分片
+  **逐字节相同**（同 sha256），它是别名而不是独立字面；② CJK 区间（19968+）是 **29 字节空片**——
+  Noto Sans 本身不含汉字字形，中日韩地名仍缺字，要补必须另加 CJK fontstack 并改样式分支（未做）；
+  ③ `glyphs/` 在 `app/public/data/tiles/` 下，该目录整目录不入库，复现命令见 Readme。
+- 校验：`node Tools/fetch_basemap.mjs --glyphs-only=1` 二次运行全部命中「已齐」；`check_all` 见本轮结论。
+
+### v1.86 汉语地名与三档语言切换
+
+瓦片自带 `name:zh-Hans` / `name:zh-Hant`。抽样 world z6（256 瓦片 / 822 个地点）的覆盖率为
+**国家 100% / 州 78% / 城市 62% / 村镇 25%**（人口排名 24 档 94%、22 档 82%、20 档 69%、18 档 62%），
+所以「大多数地名汉化」不需要重烘底图，缺的是回退链、富尔达周边词表与 CJK 字形三件事。
+
+- **回退链**（`data/style/lang.ts` 的 `nameField`）：`name:zh-Hans → name:zh-Hant → 人工词表 →
+  name:en → 本地名`；EN 档为 `name:en → name`；本地名档保留底图原表达式。
+- **人工词表** `app/public/data/names_zh.json`：**150 条居民地 + 33 条河流**。富尔达、金策尔、
+  彼得斯贝格、艾兴策尔、洪费尔德、贝布拉、巴特黑斯费尔德、阿尔斯费尔德等地全部覆盖
+  （富尔达在瓦片里只有 `name:ar/de/fr/ru/uk`，没有中文，而它正是开局点）。
+- **海名汉化**：`seas_world.json` 58 条全部补第 5 项中文名，`seaLabelFc` 输出 `z` 属性，
+  `sea-label` 按语言切 `n` / `z`。
+- **CJK 字形不新增文件**：MapLibre 6 的 `localIdeographFontFamily`（默认 `sans-serif`）对
+  U+4E00 起的汉字走本机字形（`_charUsesLocalIdeographFontFamily` 覆盖 CJK/假名/谚文），不请求 glyph 分片。
+- **三档切换**：`store.lang`（默认 `zh`，`localStorage['map.lang.v1']`），顶部「中文 / EN / 本地名」。
+  切换只改 `places` / `water` 符号层的 `text-field`（`map/langLayers.ts` 的 `applyLang`），不重建样式；
+  样式重建后监听 `style.load` 重放一次；本地名档按 `baseIdOf` 从 base 样式回填原表达式。
+- **构建期就写死**：`militaryStyle()` 收 `lang` / `zhNames`，避免首帧闪本地名；`local` 档不动原表达式，
+  `style_snapshot` 基线因新增图层而变化。
+- **河流注记**：离线底图样式原本**没有任何 `water` 符号层**，词表里的 33 条河名无处落地。新增 `water_label`
+  （z10–17、`symbol-placement: line`），绑**当前缩放所在的 tier**（`waterSource`）——绑最细 tier 时
+  z13 会取到 `fulda_core`（z14–15），`querySourceFeatures` 返回 0 个要素；改绑后同一视口 131 个水体要素、
+  渲染出 `Fulda → 富尔达河`。本地名档回落 `['get','name']`。
+- 重构：`DEM_BANDS` / `boxHit` / `demKeyAt` / `viewSig` 抽到 `data/demBands.ts`
+  （`WorldMapLibre.tsx` 718 → **696 行**，守住 700 红线）。
+- 校验：tsc 0 error；`names_zh.json` 150/33 条、`seas_world.json` 58/58 带中文名、均无 BOM；check_all 见本轮结论。
+
+### v1.87 全球中文词表扩到 1,371 条（Wikidata 烘焙）
+
+v1.86 的 150 条只覆盖富尔达与周边。这一轮把「低倍缺中文」的地点补齐：
+
+- 新增 **`Tools/bake_names_zh.mjs`**：扫 `world.pmtiles` z6 全部 **4,096 个瓦片** → 14,145 个 places，
+  其中 **3,020 个没有 `name:zh-Hans/zh-Hant`**；按 `wikidata` 分批（160/批）取 `rdfs:label` 的
+  `zh-hans`/`zh`，去括注、只收含汉字的标签。
+- 同名词冲突 **26 条**跳过（宁可留英文也不写错），无中文标签 281 条；候选 2,712 条，按人口排名/人口
+  取前 **1,200**，与人工 150 条合并 → **1,371 条**（人工条目优先），文件 **43 KB**。
+- 人工词表补印度各邦等低倍大标签（北方邦、奥里萨邦…锡金邦），这些在 z4 会以英文出现。
+- 负载核算：1,371 条 match 表达式 **24 KB**；places 每档一层 × 最多 7 档 ≈ **0.66 MB**；
+  字符串 `match` 编译成 Map，单要素 O(1)。
+- 署名：Wikidata 标签 CC0，矢量源 attribution 追加 `· Wikidata (CC0)`；CONSTRAINTS §4 与
+  DEVLOG 数据来源表、Readme/SidePanel 同步。
+- 校验：z6 中欧（荷兰/比利时/德国/捷克/奥地利/瑞士及全部主要城市）与 z4 东亚（中国各省、日韩、
+  东南亚）截图近全中文；`style_snapshot` 205 层 / 296 KB；check_all 见本轮结论。
+
+### v1.88 500 m 等高线扩到 14 区 + 跨视口补载
+
+v1.77 只有 5 条山系 + 中欧有 500 m 档。这一轮用本地 `dem/world6`（z6，离线）又烘 9 区：
+**喀尔巴阡、斯堪的纳维亚、乌拉尔、高加索、阿尔泰、阿特拉斯、德拉肯斯堡、日本阿尔卑斯、中美洲**。
+
+- 新文件 **合计 1.56 MB**（0.06–0.44 MB/区），新档全部 `z7–10 / 500 m / 计曲线 1000 m`；
+  bbox 与已有 6 区**互不重叠**（高加索压到 42–45°N 避开扎格罗斯，中美洲压到 15–25°N 避开落基山）。
+- `world_mid` 用 `--exclude` 重烘（15 个矩形）：**1.96 → 1.84 MB / 108k 顶点**，保证同一缩放只有一套线。
+- **修既有缺陷：跨视口不补载**。等高线原来只在样式重建时按当时视口装载，平移到另一个山系
+  （同一 tier 内）不会补载——新增的 9 区会「看不见」。新增 `map/contourDocs.ts`：`moveend` 比较
+  「当前视口应活跃的 band 集合」，有变化就补拉缺失档并 `setData` 到 `contours` 源，**不重建样式**；
+  文档 / 合并结果各留 LRU（8 / 6 份）。
+- 实测：`queryRenderedFeatures` 在喀尔巴阡 z8 = 12 要素、乌拉尔 z7 = 6、日本阿尔卑斯 z8 = 13；
+  同一视口 `contour-world_mid` 为 0（挖空生效，无双线）。
+- 样式层数 205 → **232**（9 档 × 3 层）；`WorldMapLibre.tsx` 696 → **672 行**（等高线加载抽走）。
+
+### v1.89 六个城市核心包（z14–15 建筑 + 密度 + 气泡）
+
+富尔达之外在 z14–15 只有灰块、没有真实建筑。按 `fulda_core` 的做法批量化：
+
+- 新增 **`Tools/add_core.mjs`**（一步可复现）：`pmtiles extract` z14–15 → `dump_buildings.mjs`(z15) →
+  `bake_density.py` → `bake_poi.mjs` → 写 `tiles/index.json` 与 `Tools/data_manifest.json`；
+  失败时回滚本次新增产物与索引。源为本地母包 `E:/PersonalGame/v4.pmtiles`，**不联网**。
+- 6 包合计 **52 MB**：柏林 12.2 / 慕尼黑 9.3 / 汉堡 7.9 / 科隆 8.3 / 法兰克福 7.0 / 卡塞尔 5.3；
+  密度 212–229 张/城（0.25–0.34 MB），气泡 43–96 点/城。
+- 实测（用地·政区图 z15）：建筑要素 柏林 3,965 / 慕尼黑 9,198 / 卡塞尔 9,012；
+  `density-<key>` 层存在且 `visible`（raster 层 `queryRenderedFeatures` 本就返回空）。
+- 总量：底图包 5.36 → **5.41 GB**（CONSTRAINTS §2 的 12 GB 预算内）；tier 仍按
+  `world → world8 → world9 → germany → germany13 → <city>_core(14–15)` 自动接管，前端零改动。
+
+### v1.90 UI 多语言：中 / 英两套文案，跟随地名语言档
+
+- 新增 **`app/src/i18n.ts`**：`UiStrings` 接口 + ZH / EN 两套实现，`strings(lang)` 取表；
+  `local` 档回落到中文 UI（地名用本地名，界面仍中文）。
+- 覆盖范围：顶栏（品牌 / 层数 / 离线 / 兵牌数 / aria）、图种与三条提示、高级图层树（8 组 18 叶）、
+  兵牌面板（阵营 / 兵种 / 放置提示 / 清空）、底图与署名、测距面板（距离 / 方位 / 高差 / 剖面）、
+  地图 HUD（载入 / 失败 / 战损 / 射程圈 / 城区影响 / 五项修饰 / 读数 / 操作提示）、
+  坡向八向词、兵牌 title。
+- 数据层只动两处：`store.addMarker` 用 `strings(this.lang).units[...]` 生成新兵牌标签；
+  `readout.bearingLabel(deg, dirs)` 接受语言词表（默认中文）。
+- 实测（DOM 抽查）：点 EN → `Map type / Advanced layers / Markers / Basemap / Terrain · transport /
+  Land use · admin / Damage / 8 basemap layers / 0 markers`；切回中文逐项还原。
+- 语言档同时驱动地名与 UI：EN 档地图地名也切英文；中文档 UI 与地名都中文。
+- tsc 0 error；`i18n.ts` 254 行、`WorldMapLibre.tsx` 674 行。
+
+### v1.91 中欧 DEM/坡度补到 z9（用掉剩余预算）
+
+`dem/europe` 原来只到 z8：中欧（德国之外）在 z9 仍是 z8 的 2 倍 overzoom。这一轮补 z9：
+
+- `dem/europe` z6–z9：**308 → 1,121 张 / 20.2 → 110.1 MB**（z9 新增 812 张，AWS Terrarium，离线后复现）。
+- `slope/europe` z6–z9：**5.0 → 7.4 MB**（1,121 张调色板 PNG）。
+- `dem/world8`、`slope/world8` 两个别名清单同步 `maxzoom 9`。
+- 档位关系不变：`DEM_BANDS` europe 从 z7 接管、germany 从 z9 接管；德国境内 europe 仍在 z9 封顶，
+  **德国之外**在 z9 用原生瓦片。实测：维也纳 z10 `dem/europe` source = z6–9、`relief-europe` max 22；
+  富尔达 z10 `relief-europe` max 9、`relief-germany` max 22。
+- 预算：DEM 总量 844 → **934 MB**（CONSTRAINTS §2 的 1 GB 上限，余 ~90 MB）；坡度总量 +2.4 MB。
+- 注意：坡度清单走 `getJson` 的 `force-cache`，换数据后浏览器需硬刷新（Ctrl+F5）才会读到新 `index.json`；
+  DEM 清单走 `loadDemManifest` 的 `no-cache`，不受影响。

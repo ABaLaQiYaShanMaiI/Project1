@@ -1,0 +1,17 @@
+{
+ "key": "munich_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  11.515,
+  48.077,
+  11.635,
+  48.197
+ ],
+ "tiles": "/data/density/munich_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 212,
+ "sizeMB": 0.31,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/munich_core.pmtiles"
+}

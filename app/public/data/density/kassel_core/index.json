@@ -1,0 +1,17 @@
+{
+ "key": "kassel_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  9.419,
+  51.252,
+  9.539,
+  51.372
+ ],
+ "tiles": "/data/density/kassel_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 219,
+ "sizeMB": 0.25,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/kassel_core.pmtiles"
+}

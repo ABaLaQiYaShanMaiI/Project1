@@ -1,31 +1,45 @@
 import { useStore, store } from '../hooks';
 import { fpsTone } from '../store';
+import { LANGS, LANG_LABEL } from '../data/style/lang';
+import { strings } from '../i18n';
 
 export function TopBar(): JSX.Element {
   useStore();
   const base = store.basemap;
+  const s = strings(store.lang);
 
   return (
     <header className="topbar">
       <div className="brand">
         <span className="brand-mark">⬡</span>
         <div className="brand-text">
-          <span className="brand-name">战术地图军棋</span>
-          <span className="brand-sub">TACTICAL MAP WARGAME</span>
+          <span className="brand-name">{s.brand}</span>
+          <span className="brand-sub">{s.brandSub}</span>
         </div>
-        <span className="scenario">{base ? base.name : '世界地图'} · 1985</span>
+        <span className="scenario">{base ? base.name : s.worldMap} · 1985</span>
       </div>
 
       <div className="clock">
-        <div className="clock-main">{base ? `${base.tiers.length} 层底图` : '载入中'}</div>
-        <div className="clock-sub">{base ? `z0–z${base.maxzoom} · ${base.sizeMB} MB · 离线` : '本地 PMTiles'}</div>
+        <div className="clock-main">{base ? s.layers(base.tiers.length) : s.loading}</div>
+        <div className="clock-sub">{base ? s.offline(base.maxzoom, base.sizeMB) : s.localPmtiles}</div>
       </div>
 
       <div className="group">
-        <div className="seg" role="group" aria-label="状态">
+        <div className="seg" role="group" aria-label={s.ariaLang}>
+          {LANGS.map((lang) => (
+            <button
+              key={lang}
+              className={`seg-btn ${store.lang === lang ? 'active' : ''}`}
+              onClick={() => store.setLang(lang)}
+            >
+              {LANG_LABEL[lang]}
+            </button>
+          ))}
+        </div>
+        <div className="seg" role="group" aria-label={s.ariaStatus}>
           <span className={`seg-btn ${store.markers.length ? 'active' : ''}`}>
             <i className="dot dot-blue" />
-            {store.markers.length} 兵牌
+            {s.markers(store.markers.length)}
           </span>
           <span className={`seg-btn fps fps-${fpsTone(store.perf.fps)}`}>
             <i className="dot dot-amber" />

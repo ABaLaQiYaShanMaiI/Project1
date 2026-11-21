@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Map as MLMap, MapMouseEvent } from 'maplibre-gl';
 import type { DemSampler } from '../data/terrain';
+import { store } from '../hooks';
+import { strings } from '../i18n';
 import {
   bearingDeg,
   distanceM,
@@ -22,6 +24,7 @@ export function MeasurePanel({ map, sampler }: Props): JSX.Element {
   const [pts, setPts] = useState<[GeoPoint | null, GeoPoint | null]>([null, null]);
   const [tick, setTick] = useState(0);
   const [a, b] = pts;
+  const s = strings(store.lang);
 
   useEffect(() => {
     if (!map) return;
@@ -78,34 +81,34 @@ export function MeasurePanel({ map, sampler }: Props): JSX.Element {
   return (
     <>
       <button className={`btn small ml-measure-btn ${active ? 'on' : ''}`} onClick={() => setActive((v) => !v)}>
-        {active ? '点击选点（再点关闭）' : '测距'}
+        {active ? s.measuring : s.measure}
       </button>
 
       {active && stats && (
         <div className="ml-measure-panel mono">
-          <div className="mp-k">直线距离</div>
+          <div className="mp-k">{s.distance}</div>
           <div className="mp-v">{fmtDistance(stats.d)}</div>
-          <div className="mp-k">方位</div>
+          <div className="mp-k">{s.bearing}</div>
           <div className="mp-v">
             {fmtBearing(stats.brg)} ／ {Math.round(toMils(stats.brg))} mil
           </div>
-          <div className="mp-k">高差 / 平均坡</div>
+          <div className="mp-k">{s.slopePair}</div>
           <div className="mp-v">
             {stats.dz === null
               ? '—'
               : `${stats.dz > 0 ? '+' : ''}${Math.round(stats.dz)} m　${stats.slopePct!.toFixed(1)}% (${stats.slopeDeg!.toFixed(1)}°)`}
           </div>
-          <div className="mp-k">高程 A / B</div>
+          <div className="mp-k">{s.elevationPair}</div>
           <div className="mp-v">
             {stats.zA === null ? '—' : Math.round(stats.zA)} m ／ {stats.zB === null ? '—' : Math.round(stats.zB)} m
           </div>
-          <div className="mp-k">地形剖面</div>
+          <div className="mp-k">{s.profile}</div>
           {stats.spark ? (
             <svg width="200" height="38" className="mp-spark">
               <polyline points={stats.spark} />
             </svg>
           ) : (
-            <div className="mp-dim">地形数据加载中…</div>
+            <div className="mp-dim">{s.terrainLoading}</div>
           )}
         </div>
       )}

@@ -1,0 +1,17 @@
+{
+ "key": "hamburg_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  9.933,
+  53.491,
+  10.053,
+  53.611
+ ],
+ "tiles": "/data/density/hamburg_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 225,
+ "sizeMB": 0.29,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/hamburg_core.pmtiles"
+}

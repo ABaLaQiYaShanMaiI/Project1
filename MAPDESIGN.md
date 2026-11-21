@@ -13,8 +13,8 @@ L1 全球 z7-8  tiles/world8.pmtiles     z7-z8    476 MB    村镇级标注与�
 L1b 全球 z9-10 tiles/world9.pmtiles     z9-z10   3.0 GB    街区级路网与更密地名
 L2 热点      tiles/fulda.pmtiles      z0-z13   42 MB     战术尺度
 L3 城区核心  tiles/fulda_core.pmtiles z14-z15  3.2 MB    真实建筑
-地形        dem/world z0-z5（86 MB） + dem/world6 z6（约 200 MB） + dem/europe z6-z8（21 MB） + dem/germany z9-z11（520 MB）
-坡度        slope/world z0-z5（3.6 MB） + slope/world6 z6（约 6 MB） + slope/europe z7-z8（5.0 MB） + slope/fulda z9-z11（2.0 MB）
+地形        dem/world z0-z5（86 MB） + dem/world6 z6（约 200 MB） + dem/europe z6-z9（110 MB） + dem/germany z9-z11（520 MB）
+坡度        slope/world z0-z5（3.6 MB） + slope/world6 z6（约 6 MB） + slope/europe z6-z9（7.4 MB） + slope/fulda z9-z11（2.0 MB）
 判读        contours_<key>.json、运行时 UTM 格网、射程圈
 ```
 
@@ -109,13 +109,22 @@ opacity 由 z1 的 0.6 升到 z2.5 的 1；相邻档首尾相接，每档只允�
 | 档 | 数据来源 | 等高距 / 计曲线 | 缩放 | 体积 |
 | --- | --- | --- | --- | --- |
 | world | `contours_world.json`（全球，DEM z5） | 1000 / 2000 m | z4–7 | 2.82 MB / 167k 顶点 |
-| world_mid | `contours_world_mid.json`（全球**挖掉** 6 个 500 m 区） | 1000 / 2000 m | z7–10 | 1.96 MB / 116k 顶点 |
+| world_mid | `contours_world_mid.json`（全球**挖掉** 15 个 500 m 区） | 1000 / 2000 m | z7–10 | 1.84 MB / 108k 顶点 |
 | asia_himal | `contours_asia_himal.json`（65–105°E / 20–45°N，DEM z6） | 500 / 1000 m | z7–10 | 3.57 MB / 238k 顶点 |
 | zagros | `contours_zagros.json`（35–62°E / 25–42°N，DEM z6） | 500 / 1000 m | z7–10 | 0.83 MB / 57k 顶点 |
 | andes | `contours_andes.json`（−80…−58°E / −55…12°N，DEM z6） | 500 / 1000 m | z7–10 | 2.22 MB / 146k 顶点 |
 | rockies | `contours_rockies.json`（−130…−100°E / 25–55°N，DEM z6） | 500 / 1000 m | z7–10 | 1.80 MB / 116k 顶点 |
 | africa_rift | `contours_africa_rift.json`（28–46°E / −15…15°N，DEM z6） | 500 / 1000 m | z7–10 | 0.73 MB / 47k 顶点 |
 | europe | `contours_europe.json`（0–20°E / 44–56°N，DEM z8） | 500 / 1500 m | z7–10 | 1.27 MB / 88k 顶点 |
+| carpathians | `contours_carpathians.json`（17–27°E / 44–50°N，DEM z6） | 500 / 1000 m | z7–10 | 0.09 MB |
+| scandes | `contours_scandes.json`（4–20°E / 58–71°N，DEM z6） | 500 / 1000 m | z7–10 | 0.28 MB |
+| urals | `contours_urals.json`（55–68°E / 50–68°N，DEM z6） | 500 / 1000 m | z7–10 | 0.07 MB |
+| caucasus | `contours_caucasus.json`（37–50°E / 42–45°N，DEM z6） | 500 / 1000 m | z7–10 | 0.09 MB |
+| altai | `contours_altai.json`（82–100°E / 47–55°N，DEM z6） | 500 / 1000 m | z7–10 | 0.44 MB |
+| atlas | `contours_atlas.json`（−10…0°E / 29–36°N，DEM z6） | 500 / 1000 m | z7–10 | 0.10 MB |
+| drakensberg | `contours_drakensberg.json`（27–32°E / −33…−25°N，DEM z6） | 500 / 1000 m | z7–10 | 0.08 MB |
+| japan_alps | `contours_japan_alps.json`（135–142°E / 34–38°N，DEM z6） | 500 / 1000 m | z7–10 | 0.06 MB |
+| mesoamerica | `contours_mesoamerica.json`（−108…−96°E / 15–25°N，DEM z6） | 500 / 1000 m | z7–10 | 0.28 MB |
 | germany | `contours_germany.json`（德国 bbox，DEM z11） | 200 / 400 m | z10–13 | 3.45 MB / 243k 顶点 |
 | fulda | `contours_fulda.json`（富尔达 bbox，DEM z9–11） | 25 / 125 m | z13+ | 1.37 MB / 114k 顶点 |
 
@@ -123,9 +132,14 @@ opacity 由 z1 的 0.6 升到 z2.5 的 1；相邻档首尾相接，每档只允�
 相邻档永不重叠。z7–10 这一层里**细档（500 m）按山系分区**，粗档 world_mid 在烘焙时就用 `--exclude`
 把这些 bbox 置 NaN 挖空（`;` 分隔多个矩形），于是同一缩放只有一套线；`ContourBand.exclude` 另外让装配端
 在视口整个落进欧洲时不下载 world_mid。透明度 z5 0.18 → z14 0.65、细线 z5 0.4 → z13 1.0 px，
-地势图再由图种强度抬高。烘焙参数：world 3600 px / 简化 1500 m / 最短 20 km；五个山系 2000–2600 px /
+地势图再由图种强度抬高。烘焙参数：world 3600 px / 简化 1500 m / 最短 20 km；十四个 500 m 区 2000–2400 px /
 700 m / 6 km（DEM z6，原生 2.4 km/px）；europe 2400 px / 400 m / 6 km；germany 3000 px / 120 m / 2 km；
 fulda 1200 px / 45 m / 0.6 km；`--min-elev 0` 丢掉海平面以下的 DEM 噪声层。
+
+**跨视口补载（v1.88）**：等高线原来只在样式重建时按当时视口装载，平移到另一个山系（同一 tier 内）
+不会补载 —— 新增的 9 个 500 m 区会「看不见」。现在 `map/contourDocs.ts` 在 `moveend` 比较
+「当前视口应活跃的 band 集合」，有变化就补拉缺失档并 `setData` 到 `contours` 源，不重建样式；
+文档与合并结果各留 LRU（8 / 6 份），避免长时间平移把内存堆满。
 
 LOD 分层与透明度随缩放淡入见上表：每档只在自身缩放段出现，低倍不再被 25 m 等高线糊住。
 标注：`symbol-placement: 'line'` 沿线上字（不烘固定锚点，避免放大变稀、缩小被碰撞剔除）。
@@ -181,6 +195,16 @@ LOD 分层与透明度随缩放淡入见上表：每档只在自身缩放段出�
 **海洋注记（v1.78）**：`seas_world.json` 存 58 个海域名与手选中心点（等级 1 洋 / 2 海 / 3 湾·海峡），
 样式层 `sea-label` 在 z3–8 用大写 + 0.14–0.24 字距、水路蓝 `#6f8fa0` + 纸色光晕，`symbol-sort-key` 让洋先排；
 碰撞交给 MapLibre（`text-allow-overlap: false`），同屏只留放得下的名字。归「地名标注」叶，两个图种都可见。
+
+**地名语言（v1.86）**：`places` 与 `water` 的 `text-field` 由语言档决定，回退链
+`name:zh-Hans → name:zh-Hant → names_zh.json → name:en → name`；EN 档 `name:en → name`；
+本地名档保留底图原表达式（按 `baseIdOf` 从 `base.style.json` 回填）。`names_zh.json` 为
+**1,371 条居民地 + 33 条河流**（人工 150 条 + `Tools/bake_names_zh.mjs` 从 Wikidata 补 1,221 条，
+同名冲突跳过），覆盖富尔达热点与全球低倍地名；海名 58 条在 `seas_world.json`
+第 5 项带中文名。切换只改符号层 `text-field`，不重建样式；默认中文，记 `localStorage['map.lang.v1']`。
+汉名河流由新增的 `water_label` 层绘制（z10–17，沿线上字，绑**当前缩放所在 tier**；绑最细 tier 会取到
+`fulda_core` z14–15，z13 查询为空）。
+汉字不请求字形分片——MapLibre 6 的 `localIdeographFontFamily`（默认 `sans-serif`）走本机字形。
 
 ## 八、性能
 
@@ -278,6 +302,10 @@ LOD 分层与透明度随缩放淡入见上表：每档只在自身缩放段出�
 补一个 **城区核心包** `fulda_core.pmtiles`（bbox 0.12°×0.12°、z14–15、**3.2 MB**）：
 z15 单瓦片 **1,807 栋建筑**，tier 系统自动在 z14+ 接管，前端不改一行。
 按城市批量产出这种小包（每城 3 MB 级）比整区域上 z15 便宜得多。
+
+v1.89 起已批量化：`Tools/add_core.mjs` 一步完成「切 z14–15 → 建筑密度 → 设施气泡 → 登记索引」，
+现有 **7 个 core 包**（富尔达 3.2 MB + 柏林 12.2 / 慕尼黑 9.3 / 汉堡 7.9 / 科隆 8.3 /
+法兰克福 7.0 / 卡塞尔 5.3，合计 55 MB），全部来自本地母包、烘焙期不联网。
 
 ### 5. 城区战损
 

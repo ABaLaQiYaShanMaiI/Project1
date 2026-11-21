@@ -21,25 +21,19 @@ import { groupOf, baseIdOf } from './data/style/layerGroups';
 import { getJson, mergePois, mergeRails, poiFc, riversWorldFc, roadsWorldFc, seaLabelFc, type DensityDoc, type PoiDoc, type RiversWorldDoc, type RoadsWorldDoc, type SeaDoc } from './map/docLoaders';
 import { clipRailsWorld } from './data/railsWorld';
 import { applyForceDetail, type ZoomStore } from './map/forceDetail';
-import { HYPSOMETRIC_RAMP, HYPSOMETRIC_RAMP_COARSE, HYPSOMETRIC_RAMP_MID } from './data/style/tokens';
+import { DEM_BANDS, demKeyAt, viewSig } from './data/demBands';
 import { buildGrid, ddText, rangeRing, utmOf, utmText } from './core/geo';
-import { MOD_KEYS, MOD_LABEL, fmtMod } from './core/cityEffects';
+import { MOD_KEYS, fmtMod } from './core/cityEffects';
+import { strings } from './i18n';
 import { DemSampler, loadDemManifest } from './data/terrain';
 import { cityZoneAt, loadCityDex, type CityDex } from './data/cities';
 import { cityKey } from './data/damageStore';
 import { createCityDamage, damageDiscs, type DamageLayer } from './map/cityDamage';
+import { applyLang } from './map/langLayers';
+import type { ZhNames, ZhNamesDoc } from './data/style/lang';
 import { MeasurePanel } from './ui/MeasurePanel';
-import {
-  CONTOUR_BANDS,
-  contourBandActive,
-  mergeContours,
-  militaryStyle,
-  type ContourBand,
-  type ContourDoc,
-  type DemTier,
-  type SlopeTier,
-  type FC,
-} from './data/militaryStyle';
+import { militaryStyle, type DemTier, type SlopeTier, type FC } from './data/militaryStyle';
+import { bindContourSync, contourBandsIn, contourSig, loadContours } from './map/contourDocs';
 import {
   loadBaseStyle,
   loadPmtilesZones,
@@ -60,54 +54,6 @@ const BLANK_STYLE = {
 } as unknown as StyleSpecification;
 
 const START = { lon: 9.72, lat: 50.62, zoom: 7 };
-
-function boxHit(a: [number, number, number, number], b: [number, number, number, number]): boolean {
-  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1];
-}
-
-const DEM_BANDS: Array<{ key: string; from: number; bbox: [number, number, number, number]; ramp: unknown }> = [
-  { key: 'world', from: 0, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
-  { key: 'world6', from: 6, bbox: [-180, -85, 180, 85], ramp: HYPSOMETRIC_RAMP_COARSE },
-  { key: 'europe', from: 7, bbox: [0, 44, 20, 56], ramp: HYPSOMETRIC_RAMP_MID },
-  { key: 'germany', from: 9, bbox: [5.8, 47.2, 15.1, 55.1], ramp: HYPSOMETRIC_RAMP },
-];
-
-function demKeyAt(zoom: number, lon: number, lat: number): string {
-  let key = 'world';
-  for (const d of DEM_BANDS) {
-    if (d.from > zoom) continue;
-    if (boxHit(d.bbox, [lon, lat, lon, lat])) key = d.key;
-  }
-  return key;
-}
-
-function viewSig(hit: PmtilesZone[], zoom: number, lon: number, lat: number): string {
-  const bands = tierBands(hit);
-  return `${hit.map((z) => z.key).sort().join(',')}|${bands.map((b) => b.from).join(',')}|${demKeyAt(zoom, lon, lat)}`;
-}
-
-const contourCache = new Map<string, ContourDoc>();
-const contourFcCache = new Map<string, FC | null>();
-
-async function loadContours(active: Array<{ b: ContourBand; i: number }>): Promise<FC | null> {
-  if (!active.length) return null;
-  const sig = active.map(({ i }) => i).join(',');
-  if (contourFcCache.has(sig)) return contourFcCache.get(sig) ?? null;
-  const docs = await Promise.all(
-    active.map(async ({ b }) => {
-      const hit = contourCache.get(b.key);
-      if (hit) return hit;
-      const doc = await getJson<ContourDoc>(`/data/contours_${b.key}.json`);
-      if (doc?.levels?.length) contourCache.set(b.key, doc);
-      return doc;
-    }),
-  );
-  const items = docs.flatMap((doc, k) => (doc?.levels?.length ? [{ doc, band: active[k].i }] : []));
-  if (!items.length) return null;
-  const fc = mergeContours(items);
-  if (items.length === active.length) contourFcCache.set(sig, fc);
-  return fc;
-}
 
 function railFc(lines: [number, number][][] | undefined, boxes: [number, number, number, number][]): FC | null {
   if (!lines?.length) return null;
@@ -133,6 +79,7 @@ interface SlopeManifest {
 
 export function WorldMapLibre(): JSX.Element {
   useStore();
+  const s = strings(store.lang);
   const boxRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MLMap | null>(null);
   const markersRef = useRef<Map<string, MLMarker>>(new Map());
@@ -152,6 +99,10 @@ export function WorldMapLibre(): JSX.Element {
   const ringsRef = useRef(false);
   const dexRef = useRef<CityDex | null>(null);
   const damageRef = useRef<DamageLayer | null>(null);
+  const zhRef = useRef<ZhNames | null>(null);
+  const baseRef = useRef<StyleSpecification | null>(null);
+  const contourSigRef = useRef('');
+  const [zhEpoch, setZhEpoch] = useState(0);
   const damageModeRef = useRef(false);
   const [damageMode, setDamageMode] = useState(false);
 
@@ -206,7 +157,7 @@ export function WorldMapLibre(): JSX.Element {
           continue;
         }
         const mk = new MapLibreMarker({
-          element: markerElement(m, (id) => store.removeMarker(id)),
+          element: markerElement(m, (id) => store.removeMarker(id), s.markerHint),
           draggable: true,
           anchor: 'center',
         })
@@ -289,7 +240,7 @@ export function WorldMapLibre(): JSX.Element {
       const zones = await loadPmtilesZones();
       if (!alive) return;
       if (!zones.length) {
-        setFailure('还没有底图包，请先运行 Tools/fetch_basemap.mjs');
+        setFailure(s.failure);
         setLoading(false);
         return;
       }
@@ -305,6 +256,7 @@ export function WorldMapLibre(): JSX.Element {
         loadBaseStyle(tiersZones[tiersZones.length - 1]),
         Promise.all(DEM_BANDS.map((d) => loadDemManifest(d.key))),
       ]);
+      baseRef.current = base;
       const viewBox: [number, number, number, number] = [vb.getWest(), vb.getSouth(), vb.getEast(), vb.getNorth()];
       const caps = tierCaps(bands, viewBox);
       capsRef.current = { bands, caps };
@@ -315,6 +267,8 @@ export function WorldMapLibre(): JSX.Element {
 
       const zoomNow = map.getZoom();
       const center = map.getCenter();
+      const waterTier = [...tiers].reverse().find((t) => t.styleMin <= zoomNow) ?? tiers[0];
+      const waterSource = waterTier?.id;
       const bestDem = demKeyAt(zoomNow, center.lng, center.lat);
       const bestFrom = DEM_BANDS.find((d) => d.key === bestDem)?.from ?? 0;
       const demTiers: DemTier[] = [];
@@ -335,7 +289,8 @@ export function WorldMapLibre(): JSX.Element {
 
       const regions = tiersZones.filter((z) => z.kind !== 'world').sort((a, b) => b.maxzoom - a.maxzoom);
       const slopeBands = DEM_BANDS.map(({ key, from }) => ({ key, from }));
-      const activeBands = CONTOUR_BANDS.map((b, i) => ({ b, i })).filter(({ b }) => contourBandActive(b, viewBox));
+      const activeBands = contourBandsIn(viewBox);
+      contourSigRef.current = contourSig(activeBands);
       const [slopeMans, contours, mergedRails, dex] = await Promise.all([
         Promise.all(slopeBands.map((s) => getJson<SlopeManifest>(`/data/slope/${s.key}/index.json`))),
         loadContours(activeBands),
@@ -371,7 +326,7 @@ export function WorldMapLibre(): JSX.Element {
           } as unknown as FC)
         : null;
 
-      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc, seaDoc, roadsDoc, riversDoc] = await Promise.all([
+      const [poiBase, poiRegional, urbanDoc, fineDoc, coarseDoc, seaDoc, roadsDoc, riversDoc, zhDoc] = await Promise.all([
         getJson<PoiDoc>('/data/poi_world.json'),
         Promise.all(regions.map((r) => getJson<PoiDoc>(`/data/poi_${r.key}.json`))),
         getJson<{ polys?: [number, number][][] }>('/data/urban_world.json'),
@@ -380,6 +335,7 @@ export function WorldMapLibre(): JSX.Element {
         getJson<SeaDoc>('/data/seas_world.json'),
         getJson<RoadsWorldDoc>('/data/roads_world.json'),
         getJson<RiversWorldDoc>('/data/rivers_world.json'),
+        getJson<ZhNamesDoc>('/data/names_zh.json'),
       ]);
       const poiPoints = (() => {
         const regionDocs = new Map(regions.map((r, i) => [r.key, poiRegional[i]] as const));
@@ -390,6 +346,10 @@ export function WorldMapLibre(): JSX.Element {
         return mergePois([...ordered, poiBase]);
       })();
       const poi = poiFc(poiPoints);
+      if (zhDoc && !zhRef.current) {
+        zhRef.current = { places: zhDoc.places ?? {}, water: zhDoc.water ?? {} };
+        setZhEpoch(1);
+      }
       const urbanWorld = urbanDoc?.polys?.length
         ? ({
             type: 'FeatureCollection',
@@ -426,6 +386,9 @@ export function WorldMapLibre(): JSX.Element {
         seaLabels,
         roadsWorld,
         riversWorld,
+        lang: store.lang,
+        zhNames: zhRef.current,
+        waterSource: waterSource,
       });
       if (!alive) return;
       map.setStyle(style);
@@ -451,7 +414,7 @@ export function WorldMapLibre(): JSX.Element {
 
       store.setBasemap({
         name: focus.name,
-        tiers: tiersZones.map((z) => `${z.kind === 'world' ? '全球' : z.name} z${z.minzoom}–${z.maxzoom}`),
+        tiers: tiersZones.map((z) => `${z.kind === 'world' ? s.global : z.name} z${z.minzoom}–${z.maxzoom}`),
         minzoom: 0,
         maxzoom: Math.max(...tiersZones.map((z) => z.maxzoom)),
         sizeMB: Number(tiersZones.reduce((s, z) => s + z.sizeMB, 0).toFixed(1)),
@@ -553,6 +516,23 @@ export function WorldMapLibre(): JSX.Element {
   }, [store.version, viewEpoch]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const run = () => applyLang(map, store.lang, zhRef.current, baseRef.current);
+    if (map.isStyleLoaded()) run();
+    map.on('style.load', run);
+    return () => {
+      map.off('style.load', run);
+    };
+  }, [store.lang, zhEpoch]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    return bindContourSync(map, contourSigRef);
+  }, []);
+
+  useEffect(() => {
     damageRef.current?.refresh(damageDiscs(store.damage));
   }, [store.damage]);
 
@@ -608,17 +588,17 @@ export function WorldMapLibre(): JSX.Element {
 
       <div className="world-tools">
         <button className={`btn small ${damageMode ? 'on' : ''}`} onClick={() => setDamageMode((v) => !v)}>
-          战损
+          {s.damage}
         </button>
         <span className={`mono world-fps fps fps-${fpsTone(store.perf.fps)}`}>{store.perf.fps} FPS</span>
       </div>
 
-      {loading && <div className="ml-loading">正在载入底图…</div>}
+      {loading && <div className="ml-loading">{s.loadingMap}</div>}
       {failure && <div className="ml-fail mono">{failure}</div>}
 
       {ring && ringsOn && (
         <div className="ml-layers">
-          <div className="lp-title">射程圈</div>
+          <div className="lp-title">{s.ring}</div>
           <input
             type="range"
             min={2}
@@ -627,25 +607,25 @@ export function WorldMapLibre(): JSX.Element {
             value={ring.km}
             onChange={(e) => setRing({ ...ring, km: Number(e.target.value) })}
           />
-          <div className="lp-hint">
-            圈间距 {ring.km} km · 最外 {ring.km * 5} km
-          </div>
+          <div className="lp-hint">{s.ringSpacing(ring.km, ring.km * 5)}</div>
         </div>
       )}
 
       {store.cityZone && (
         <div className="ml-city">
-          <div className="lp-title">城区影响 · {store.cityZone.name || '城区'}</div>
+          <div className="lp-title">{s.cityPanel(store.cityZone.name)}</div>
           <div className="city-sub mono">
-            强度 {Math.round(store.cityZone.weight * 100)}% · 半径 {(store.cityZone.r / 1000).toFixed(1)} km
+            {s.intensity(Math.round(store.cityZone.weight * 100), (store.cityZone.r / 1000).toFixed(1))}
           </div>
           {store.damage[cityKey(store.cityZone.lon, store.cityZone.lat)]?.[1] ? (
-            <div className="city-dmg mono">战损 {store.damage[cityKey(store.cityZone.lon, store.cityZone.lat)][1]} 级</div>
+            <div className="city-dmg mono">
+              {s.damageLevel(store.damage[cityKey(store.cityZone.lon, store.cityZone.lat)][1])}
+            </div>
           ) : null}
           <div className="city-mods">
             {MOD_KEYS.map((k) => (
               <div key={k} className={`city-mod ${store.cityZone && store.cityZone.mods[k] > 0 ? 'up' : 'down'}`}>
-                <span>{MOD_LABEL[k]}</span>
+                <span>{s.mods[k]}</span>
                 <b>{fmtMod(store.cityZone ? store.cityZone.mods[k] : 0)}</b>
               </div>
             ))}
@@ -661,28 +641,28 @@ export function WorldMapLibre(): JSX.Element {
             <span>{utm ? utmText(utm) : '-'}</span>
             <span className="ro-sep" />
             <span className={readout.elevation == null ? 'dim' : ''}>
-              {readout.elevation == null ? '高程 …' : `高程 ${readout.elevation} m`}
+              {s.elevationAt(readout.elevation)}
             </span>
             {readout.slope != null && (
               <>
                 <span className="ro-sep" />
-                <span>坡度 {readout.slope.toFixed(0)}%</span>
+                <span>{s.slopeAt(Number(readout.slope.toFixed(0)))}</span>
                 <span className="ro-sep" />
-                <span>坡向 {bearingLabel(readout.aspect ?? 0)}</span>
+                <span>{s.aspectAt(bearingLabel(readout.aspect ?? 0, s.dirs))}</span>
               </>
             )}
           </>
         ) : (
-          <span className="dim">移动鼠标读取坐标 · 高程 · 坡度</span>
+          <span className="dim">{s.readoutHint}</span>
         )}
       </div>
 
       <div className="map-hint">
         {store.placing
-          ? '单击地图放置兵牌；右键兵牌删除'
+          ? s.placingMarker
           : damageMode
-            ? '单击城区标记战损（+1，最高 3 级）· Shift+单击清除'
-            : '拖动平移 · 滚轮缩放 · 双击放大'}
+            ? s.damageHint
+            : s.panHint}
       </div>
     </div>
   );

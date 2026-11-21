@@ -1,0 +1,17 @@
+{
+ "key": "berlin_core",
+ "z": 15,
+ "minzoom": 15,
+ "maxzoom": 15,
+ "bbox": [
+  13.345,
+  52.46,
+  13.465,
+  52.58
+ ],
+ "tiles": "/data/density/berlin_core/{z}/{x}/{y}.png",
+ "levels": 5,
+ "count": 228,
+ "sizeMB": 0.34,
+ "source": "E:/PersonalGame/Project1/app/public/data/tiles/berlin_core.pmtiles"
+}

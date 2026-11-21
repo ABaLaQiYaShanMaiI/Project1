@@ -40,7 +40,7 @@
   运行时由 `pmtiles://` 协议按 HTTP Range 读取本地文件。
 - 服务端必须给 `.mjs` 正确 MIME（模块 worker 依赖它），否则世界地图整体不渲染；见 `Tools/serve.mjs`。
 - 目标平台 Windows 单机；数据与规则层不得依赖特定平台 API。
-- 所有地图数据来源必须可署名：当前为 © OpenStreetMap contributors (ODbL) + AWS Terrain Tiles（SRTM）。
+- 所有地图数据来源必须可署名：当前为 © OpenStreetMap contributors (ODbL) + AWS Terrain Tiles（SRTM）+ Wikidata（CC0，中文地名标签）。
 
 ## 5. 性能预算
 

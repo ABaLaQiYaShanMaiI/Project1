@@ -5,6 +5,9 @@ import { loadMarkers, saveMarkers } from './data/markerStore';
 import { CONTOUR_BOLD_OPACITY, CONTOUR_BOLD_WIDTH, CONTOUR_OPACITY, CONTOUR_WIDTH } from './data/style/contour';
 import { BOUNDARY_OPACITY, HILLSHADE_EXAGGERATION, LANDCOVER_FILL_OPACITY, LANDUSE_FILL_OPACITY } from './data/style/tokens';
 import { WATER_WIDTH } from './data/style/widths';
+import { loadLang, saveLang } from './data/langStore';
+import type { MapLang } from './data/style/lang';
+import { strings } from './i18n';
 
 export const LAYER_DEFAULT = {
   relief: true,
@@ -285,6 +288,7 @@ class Store {
   layers: Record<LayerKey, boolean> = personaLayers(PERSONAS[0]);
   preset = PERSONAS[0].key;
   forceDetail = false;
+  lang: MapLang = loadLang();
 
   basemap: BasemapInfo | null = null;
   perf: Perf = { fps: 60 };
@@ -354,6 +358,13 @@ class Store {
     this.emit();
   }
 
+  setLang(lang: MapLang): void {
+    if (this.lang === lang) return;
+    this.lang = lang;
+    saveLang(lang);
+    this.emit();
+  }
+
   groupOn(group: string): boolean {
     const g = LAYER_TREE.find((x) => x.key === group);
     if (!g) return false;
@@ -388,7 +399,10 @@ class Store {
   }
 
   addMarker(lon: number, lat: number): void {
-    this.markers = [...this.markers, newMarker(this.markerKind, this.markerSide, lon, lat)];
+    this.markers = [
+      ...this.markers,
+      newMarker(this.markerKind, this.markerSide, lon, lat, strings(this.lang).units[this.markerKind]),
+    ];
     saveMarkers(this.markers);
     this.emit();
   }

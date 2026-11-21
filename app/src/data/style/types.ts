@@ -1,4 +1,5 @@
 import type { StyleSpecification } from 'maplibre-gl';
+import type { MapLang, ZhNames } from './lang';
 
 export interface FeatureLike {
   type: 'Feature';
@@ -58,6 +59,9 @@ export interface StyleInputs {
   riversWorld?: FC | null;
   grid?: FC | null;
   poi?: FC | null;
+  lang?: MapLang;
+  zhNames?: ZhNames | null;
+  waterSource?: string;
 }
 
 export interface DensityTier {
